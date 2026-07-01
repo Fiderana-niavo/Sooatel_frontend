@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;
@@ -50,66 +52,70 @@
   }
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
+
 
 body {
   margin: 0;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+/* Theme overrides for Utopia (Restaurant) and Sooatel (Hôtel) modes */
+
+/* 🍽️ MODE RESTAURANT - Utopia */
+.theme-utopia {
+  --font-sans: 'Poppins', sans-serif; /* Application de la police moderne et géométrique */
+
+  --primary: #D4AF37;                 
+  --primary-foreground: oklch(0.985 0 0); 
+  --secondary: #1A1C3A;               
+  --secondary-foreground: oklch(0.985 0 0);
+  --accent: #E5C158;                  
+  --accent-foreground: oklch(0.205 0 0);  
+  --sidebar-primary: #1A1C3A;         
+  --sidebar-primary-foreground: oklch(0.985 0 0);
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
+/* 🏨 MODE HÔTEL - Sooatel */
+.theme-sooatel {
+  /* Vous pouvez garder Poppins pour l'uniformité de l'app de gestion, 
+     ou utiliser une alternative comme 'Inter' si vous souhaitez une infime variation */
+  --font-sans: 'Poppins', sans-serif; 
 
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+  --primary: #1D2A44;                 
+  --primary-foreground: oklch(0.985 0 0); 
+  --secondary: #E8A798;               
+  --secondary-foreground: oklch(0.205 0 0); 
+  --accent: #E8A798;                  
+  --accent-foreground: oklch(0.205 0 0);
+  --sidebar-primary: #1D2A44;         
+  --sidebar-primary-foreground: oklch(0.985 0 0);
 }
 
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text-h);
+  --color-card: var(--bg);
+  --color-card-foreground: var(--text-h);
+  --color-popover: var(--bg);
+  --color-popover-foreground: var(--text-h);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: #f3f4f6;
+  --color-muted-foreground: var(--text);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+  --color-border: var(--border);
+  --color-input: var(--border);
+  --color-ring: var(--primary);
+  --color-sidebar: var(--bg);
+  --color-sidebar-foreground: var(--text-h);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--accent-bg);
+  --color-sidebar-accent-foreground: var(--accent);
+  --color-sidebar-border: var(--border);
+  --color-sidebar-ring: var(--primary);
 }
