@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button/button";
 import { Users, Clock, CalendarDays, Plus, Trash2 } from "lucide-react";
 import type { Team, ShiftType } from "@/features/planning/types/type";
 import type { EmployeeAvailability } from "@/features/employees/types/type";
+import { getCoveredDays } from "../../utils/availability";
 
 interface EmployeePlanningModalProps {
   isOpen: boolean;
@@ -19,6 +20,9 @@ interface EmployeePlanningModalProps {
 }
 
 const DAYS_OF_WEEK = [
+  { id: -1, label: "Tous les jours" },
+  { id: -2, label: "Lundi au Vendredi" },
+  { id: -3, label: "Lundi au Samedi" },
   { id: 1, label: "Lundi" },
   { id: 2, label: "Mardi" },
   { id: 3, label: "Mercredi" },
@@ -50,7 +54,6 @@ export function EmployeePlanningModal({
       setAvailabilities(initialAvailabilities.length > 0 ? [...initialAvailabilities] : []);
       setActiveTab("team");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const handleAddAvailability = () => {
@@ -77,14 +80,25 @@ export function EmployeePlanningModal({
   };
 
   const handleSaveCurrentTab = () => {
+    // Unfold shortcuts (-1, -2, -3) into individual days for the backend
+    const payloadAvails: Partial<EmployeeAvailability>[] = [];
+    availabilities.forEach(avail => {
+      if (avail.dayOfWeek !== undefined && avail.dayOfWeek !== null) {
+        const days = getCoveredDays(avail.dayOfWeek);
+        days.forEach(d => {
+          payloadAvails.push({ ...avail, dayOfWeek: d });
+        });
+      }
+    });
+
     if (activeTab === "team" && onSaveTeam) {
       onSaveTeam(teamId);
       onClose();
     } else if (activeTab === "availabilities" && onSaveAvailabilities) {
-      onSaveAvailabilities(availabilities);
+      onSaveAvailabilities(payloadAvails);
       onClose();
     } else if (onSave) {
-      onSave({ teamId, availabilities });
+      onSave({ teamId, availabilities: payloadAvails });
       onClose();
     }
   };
@@ -114,9 +128,8 @@ export function EmployeePlanningModal({
           <button
             type="button"
             onClick={() => setActiveTab("team")}
-            className={`flex-1 flex items-center justify-center gap-2 py-4 font-semibold text-sm transition-colors border-b-2 ${
-              activeTab === "team" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-secondary hover:bg-muted/30"
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 py-4 font-semibold text-sm transition-colors border-b-2 ${activeTab === "team" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-secondary hover:bg-muted/30"
+              }`}
           >
             <Users className="size-4" />
             Équipe
@@ -124,9 +137,8 @@ export function EmployeePlanningModal({
           <button
             type="button"
             onClick={() => setActiveTab("availabilities")}
-            className={`flex-1 flex items-center justify-center gap-2 py-4 font-semibold text-sm transition-colors border-b-2 ${
-              activeTab === "availabilities" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-secondary hover:bg-muted/30"
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 py-4 font-semibold text-sm transition-colors border-b-2 ${activeTab === "availabilities" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-secondary hover:bg-muted/30"
+              }`}
           >
             <Clock className="size-4" />
             Disponibilités
@@ -134,7 +146,7 @@ export function EmployeePlanningModal({
         </div>
 
         <div className="p-6 md:p-8 space-y-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
-          
+
           {/* TEAM SELECTION */}
           {activeTab === "team" && (
             <div className="space-y-4 animate-in fade-in duration-300">
@@ -180,15 +192,29 @@ export function EmployeePlanningModal({
                 <div className="space-y-3">
                   {availabilities.map((avail, index) => (
                     <div key={index} className="flex flex-col sm:flex-row items-center gap-3 p-4 bg-muted/10 rounded-2xl border border-border/50 animate-in fade-in slide-in-from-bottom-2">
-                      
+
                       <select
                         className="w-full sm:w-40 h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                         value={avail.dayOfWeek ?? ""}
                         onChange={(e) => handleChangeAvailability(index, "dayOfWeek", parseInt(e.target.value))}
                       >
-                        {DAYS_OF_WEEK.map(day => (
-                          <option key={day.id} value={day.id}>{day.label}</option>
-                        ))}
+                        {DAYS_OF_WEEK.map(day => {
+                          const otherCoveredDays = new Set<number>();
+                          availabilities.forEach((a, i) => {
+                            if (i !== index && a.dayOfWeek !== undefined && a.dayOfWeek !== null) {
+                              getCoveredDays(a.dayOfWeek).forEach(d => otherCoveredDays.add(d));
+                            }
+                          });
+
+                          const thisOptionDays = getCoveredDays(day.id);
+                          const disabled = thisOptionDays.some(d => otherCoveredDays.has(d));
+
+                          return (
+                            <option key={day.id} value={day.id} disabled={disabled}>
+                              {day.label}
+                            </option>
+                          );
+                        })}
                       </select>
 
                       <div className="flex-1 flex items-center gap-2 w-full">
@@ -202,18 +228,18 @@ export function EmployeePlanningModal({
                             <option key={shift.idShiftType} value={shift.idShiftType}>{shift.label} ({shift.customStartTime} - {shift.customEndTime})</option>
                           ))}
                         </select>
-                        
+
                         {!avail.idShiftType && (
                           <div className="flex items-center gap-2 bg-background border rounded-lg p-1 shadow-sm h-9">
-                            <input 
-                              type="time" 
+                            <input
+                              type="time"
                               className="text-xs w-20 border-none focus:ring-0 px-1 bg-transparent"
                               value={avail.customStartTime || ""}
                               onChange={(e) => handleChangeAvailability(index, "customStartTime", e.target.value)}
                             />
                             <span className="text-muted-foreground text-xs">-</span>
-                            <input 
-                              type="time" 
+                            <input
+                              type="time"
                               className="text-xs w-20 border-none focus:ring-0 px-1 bg-transparent"
                               value={avail.customEndTime || ""}
                               onChange={(e) => handleChangeAvailability(index, "customEndTime", e.target.value)}
@@ -222,10 +248,10 @@ export function EmployeePlanningModal({
                         )}
                       </div>
 
-                      <Button 
+                      <Button
                         type="button"
-                        size="icon" 
-                        variant="ghost" 
+                        size="icon"
+                        variant="ghost"
                         onClick={() => handleRemoveAvailability(index)}
                         className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
                       >

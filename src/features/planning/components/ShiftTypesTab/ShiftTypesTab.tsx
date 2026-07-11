@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Plus, Edit, Trash2, Search, Clock } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
@@ -57,7 +57,7 @@ export function ShiftTypesTab({
               <th className="px-6 py-4 font-medium text-muted-foreground">Heure de début</th>
               <th className="px-6 py-4 font-medium text-muted-foreground">Heure de fin</th>
               <th className="px-6 py-4 font-medium text-muted-foreground">Description</th>
-              <th className="px-6 py-4 font-medium text-right text-muted-foreground">Actions</th>
+              <th className="px-6 py-4 font-medium text-center text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -96,7 +96,7 @@ export function ShiftTypesTab({
                     className="h-8"
                   />
                 </td>
-                <td className="px-6 py-3 text-right space-x-2">
+                <td className="px-6 py-3 text-center space-x-2">
                   <Button size="sm" onClick={onSave} disabled={!editForm.label?.trim() || !editForm.customStartTime || !editForm.customEndTime}>Enregistrer</Button>
                   <Button size="sm" variant="ghost" onClick={() => setIsEditing(null)}>Annuler</Button>
                 </td>
@@ -155,14 +155,14 @@ export function ShiftTypesTab({
                     shift.description || "-"
                   )}
                 </td>
-                <td className="px-6 py-4 text-right">
+                <td className="px-6 py-4 text-center">
                   {isEditing === shift.idShiftType ? (
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-center gap-2">
                       <Button size="sm" onClick={onSave} disabled={!editForm.label?.trim()}>Enregistrer</Button>
                       <Button size="sm" variant="ghost" onClick={() => setIsEditing(null)}>Annuler</Button>
                     </div>
                   ) : (
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-center gap-2">
                       <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => onEdit(shift)}>
                         <Edit className="size-4" />
                       </Button>

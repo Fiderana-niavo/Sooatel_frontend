@@ -4,13 +4,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { SidebarProvider } from "@/components/ui/Sidebar/hooks/sidebar.provider";
 import { SidebarTrigger, SidebarInset } from "@/components/ui/Sidebar/sidebar";
 import { AppSidebar, navigationGroups } from "@/components/ui/Sidebar/app-sidebar";
-import { Button } from "@/components/ui/Button/button";
-import { Input } from "@/components/ui/Inputs/input";
 import sooatelLogo from "@/assets/Sooatel.jpeg";
 import utopiaLogo from "@/assets/Utopia.jpeg";
 import { EmployeesPage } from "@/features/employees";
 import { LoginPage } from "@/features/auth";
 import { RolesPage } from "@/features/roles";
+import { PlanningPage } from "@/features/planning";
 
 function App() {
   const navigate = useNavigate();
@@ -21,12 +20,10 @@ function App() {
   const [employeesPageTitle, setEmployeesPageTitle] = useState("Gestion des Employés");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Dynamic Browser Tab Title and Favicon
   useEffect(() => {
     const modeName = appMode === "utopia" ? "Restaurant Utopia" : "Hôtel Sooatel";
     document.title = `${modeName} - ${activeTab}`;
 
-    // Met à jour l'icône de l'onglet (favicon)
     let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
     if (!link) {
       link = document.createElement('link');
@@ -34,7 +31,6 @@ function App() {
       document.head.appendChild(link);
     }
 
-    // Recherche de l'icône correspondante à l'onglet actif
     let ActiveIcon = null;
     for (const group of navigationGroups) {
       const foundItem = group.items.find(item => item.title === activeTab);
@@ -45,24 +41,19 @@ function App() {
     }
 
     if (ActiveIcon) {
-      // Transformation du composant React en image SVG pour l'onglet
       const svgString = renderToStaticMarkup(
         createElement(ActiveIcon, { color: "#1e293b", size: 32, strokeWidth: 2.5 })
       );
-      // Encodage en base64 pour être certain que tous les navigateurs l'affichent
       const base64Svg = btoa(unescape(encodeURIComponent(svgString)));
 
-      // Injection de l'image SVG
       link.type = 'image/svg+xml';
       link.href = `data:image/svg+xml;base64,${base64Svg}`;
     } else {
-      // Fallback sur le logo de base si on ne trouve pas d'icône
       link.type = 'image/jpeg';
       link.href = appMode === "utopia" ? utopiaLogo : sooatelLogo;
     }
   }, [activeTab, appMode]);
 
-  // Persist active tab
   useEffect(() => {
     localStorage.setItem("activeTab", activeTab);
   }, [activeTab]);
@@ -78,7 +69,6 @@ function App() {
         isAuthenticated ? <Navigate to="/" replace /> : <LoginPage onLogin={handleLogin} />
       } />
       <Route path="/" element={
-        // !isAuthenticated ? <Navigate to="/login" replace /> : 
         (
           <SidebarProvider className={appMode === "utopia" ? "theme-utopia" : "theme-sooatel"}>
       <AppSidebar
@@ -101,6 +91,8 @@ function App() {
                   ? employeesPageTitle 
                   : activeTab === "Rôles et Permissions"
                   ? "Rôles et Permissions"
+                  : activeTab === "Plannings"
+                  ? "Plannings"
                   : (appMode === "utopia" ? "Tableau de Bord" : "Vue d'ensemble")}
               </h1>
               <span className="text-primary font-bold text-sm md:text-base uppercase tracking-widest mt-1">
@@ -112,7 +104,7 @@ function App() {
           <section className="bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[2rem] p-8 md:p-12 border border-border/50 flex-1 w-full max-w-5xl mx-auto space-y-10 relative overflow-hidden">
             <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
 
-            {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && (
+            {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Plannings" && (
               <div>
                 <h2 className="text-2xl font-bold mb-2">Bienvenue sur {appMode === "utopia" ? "Utopia" : "Sooatel"}</h2>
                 <p className="text-muted-foreground m-0 text-lg">
@@ -128,6 +120,10 @@ function App() {
             ) : activeTab === "Rôles et Permissions" ? (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full !mt-0 md:!-mt-4">
                 <RolesPage />
+              </div>
+            ) : activeTab === "Plannings" ? (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                <PlanningPage />
               </div>
             ) : (
               <div className="bg-muted/30 rounded-2xl p-6 border border-border/50 flex flex-col items-center justify-center min-h-[300px] text-center">

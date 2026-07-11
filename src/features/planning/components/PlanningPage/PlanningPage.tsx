@@ -1,92 +1,192 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { TeamsTab } from "../TeamsTab/TeamsTab";
 import { ShiftTypesTab } from "../ShiftTypesTab/ShiftTypesTab";
 import { Users, Clock, Settings2 } from "lucide-react";
 
 import type { Team, ShiftType } from "../../types/type";
 
-const MOCK_TEAMS: Team[] = [
-  { idTeam: "1", teamName: "Équipe Cuisine", description: "Personnel de préparation et cuisine" },
-  { idTeam: "2", teamName: "Équipe Salle", description: "Serveurs et accueil" },
-  { idTeam: "3", teamName: "Équipe Nettoyage", description: "Entretien des locaux" },
-];
-
-const MOCK_SHIFTS: ShiftType[] = [
-  { idShiftType: "1", label: "Matin", customStartTime: "08:00", customEndTime: "16:00", description: "Service du matin" },
-  { idShiftType: "2", label: "Soir", customStartTime: "16:00", customEndTime: "00:00", description: "Service du soir" },
-];
-
 export function PlanningPage() {
   const [activeTab, setActiveTab] = useState<"teams" | "shifts">("teams");
   
-  // Lifted state
-  const [teams, setTeams] = useState<Team[]>(MOCK_TEAMS);
-  const [shifts, setShifts] = useState<ShiftType[]>(MOCK_SHIFTS);
+  // Data state
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [shifts, setShifts] = useState<ShiftType[]>([]);
 
-  // Form states
-  const [isEditingTeam, setIsEditingTeam] = useState<string | null>(null);
-  const [editTeamForm, setEditTeamForm] = useState<Partial<Team>>({});
+  // Editing state
+  const [editId, setEditId] = useState<string | null>(null);
+  const [teamForm, setTeamForm] = useState<Partial<Team>>({});
   
-  const [isEditingShift, setIsEditingShift] = useState<string | null>(null);
-  const [editShiftForm, setEditShiftForm] = useState<Partial<ShiftType>>({});
+  const [shiftId, setShiftId] = useState<string | null>(null);
+  const [shiftForm, setShiftForm] = useState<Partial<ShiftType>>({});
 
-  // Handlers for Teams
-  const handleCreateTeam = () => {
-    const newId = Math.random().toString(36).substr(2, 9);
-    setEditTeamForm({ teamName: "", description: "" });
-    setIsEditingTeam(newId);
-  };
+  const API_BASE = "http://localhost:3000/api";
 
-  const handleEditTeam = (team: Team) => {
-    setEditTeamForm({ ...team });
-    setIsEditingTeam(team.idTeam);
-  };
-
-  const handleSaveTeam = () => {
-    if (!editTeamForm.teamName?.trim()) return;
-    
-    const teamToSave = { idTeam: isEditingTeam as string, ...editTeamForm } as Team;
-    if (teams.find(t => t.idTeam === teamToSave.idTeam)) {
-      setTeams(teams.map(t => t.idTeam === teamToSave.idTeam ? teamToSave : t));
-    } else {
-      setTeams([...teams, teamToSave]);
-    }
-    setIsEditingTeam(null);
-  };
-
-  const handleDeleteTeam = (id: string) => {
-    if (window.confirm("Voulez-vous vraiment supprimer cette équipe ?")) {
-      setTeams(teams.filter(t => t.idTeam !== id));
+  const loadTeams = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/teams?limit=100`);
+      const data = await res.json() as { ok: boolean; payload: { records: Team[] } };
+      if (data.ok) {
+        setTeams(data.payload.records);
+      }
+    } catch (err: unknown) {
+      console.error("Failed to load teams:", err);
     }
   };
 
-  // Handlers for Shifts
-  const handleCreateShift = () => {
-    const newId = Math.random().toString(36).substr(2, 9);
-    setEditShiftForm({ label: "", customStartTime: "08:00", customEndTime: "16:00", description: "" });
-    setIsEditingShift(newId);
-  };
-
-  const handleEditShift = (shift: ShiftType) => {
-    setEditShiftForm({ ...shift });
-    setIsEditingShift(shift.idShiftType);
-  };
-
-  const handleSaveShift = () => {
-    if (!editShiftForm.label?.trim() || !editShiftForm.customStartTime || !editShiftForm.customEndTime) return;
-
-    const shiftToSave = { idShiftType: isEditingShift as string, ...editShiftForm } as ShiftType;
-    if (shifts.find(s => s.idShiftType === shiftToSave.idShiftType)) {
-      setShifts(shifts.map(s => s.idShiftType === shiftToSave.idShiftType ? shiftToSave : s));
-    } else {
-      setShifts([...shifts, shiftToSave]);
+  const loadShifts = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/shift-types?limit=100`);
+      const data = await res.json() as { ok: boolean; payload: { records: ShiftType[] } };
+      if (data.ok) {
+        setShifts(data.payload.records);
+      }
+    } catch (err: unknown) {
+      console.error("Failed to load shift types:", err);
     }
-    setIsEditingShift(null);
   };
 
-  const handleDeleteShift = (id: string) => {
-    if (window.confirm("Voulez-vous vraiment supprimer cet horaire ?")) {
-      setShifts(shifts.filter(s => s.idShiftType !== id));
+  useEffect(() => {
+    loadTeams();
+    loadShifts();
+  }, []);
+
+  // Team Handlers
+  const addTeam = () => {
+    setTeamForm({ teamName: "", description: "" });
+    setEditId("new");
+  };
+
+  const editTeam = (team: Team) => {
+    setTeamForm({ ...team });
+    setEditId(team.idTeam);
+  };
+
+  const saveTeam = async () => {
+    if (!teamForm.teamName?.trim()) return;
+
+    try {
+      let res: Response;
+      if (editId === "new") {
+        res = await fetch(`${API_BASE}/teams`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            teamName: teamForm.teamName,
+            description: teamForm.description || "",
+          }),
+        });
+      } else {
+        res = await fetch(`${API_BASE}/teams/${editId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            teamName: teamForm.teamName,
+            description: teamForm.description || "",
+          }),
+        });
+      }
+
+      const data = await res.json() as { ok: boolean; error?: string };
+      if (data.ok) {
+        setEditId(null);
+        await loadTeams();
+      } else {
+        alert(data.error || "Une erreur est survenue lors de l'enregistrement de l'équipe.");
+      }
+    } catch (err: unknown) {
+      console.error("Error saving team:", err);
+      alert("Impossible de se connecter au serveur.");
+    }
+  };
+
+  const deleteTeam = async (id: string) => {
+    if (!window.confirm("Voulez-vous vraiment supprimer cette équipe ?")) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/teams/${id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json() as { ok: boolean; error?: string };
+      if (data.ok) {
+        await loadTeams();
+      } else {
+        alert(data.error || "Une erreur est survenue lors de la suppression de l'équipe.");
+      }
+    } catch (err: unknown) {
+      console.error("Error deleting team:", err);
+      alert("Impossible de se connecter au serveur.");
+    }
+  };
+
+  // Shift Handlers
+  const addShift = () => {
+    setShiftForm({ label: "", customStartTime: "08:00", customEndTime: "16:00", description: "" });
+    setShiftId("new");
+  };
+
+  const editShift = (shift: ShiftType) => {
+    setShiftForm({ ...shift });
+    setShiftId(shift.idShiftType);
+  };
+
+  const saveShift = async () => {
+    if (!shiftForm.label?.trim() || !shiftForm.customStartTime || !shiftForm.customEndTime) return;
+
+    try {
+      let res: Response;
+      if (shiftId === "new") {
+        res = await fetch(`${API_BASE}/shift-types`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            label: shiftForm.label,
+            customStartTime: shiftForm.customStartTime,
+            customEndTime: shiftForm.customEndTime,
+            description: shiftForm.description || "",
+          }),
+        });
+      } else {
+        res = await fetch(`${API_BASE}/shift-types/${shiftId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            label: shiftForm.label,
+            customStartTime: shiftForm.customStartTime,
+            customEndTime: shiftForm.customEndTime,
+            description: shiftForm.description || "",
+          }),
+        });
+      }
+
+      const data = await res.json() as { ok: boolean; error?: string };
+      if (data.ok) {
+        setShiftId(null);
+        await loadShifts();
+      } else {
+        alert(data.error || "Une erreur est survenue lors de l'enregistrement de l'horaire.");
+      }
+    } catch (err: unknown) {
+      console.error("Error saving shift:", err);
+      alert("Impossible de se connecter au serveur.");
+    }
+  };
+
+  const deleteShift = async (id: string) => {
+    if (!window.confirm("Voulez-vous vraiment supprimer cet horaire ?")) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/shift-types/${id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json() as { ok: boolean; error?: string };
+      if (data.ok) {
+        await loadShifts();
+      } else {
+        alert(data.error || "Une erreur est survenue lors de la suppression de l'horaire.");
+      }
+    } catch (err: unknown) {
+      console.error("Error deleting shift:", err);
+      alert("Impossible de se connecter au serveur.");
     }
   };
 
@@ -131,26 +231,26 @@ export function PlanningPage() {
         {activeTab === "teams" ? (
           <TeamsTab 
             teams={teams} 
-            isEditing={isEditingTeam}
-            editForm={editTeamForm}
-            setEditForm={setEditTeamForm}
-            setIsEditing={setIsEditingTeam}
-            onCreate={handleCreateTeam}
-            onEdit={handleEditTeam}
-            onSave={handleSaveTeam}
-            onDelete={handleDeleteTeam}
+            isEditing={editId}
+            editForm={teamForm}
+            setEditForm={setTeamForm}
+            setIsEditing={setEditId}
+            onCreate={addTeam}
+            onEdit={editTeam}
+            onSave={saveTeam}
+            onDelete={deleteTeam}
           />
         ) : (
           <ShiftTypesTab 
             shifts={shifts} 
-            isEditing={isEditingShift}
-            editForm={editShiftForm}
-            setEditForm={setEditShiftForm}
-            setIsEditing={setIsEditingShift}
-            onCreate={handleCreateShift}
-            onEdit={handleEditShift}
-            onSave={handleSaveShift}
-            onDelete={handleDeleteShift}
+            isEditing={shiftId}
+            editForm={shiftForm}
+            setEditForm={setShiftForm}
+            setIsEditing={setShiftId}
+            onCreate={addShift}
+            onEdit={editShift}
+            onSave={saveShift}
+            onDelete={deleteShift}
           />
         )}
       </div>
