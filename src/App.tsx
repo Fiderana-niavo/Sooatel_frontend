@@ -1,4 +1,5 @@
 import { useState, useEffect, createElement } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SidebarProvider } from "@/components/ui/Sidebar/hooks/sidebar.provider";
 import { SidebarTrigger, SidebarInset } from "@/components/ui/Sidebar/sidebar";
@@ -7,10 +8,18 @@ import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
 import sooatelLogo from "@/assets/Sooatel.jpeg";
 import utopiaLogo from "@/assets/Utopia.jpeg";
+import { EmployeesPage } from "@/features/employees";
+import { LoginPage } from "@/features/auth";
+import { RolesPage } from "@/features/roles";
 
 function App() {
-  const [appMode, setAppMode] = useState<"utopia" | "sooatel">("utopia");
-  const [activeTab, setActiveTab] = useState<string>("Tableau de bord");
+  const navigate = useNavigate();
+  const [appMode, setAppMode] = useState<"utopia" | "sooatel">("sooatel");
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    return localStorage.getItem("activeTab") || "Tableau de bord";
+  });
+  const [employeesPageTitle, setEmployeesPageTitle] = useState("Gestion des Employés");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Dynamic Browser Tab Title and Favicon
   useEffect(() => {
@@ -53,8 +62,25 @@ function App() {
     }
   }, [activeTab, appMode]);
 
+  // Persist active tab
+  useEffect(() => {
+    localStorage.setItem("activeTab", activeTab);
+  }, [activeTab]);
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    navigate("/");
+  };
+
   return (
-    <SidebarProvider className={appMode === "utopia" ? "theme-utopia" : "theme-sooatel"}>
+    <Routes>
+      <Route path="/login" element={
+        isAuthenticated ? <Navigate to="/" replace /> : <LoginPage onLogin={handleLogin} />
+      } />
+      <Route path="/" element={
+        // !isAuthenticated ? <Navigate to="/login" replace /> : 
+        (
+          <SidebarProvider className={appMode === "utopia" ? "theme-utopia" : "theme-sooatel"}>
       <AppSidebar
         appMode={appMode}
         setAppMode={setAppMode}
@@ -71,7 +97,11 @@ function App() {
 
             <div className="w-full max-w-5xl mx-auto flex flex-col items-start justify-center text-left pl-12 xl:pl-0">
               <h1 className="font-extrabold text-3xl md:text-4xl text-secondary tracking-tight uppercase">
-                {appMode === "utopia" ? "Tableau de Bord" : "Vue d'ensemble"}
+                {activeTab === "Gestion des Utilisateurs" 
+                  ? employeesPageTitle 
+                  : activeTab === "Rôles et Permissions"
+                  ? "Rôles et Permissions"
+                  : (appMode === "utopia" ? "Tableau de Bord" : "Vue d'ensemble")}
               </h1>
               <span className="text-primary font-bold text-sm md:text-base uppercase tracking-widest mt-1">
                 {appMode === "utopia" ? "Utopia Restaurant" : "Sooatel Hôtel"}
@@ -82,39 +112,37 @@ function App() {
           <section className="bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[2rem] p-8 md:p-12 border border-border/50 flex-1 w-full max-w-5xl mx-auto space-y-10 relative overflow-hidden">
             <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
 
-            <div>
-              <h2 className="text-2xl font-bold mb-2">Bienvenue sur {appMode === "utopia" ? "Utopia" : "Sooatel"}</h2>
-              <p className="text-muted-foreground m-0 text-lg">
-                Vous visualisez actuellement la page <span className="font-bold text-primary">{activeTab}</span>.
-              </p>
-            </div>
-
-            <div className="bg-muted/30 rounded-2xl p-6 border border-border/50">
-              <h3 className="text-lg font-semibold mb-6">Démonstration des Composants ({appMode === "utopia" ? "Thème Restaurant" : "Thème Hôtel"})</h3>
-
-              <div className="space-y-6 max-w-md">
-                <Input
-                  className="bg-background"
-                  placeholder="Rechercher des ressources..."
-                />
-
-                <Input
-                  type="password"
-                  className="bg-background"
-                  placeholder="Saisir le mot de passe"
-                />
-
-                <div className="flex flex-wrap gap-4 pt-4">
-                  <Button className="font-semibold px-8 rounded-xl shadow-lg shadow-primary/20">Bouton Principal</Button>
-                  <Button variant="secondary" className="font-semibold px-8 rounded-xl shadow-lg shadow-secondary/20">Bouton Secondaire</Button>
-                  <Button variant="outline" className="font-semibold px-8 rounded-xl">Contour</Button>
-                </div>
+            {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && (
+              <div>
+                <h2 className="text-2xl font-bold mb-2">Bienvenue sur {appMode === "utopia" ? "Utopia" : "Sooatel"}</h2>
+                <p className="text-muted-foreground m-0 text-lg">
+                  Vous visualisez actuellement la page <span className="font-bold text-primary">{activeTab}</span>.
+                </p>
               </div>
-            </div>
+            )}
+
+            {activeTab === "Gestion des Utilisateurs" ? (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                <EmployeesPage setPageTitle={setEmployeesPageTitle} />
+              </div>
+            ) : activeTab === "Rôles et Permissions" ? (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full !mt-0 md:!-mt-4">
+                <RolesPage />
+              </div>
+            ) : (
+              <div className="bg-muted/30 rounded-2xl p-6 border border-border/50 flex flex-col items-center justify-center min-h-[300px] text-center">
+                <h3 className="text-xl font-semibold mb-2">Contenu : {activeTab}</h3>
+                <p className="text-muted-foreground">Cette section est en cours de développement.</p>
+              </div>
+            )}
           </section>
         </main>
       </SidebarInset>
     </SidebarProvider>
+        )
+      } />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
 

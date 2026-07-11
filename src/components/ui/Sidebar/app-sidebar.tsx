@@ -33,6 +33,7 @@ import {
   HeartHandshake,
   Settings,
   ChevronRight,
+  ShieldCheck,
 } from "lucide-react";
 import sooatelLogo from "@/assets/Sooatel.jpeg";
 import utopiaLogo from "@/assets/Utopia.jpeg";
@@ -67,6 +68,8 @@ export const navigationGroups = [
       { title: "Annuaire du Personnel", url: "/hr/directory", icon: Contact },
       { title: "Plannings", url: "/hr/schedules", icon: CalendarDays },
       { title: "Bien-être de l'Équipe", url: "/hr/welfare", icon: HeartHandshake },
+      { title: "Gestion des Utilisateurs", url: "/hr/users", icon: Users },
+      { title: "Rôles et Permissions", url: "/hr/roles", icon: ShieldCheck },
     ],
   },
 ];

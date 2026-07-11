@@ -2,7 +2,7 @@
 
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import { PanelLeftIcon } from "lucide-react";
+import { PanelLeftIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/Button/button";
@@ -52,12 +52,29 @@ function Sidebar({ side = "left", variant = "sidebar", collapsible = "offcanvas"
 }
 
 function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, state } = useSidebar();
   return (
-    <Button data-sidebar="trigger" data-slot="sidebar-trigger" variant="ghost" size="icon" className={cn("size-7", className)} onClick={(event) => { onClick?.(event); toggleSidebar(); }} {...props}>
-      <PanelLeftIcon className="size-6" />
-      <span className="sr-only">Toggle Sidebar</span>
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button data-sidebar="trigger" data-slot="sidebar-trigger" variant="ghost" size="icon" className={cn("size-7", className)} onClick={(event) => { onClick?.(event); toggleSidebar(); }} {...props}>
+          <PanelLeftIcon className="size-6" />
+          <span className="sr-only">Toggle Sidebar</span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" align="center" className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium bg-neutral-900 border border-neutral-800 text-neutral-200 shadow-sm animate-in fade-in-0 zoom-in-95 duration-100">
+        {state === "expanded" ? (
+          <>
+            <ChevronLeft className="size-3 text-neutral-400 shrink-0" />
+            <span>Fermer l'onglet</span>
+          </>
+        ) : (
+          <>
+            <span>ouvrir l'onglet</span>
+            <ChevronRight className="size-3 text-neutral-400 shrink-0" />
+          </>
+        )}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
