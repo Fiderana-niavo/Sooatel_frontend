@@ -11,3 +11,8 @@ export interface MockPermission {
   category: string;
   description?: string;
 }
+
+export interface PermissionItem {
+  idPermission: string;
+  permissionName: string;
+}

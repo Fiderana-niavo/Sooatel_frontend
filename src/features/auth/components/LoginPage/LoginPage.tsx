@@ -1,9 +1,14 @@
 import React, { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
 import sooatelLogo from "@/assets/Sooatel.jpeg";
 import { LoginForm } from "./LoginForm";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
 import { ResetPasswordForm } from "./ResetPasswordForm";
+import { AuthService } from "../../services/auth.service";
+import { useAppStore } from "@/store/app.store";
+import { Snackbar } from "@/components/ui/Snackbar/snackbar";
+import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -11,47 +16,113 @@ interface LoginPageProps {
 
 export function LoginPage({ onLogin }: LoginPageProps) {
   const [view, setView] = useState<"login" | "forgotPassword" | "resetPassword">("login");
+  const [resetKey, setResetKey] = useState<string | null>(null);
+  
+  const [snackbar, setSnackbar] = useState<{ message: string, type: SnackbarType, isOpen: boolean }>({ 
+    message: "", type: "info", isOpen: false 
+  });
 
-  const handleLogin = async (username: string, password: string) => {
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        // Here you would typically call your real backend API
-        console.log("Login attempt:", { username, password });
-        onLogin();
-        resolve();
-      }, 1200);
+  const showSnackbar = (message: string, type: SnackbarType = "info") => {
+    setSnackbar({ message, type, isOpen: true });
+  };
+
+  const setConnectedUser = useAppStore((s) => s.setConnectedUser);
+  const setPermissions = useAppStore((s) => s.setPermissions);
+
+  const loginMutation = useMutation({
+    mutationFn: ({ username, password }: { username: string; password: string }) =>
+      AuthService.login({ username, password }),
+    onSuccess: (payload) => {
+      localStorage.setItem("authToken", payload.accessToken);
+      localStorage.setItem("refreshToken", payload.refreshToken);
+      setConnectedUser(payload.user);
+      setPermissions(payload.permissions);
+      onLogin();
+    },
+    onError: (err: Error) => {
+      showSnackbar(err.message ?? "Identifiants incorrects.", "error");
+    },
+  });
+
+  const handleLogin = (username: string, password: string) => {
+    return new Promise<void>((resolve, reject) => {
+      loginMutation.mutate(
+        { username, password },
+        { onSuccess: () => resolve(), onError: (e) => reject(e) },
+      );
     });
   };
 
-  const handleForgotEmail = async (email: string) => {
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        console.log("Password recovery email requested for:", email);
-        alert("Si l'adresse email existe, un nouveau mot de passe y a été envoyé.");
-        setView("login");
-        resolve();
-      }, 1200);
+  const requestResetMutation = useMutation({
+    mutationFn: (email: string) => AuthService.requestPasswordReset({ username: email }),
+  });
+
+  const validateKeyMutation = useMutation({
+    mutationFn: (key: string) => AuthService.validateResetKey({ key }),
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: ({ key, newPassword }: { key: string; newPassword: string }) =>
+      AuthService.changePassword({ key, newPassword }),
+  });
+
+  const handleForgotEmail = (email: string) => {
+    return new Promise<void>((resolve, reject) => {
+      requestResetMutation.mutate(email, {
+        onSuccess: (data) => {
+          if (data.method === "email") {
+            showSnackbar("Si l'adresse email existe, un nouveau mot de passe y a été envoyé.", "info");
+            setView("login");
+          } else {
+            showSnackbar(`La clé a été générée pour l'admin : ${data.token}`, "info");
+          }
+          resolve();
+        },
+        onError: (err: Error) => {
+          showSnackbar(err.message ?? "Erreur lors de la demande.", "error");
+          reject(err);
+        },
+      });
     });
   };
 
-  const handleForgotKey = async (key: string) => {
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        console.log("Recovery key validated:", key);
-        setView("resetPassword");
-        resolve();
-      }, 1200);
+  const handleForgotKey = (key: string) => {
+    return new Promise<void>((resolve, reject) => {
+      validateKeyMutation.mutate(key, {
+        onSuccess: () => {
+          setResetKey(key);
+          setView("resetPassword");
+          resolve();
+        },
+        onError: (err: Error) => {
+          showSnackbar(err.message ?? "Clé incorrecte.", "error");
+          reject(err);
+        },
+      });
     });
   };
 
-  const handleResetPassword = async (newPassword: string) => {
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        console.log("Password reset successfully");
-        alert("Votre mot de passe a été réinitialisé avec succès.");
-        setView("login");
-        resolve();
-      }, 1200);
+  const handleResetPassword = (newPassword: string) => {
+    return new Promise<void>((resolve, reject) => {
+      if (!resetKey) {
+        reject(new Error("Aucune clé valide trouvée."));
+        return;
+      }
+      changePasswordMutation.mutate(
+        { key: resetKey, newPassword },
+        {
+          onSuccess: () => {
+            showSnackbar("Votre mot de passe a été réinitialisé avec succès.", "success");
+            setResetKey(null);
+            setView("login");
+            resolve();
+          },
+          onError: (err: Error) => {
+            showSnackbar(err.message ?? "Erreur lors de la réinitialisation.", "error");
+            reject(err);
+          },
+        }
+      );
     });
   };
 
@@ -121,6 +192,14 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           )}
         </div>
       </div>
+
+      {snackbar.isOpen && (
+        <Snackbar 
+          message={snackbar.message} 
+          type={snackbar.type} 
+          onClose={() => setSnackbar({ ...snackbar, isOpen: false })} 
+        />
+      )}
     </div>
   );
 }
