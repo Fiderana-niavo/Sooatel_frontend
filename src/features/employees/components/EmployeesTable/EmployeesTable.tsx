@@ -3,7 +3,7 @@ import type { EmployeeListItem } from "../../types/type";
 import { SearchInput } from "@/components/ui/Inputs/search-input";
 import Pagination from "@/components/ui/Pagination/pagination";
 import { Button } from "@/components/ui/Button/button";
-import { MoreVertical, Edit, Trash2, Eye, Plus, Briefcase, ArrowUp, ArrowDown, ArrowUpDown, CalendarDays } from "lucide-react";
+import { MoreVertical, Edit, Trash2, Eye, Plus, Briefcase, ArrowUp, ArrowDown, ArrowUpDown, CalendarDays, UserX } from "lucide-react";
 
 interface EmployeesTableProps {
   employees: EmployeeListItem[];
@@ -18,6 +18,7 @@ interface EmployeesTableProps {
   onDelete: (employee: EmployeeListItem) => void;
   onChangeJob: (employee: EmployeeListItem) => void;
   onEditPlanning: (employee: EmployeeListItem) => void;
+  onTerminateContract: (employee: EmployeeListItem) => void;
   
   // Filters & Sorting
   jobTitles: Array<{ idJobTitle: string; title: string }>;
@@ -46,6 +47,7 @@ export function EmployeesTable({
   onDelete,
   onChangeJob,
   onEditPlanning,
+  onTerminateContract,
   jobTitles,
   selectedJobTitleId,
   onJobTitleChange,
@@ -249,6 +251,12 @@ export function EmployeesTable({
                               className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
                             >
                               <Briefcase className="size-4" /> Changer de poste
+                            </button>
+                            <button
+                              onClick={() => { setOpenDropdownId(null); onTerminateContract(emp); }}
+                              className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors text-orange-600"
+                            >
+                              <UserX className="size-4" /> Terminer le contrat
                             </button>
                             <button
                               onClick={() => { setOpenDropdownId(null); onEditPlanning(emp); }}

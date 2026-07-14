@@ -25,10 +25,12 @@ export interface PasswordResetRequestDto {
 
 export interface ValidateResetKeyDto {
   key: string;
+  username: string;
 }
 
 export interface ChangePasswordDto {
   key: string;
+  username: string;
   newPassword: string;
 }
 

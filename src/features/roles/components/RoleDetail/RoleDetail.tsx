@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Trash2, Save, AlertCircle } from "lucide-react";
+import { Trash2, Save } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
 import type { MockRole as Role, PermissionCategory } from "../../types/index";
@@ -13,11 +13,11 @@ interface RoleDetailProps {
   onCancel?: () => void;
 }
 
-export function RoleDetail({ 
-  role, 
-  isCreating, 
-  permissionsSchema, 
-  onSave, 
+export function RoleDetail({
+  role,
+  isCreating,
+  permissionsSchema,
+  onSave,
   onDelete,
   onCancel
 }: RoleDetailProps) {
@@ -49,7 +49,7 @@ export function RoleDetail({
   const handleToggleCategory = (category: PermissionCategory) => {
     const categoryIds = category.permissions.map(p => p.id);
     const allSelected = categoryIds.every(id => selectedPermissions.has(id));
-    
+
     const next = new Set(selectedPermissions);
     if (allSelected) {
       categoryIds.forEach(id => next.delete(id));
@@ -62,7 +62,7 @@ export function RoleDetail({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    
+
     setIsLoading(true);
     try {
       await onSave(name, description, Array.from(selectedPermissions));
@@ -103,7 +103,7 @@ export function RoleDetail({
         <div className="space-y-4 mb-8">
           <div className="space-y-2">
             <label className="text-sm font-semibold text-muted-foreground ml-1">Nom du rôle <span className="text-destructive">*</span></label>
-            <Input 
+            <Input
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -136,14 +136,14 @@ export function RoleDetail({
               const categoryIds = category.permissions.map(p => p.id);
               const allSelected = categoryIds.every(id => selectedPermissions.has(id));
               const someSelected = categoryIds.some(id => selectedPermissions.has(id));
-              
+
               return (
                 <div key={category.category} className="bg-white border border-border/40 rounded-xl p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-4 border-b border-border/30 pb-3">
                     <h3 className="font-bold text-primary text-base">{category.category}</h3>
                     <label className="flex items-center space-x-2 cursor-pointer group">
                       <span className="text-xs font-medium text-muted-foreground group-hover:text-secondary transition-colors">Tout sélectionner</span>
-                      <input 
+                      <input
                         type="checkbox"
                         checked={allSelected}
                         ref={input => {
@@ -154,19 +154,19 @@ export function RoleDetail({
                       />
                     </label>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {category.permissions.map(permission => (
-                      <label 
+                      <label
                         key={permission.id}
                         className={`flex items-start space-x-3 p-3 rounded-lg border transition-all cursor-pointer
-                          ${selectedPermissions.has(permission.id) 
-                            ? "border-primary/40 bg-primary/5 shadow-sm" 
+                          ${selectedPermissions.has(permission.id)
+                            ? "border-primary/40 bg-primary/5 shadow-sm"
                             : "border-border/30 hover:border-primary/30 hover:bg-muted/30"
                           }
                         `}
                       >
-                        <input 
+                        <input
                           type="checkbox"
                           checked={selectedPermissions.has(permission.id)}
                           onChange={() => handleTogglePermission(permission.id)}
@@ -194,21 +194,21 @@ export function RoleDetail({
         <div className="flex items-center justify-between pt-4 border-t border-border/50 mt-auto">
           <div className="flex gap-2">
             {!isCreating && role && (
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 variant="destructive"
                 onClick={() => onDelete(role.id)}
                 className="rounded-xl px-6 font-semibold"
               >
                 <Trash2 className="size-4 mr-2" />
-                Supprimer
+                Supprimer le rôle
               </Button>
             )}
           </div>
 
           <div className="flex gap-4">
             {isCreating && onCancel && (
-              <Button 
+              <Button
                 type="button"
                 variant="outline"
                 onClick={onCancel}
@@ -217,7 +217,7 @@ export function RoleDetail({
                 Annuler
               </Button>
             )}
-            <Button 
+            <Button
               type="submit"
               disabled={isLoading || !name.trim()}
               className="rounded-xl px-8 py-6 text-base font-bold shadow-lg shadow-primary/20"

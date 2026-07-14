@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Users, Clock, CalendarDays, Plus, Trash2 } from "lucide-react";
@@ -178,10 +178,18 @@ export function EmployeePlanningModal({
                   <Clock className="size-5 text-primary" />
                   Disponibilités / Horaires
                 </h3>
-                <Button size="sm" variant="outline" onClick={handleAddAvailability} className="gap-2 rounded-xl">
-                  <Plus className="size-4" />
-                  Ajouter un jour
-                </Button>
+                <div className="flex items-center gap-2">
+                  {availabilities.length > 0 && (
+                    <Button size="sm" variant="outline" onClick={() => setAvailabilities([])} className="gap-2 rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20">
+                      <Trash2 className="size-4" />
+                      Tout effacer
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" onClick={handleAddAvailability} className="gap-2 rounded-xl">
+                    <Plus className="size-4" />
+                    Ajouter un jour
+                  </Button>
+                </div>
               </div>
 
               {availabilities.length === 0 ? (

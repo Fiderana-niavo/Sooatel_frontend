@@ -16,7 +16,21 @@ interface LoginPageProps {
 
 export function LoginPage({ onLogin }: LoginPageProps) {
   const [view, setView] = useState<"login" | "forgotPassword" | "resetPassword">("login");
-  const [resetKey, setResetKey] = useState<string | null>(null);
+  const [resetContext, setResetContext] = useState<{ key: string; username: string } | null>(null);
+  
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlKey = params.get("key");
+    const urlUsername = params.get("username");
+    
+    if (urlKey && urlUsername) {
+      setResetContext({ key: urlKey, username: urlUsername });
+      setView("resetPassword");
+      
+      // Clean up the URL to prevent the state from sticking
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
   
   const [snackbar, setSnackbar] = useState<{ message: string, type: SnackbarType, isOpen: boolean }>({ 
     message: "", type: "info", isOpen: false 
@@ -58,12 +72,12 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   });
 
   const validateKeyMutation = useMutation({
-    mutationFn: (key: string) => AuthService.validateResetKey({ key }),
+    mutationFn: ({ key, username }: { key: string; username: string }) => AuthService.validateResetKey({ key, username }),
   });
 
   const changePasswordMutation = useMutation({
-    mutationFn: ({ key, newPassword }: { key: string; newPassword: string }) =>
-      AuthService.changePassword({ key, newPassword }),
+    mutationFn: ({ key, username, newPassword }: { key: string; username: string; newPassword: string }) =>
+      AuthService.changePassword({ key, username, newPassword }),
   });
 
   const handleForgotEmail = (email: string) => {
@@ -86,16 +100,16 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     });
   };
 
-  const handleForgotKey = (key: string) => {
+  const handleForgotKey = (key: string, username: string) => {
     return new Promise<void>((resolve, reject) => {
-      validateKeyMutation.mutate(key, {
+      validateKeyMutation.mutate({ key, username }, {
         onSuccess: () => {
-          setResetKey(key);
+          setResetContext({ key, username });
           setView("resetPassword");
           resolve();
         },
         onError: (err: Error) => {
-          showSnackbar(err.message ?? "Clé incorrecte.", "error");
+          showSnackbar(err.message ?? "Clé ou nom d'utilisateur incorrect.", "error");
           reject(err);
         },
       });
@@ -104,16 +118,16 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
   const handleResetPassword = (newPassword: string) => {
     return new Promise<void>((resolve, reject) => {
-      if (!resetKey) {
+      if (!resetContext) {
         reject(new Error("Aucune clé valide trouvée."));
         return;
       }
       changePasswordMutation.mutate(
-        { key: resetKey, newPassword },
+        { key: resetContext.key, username: resetContext.username, newPassword },
         {
           onSuccess: () => {
             showSnackbar("Votre mot de passe a été réinitialisé avec succès.", "success");
-            setResetKey(null);
+            setResetContext(null);
             setView("login");
             resolve();
           },

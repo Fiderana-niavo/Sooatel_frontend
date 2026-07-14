@@ -10,6 +10,7 @@ import { EmployeesPage } from "@/features/employees";
 import { LoginPage } from "@/features/auth";
 import { RolesPage } from "@/features/roles";
 import { PlanningPage } from "@/features/planning";
+import { SettingsPage } from "@/features/settings";
 
 function App() {
   const navigate = useNavigate();
@@ -93,6 +94,8 @@ function App() {
                   ? "Rôles et Permissions"
                   : activeTab === "Plannings"
                   ? "Plannings"
+                  : activeTab === "Paramètres Globaux"
+                  ? "Paramètres Globaux"
                   : (appMode === "utopia" ? "Tableau de Bord" : "Vue d'ensemble")}
               </h1>
               <span className="text-primary font-bold text-sm md:text-base uppercase tracking-widest mt-1">
@@ -104,7 +107,7 @@ function App() {
           <section className="bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[2rem] p-8 md:p-12 border border-border/50 flex-1 w-full max-w-5xl mx-auto space-y-10 relative overflow-hidden">
             <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
 
-            {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Plannings" && (
+            {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Plannings" && activeTab !== "Paramètres Globaux" && (
               <div>
                 <h2 className="text-2xl font-bold mb-2">Bienvenue sur {appMode === "utopia" ? "Utopia" : "Sooatel"}</h2>
                 <p className="text-muted-foreground m-0 text-lg">
@@ -124,6 +127,10 @@ function App() {
             ) : activeTab === "Plannings" ? (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
                 <PlanningPage />
+              </div>
+            ) : activeTab === "Paramètres Globaux" ? (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                <SettingsPage />
               </div>
             ) : (
               <div className="bg-muted/30 rounded-2xl p-6 border border-border/50 flex flex-col items-center justify-center min-h-[300px] text-center">

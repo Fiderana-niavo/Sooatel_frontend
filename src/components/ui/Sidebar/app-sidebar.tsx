@@ -72,6 +72,13 @@ export const navigationGroups = [
       { title: "Rôles et Permissions", url: "/hr/roles", icon: ShieldCheck },
     ],
   },
+  {
+    title: "Configuration",
+    icon: Settings,
+    items: [
+      { title: "Paramètres Globaux", url: "/settings/global", icon: Settings },
+    ],
+  },
 ];
 
 // --- Simple Accordion Wrapper ---

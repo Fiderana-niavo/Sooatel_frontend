@@ -1,4 +1,3 @@
-import React from "react";
 import { Input } from "@/components/ui/Inputs/input";
 import { MultiSelectCombobox } from "@/components/ui/Combobox/multi-select-combobox";
 import type { Role } from "@/features/roles/types";
@@ -24,11 +23,12 @@ export function AccountCredentials({
   availableRoles,
   isEditMode,
 }: AccountCredentialsProps) {
+
   return (
     <div className="space-y-4 p-4 border rounded-lg bg-muted/20 animate-in fade-in slide-in-from-top-2 duration-300">
       <h3 className="text-lg font-semibold">Identifiants de connexion</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
+        <div className={`space-y-2 ${isEditMode ? "md:col-span-2" : ""}`}>
           <label className="text-sm font-medium">Nom d'utilisateur <span className="text-destructive">*</span></label>
           <Input
             value={username}
@@ -38,17 +38,20 @@ export function AccountCredentials({
             className="bg-background"
           />
         </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Mot de passe {!isEditMode && <span className="text-destructive">*</span>}</label>
-          <Input
-            type="password"
-            value={password || ""}
-            onChange={(e) => onPasswordChange?.(e.target.value)}
-            placeholder={isEditMode ? "Laisser vide pour ne pas modifier" : "••••••••"}
-            required={!isEditMode}
-            className="bg-background"
-          />
-        </div>
+
+        {!isEditMode && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Mot de passe <span className="text-destructive">*</span></label>
+            <Input
+              type="password"
+              value={password || ""}
+              onChange={(e) => onPasswordChange?.(e.target.value)}
+              placeholder="••••••••"
+              required
+              className="bg-background"
+            />
+          </div>
+        )}
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium">Rôles attribués</label>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { RolesList } from "../RolesList/RolesList";
 import { RoleDetail } from "../RoleDetail/RoleDetail";
 import type { MockRole as Role, PermissionCategory } from "../../types/index";
@@ -103,7 +103,7 @@ export function RolesPage() {
 
   const handleDelete = async (roleId: string) => {
     const roleToDelete = roles.find(r => r.id === roleId);
-    
+
     if (roleToDelete?.name === "Administrateur") {
       showSnackbar("Impossible de supprimer ce rôle. Ce rôle est actuellement attribué à 4 employés.", "error");
       return;
@@ -119,7 +119,7 @@ export function RolesPage() {
 
   return (
     <div className="flex flex-col md:flex-row w-full gap-6">
-      <RolesList 
+      <RolesList
         roles={roles}
         selectedRoleId={selectedRole?.id || null}
         onSelectRole={handleSelectRole}
@@ -127,10 +127,10 @@ export function RolesPage() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
       />
-      
+
       <div className="hidden md:block w-px bg-border/50" />
 
-      <RoleDetail 
+      <RoleDetail
         role={selectedRole}
         isCreating={isCreating}
         permissionsSchema={MOCK_SCHEMA}
@@ -140,10 +140,10 @@ export function RolesPage() {
       />
 
       {snackbar.isOpen && (
-        <Snackbar 
-          message={snackbar.message} 
-          type={snackbar.type} 
-          onClose={() => setSnackbar({ ...snackbar, isOpen: false })} 
+        <Snackbar
+          message={snackbar.message}
+          type={snackbar.type}
+          onClose={() => setSnackbar({ ...snackbar, isOpen: false })}
         />
       )}
     </div>
