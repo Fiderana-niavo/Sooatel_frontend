@@ -19,6 +19,7 @@ interface EmployeesTableProps {
   onChangeJob: (employee: EmployeeListItem) => void;
   onEditPlanning: (employee: EmployeeListItem) => void;
   onTerminateContract: (employee: EmployeeListItem) => void;
+  onRenewContract: (employee: EmployeeListItem) => void;
   
   // Filters & Sorting
   jobTitles: Array<{ idJobTitle: string; title: string }>;
@@ -32,6 +33,8 @@ interface EmployeesTableProps {
   onSortByChange: (val: "name" | "lastname" | "employeeCode") => void;
   sortOrder: "ASC" | "DESC";
   onSortOrderChange: (val: "ASC" | "DESC") => void;
+  selectedStatus: "active" | "former";
+  onStatusChange: (val: "active" | "former") => void;
 }
 
 export function EmployeesTable({
@@ -48,6 +51,7 @@ export function EmployeesTable({
   onChangeJob,
   onEditPlanning,
   onTerminateContract,
+  onRenewContract,
   jobTitles,
   selectedJobTitleId,
   onJobTitleChange,
@@ -59,6 +63,8 @@ export function EmployeesTable({
   onSortByChange,
   sortOrder,
   onSortOrderChange,
+  selectedStatus,
+  onStatusChange,
 }: EmployeesTableProps) {
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -150,11 +156,22 @@ export function EmployeesTable({
           <option value="yes">Avec compte</option>
           <option value="no">Sans compte</option>
         </select>
+
+        <button
+          onClick={() => onStatusChange(selectedStatus === "active" ? "former" : "active")}
+          className={`h-8 px-3 py-1 text-xs font-semibold rounded-lg shadow-sm border transition-colors ${
+            selectedStatus === "former" 
+              ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90" 
+              : "bg-background text-muted-foreground border-input hover:text-foreground"
+          }`}
+        >
+          {selectedStatus === "active" ? "Afficher les anciens employés" : "Afficher les employés actifs"}
+        </button>
       </div>
 
-      <div className="bg-background border rounded-xl shadow-sm md:overflow-visible" ref={dropdownRef}>
-        <div className="overflow-x-auto md:overflow-visible">
-          <table className="w-full text-left text-sm whitespace-nowrap">
+      <div className="bg-background border rounded-xl shadow-sm md:overflow-visible overflow-x-auto" ref={dropdownRef}>
+        <div className="min-w-max md:min-w-0">
+          <table className="w-full text-left text-sm">
             <thead className="bg-muted/50 border-b">
               <tr>
                 <th
@@ -190,7 +207,7 @@ export function EmployeesTable({
                 </tr>
               ) : (
                 employees.map((emp, index) => {
-                  const isLastRow = index === employees.length - 1 && employees.length >= 2;
+                  const isNearBottom = index >= employees.length - 3 && employees.length > 3;
                   return (
                     <tr key={emp.idEmployee} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4 font-medium">{emp.employeeCode || "-"}</td>
@@ -214,12 +231,12 @@ export function EmployeesTable({
                         {emp.hasAccount ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-700">
                             <span className="size-1.5 rounded-full bg-green-500"></span>
-                            Avec compte
+                            Avec
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground">
                             <span className="size-1.5 rounded-full bg-muted-foreground/40"></span>
-                            Sans compte
+                            Sans
                           </span>
                         )}
                       </td>
@@ -233,37 +250,48 @@ export function EmployeesTable({
                         </button>
 
                         {openDropdownId === emp.idEmployee && (
-                          <div className={`absolute right-8 z-50 w-48 bg-card border rounded-xl shadow-lg p-1 animate-in fade-in zoom-in-95 duration-100 ${isLastRow ? "bottom-10" : "top-10"}`}>
+                          <div className={`absolute right-8 z-50 w-48 bg-card border rounded-xl shadow-lg p-1 animate-in fade-in zoom-in-95 duration-100 max-h-[300px] overflow-y-auto ${isNearBottom ? "bottom-10" : "top-10"}`}>
                             <button
                               onClick={() => { setOpenDropdownId(null); onViewDetails(emp); }}
                               className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
                             >
                               <Eye className="size-4" /> Détails
                             </button>
-                            <button
-                              onClick={() => { setOpenDropdownId(null); onEdit(emp); }}
-                              className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
-                            >
-                              <Edit className="size-4" /> Modifier
-                            </button>
-                            <button
-                              onClick={() => { setOpenDropdownId(null); onChangeJob(emp); }}
-                              className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
-                            >
-                              <Briefcase className="size-4" /> Changer de poste
-                            </button>
-                            <button
-                              onClick={() => { setOpenDropdownId(null); onTerminateContract(emp); }}
-                              className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors text-orange-600"
-                            >
-                              <UserX className="size-4" /> Terminer le contrat
-                            </button>
-                            <button
-                              onClick={() => { setOpenDropdownId(null); onEditPlanning(emp); }}
-                              className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
-                            >
-                              <CalendarDays className="size-4 text-primary" /> Disponibilités
-                            </button>
+                            {selectedStatus === "active" ? (
+                              <>
+                                <button
+                                  onClick={() => { setOpenDropdownId(null); onEdit(emp); }}
+                                  className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
+                                >
+                                  <Edit className="size-4" /> Modifier
+                                </button>
+                                <button
+                                  onClick={() => { setOpenDropdownId(null); onChangeJob(emp); }}
+                                  className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
+                                >
+                                  <Briefcase className="size-4" /> Changer de poste
+                                </button>
+                                <button
+                                  onClick={() => { setOpenDropdownId(null); onTerminateContract(emp); }}
+                                  className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors text-orange-600"
+                                >
+                                  <UserX className="size-4" /> Terminer le contrat
+                                </button>
+                                <button
+                                  onClick={() => { setOpenDropdownId(null); onEditPlanning(emp); }}
+                                  className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
+                                >
+                                  <CalendarDays className="size-4 text-primary" /> Disponibilités
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => { setOpenDropdownId(null); onRenewContract(emp); }}
+                                className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors text-green-600"
+                              >
+                                <Briefcase className="size-4" /> Renouveler le contrat
+                              </button>
+                            )}
                             <div className="h-px bg-border my-1 mx-2" />
                             <button
                               onClick={() => { setOpenDropdownId(null); onDelete(emp); }}

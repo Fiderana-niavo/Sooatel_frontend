@@ -1,30 +1,70 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Briefcase, Building, Clock } from "lucide-react";
-import { JobTitlesModal } from "@/features/employees/components/JobTitlesModal/JobTitlesModal";
-import type { JobTitle } from "@/features/employees/types/type";
-
-const MOCK_JOB_TITLES: JobTitle[] = [
-  { idJobTitle: "j1", title: "Manager" },
-  { idJobTitle: "j2", title: "Serveur" },
-  { idJobTitle: "j3", title: "Cuisinier" },
-  { idJobTitle: "j4", title: "Réceptionniste" },
-];
+import { JobTitlesModal, JobTitleService, type JobTitle } from "@/features/job-titles";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 
 export function SettingsPage() {
   const [isJobTitlesModalOpen, setIsJobTitlesModalOpen] = useState(false);
-  const [jobTitles, setJobTitles] = useState<JobTitle[]>(MOCK_JOB_TITLES);
+  const [jobTitles, setJobTitles] = useState<JobTitle[]>([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleAddJobTitle = (title: string) => {
-    const newId = `j${Date.now()}`;
-    setJobTitles(prev => [...prev, { idJobTitle: newId, title }]);
+  const fetchJobTitles = useCallback(async () => {
+    try {
+      const data = await JobTitleService.getAll();
+      setJobTitles(data);
+    } catch (error) {
+      console.error("Failed to fetch job titles:", error);
+      alert("Erreur lors de la récupération des postes.");
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchJobTitles();
+  }, [fetchJobTitles]);
+
+  const handleAddJobTitle = async (title: string) => {
+    try {
+      const newJobTitle = await JobTitleService.create(title);
+      setJobTitles((prev) => [...prev, newJobTitle]);
+    } catch (error) {
+      console.error("Failed to create job title:", error);
+      alert("Erreur lors de la création du poste.");
+    }
   };
 
-  const handleEditJobTitle = (id: string, newTitle: string) => {
-    setJobTitles(prev => prev.map(job => job.idJobTitle === id ? { ...job, title: newTitle } : job));
+  const handleEditJobTitle = async (id: string, newTitle: string) => {
+    try {
+      await JobTitleService.update(id, newTitle);
+      setJobTitles((prev) =>
+        prev.map((job) => (job?.idJobTitle === id ? { ...job, title: newTitle } : job))
+      );
+    } catch (error) {
+      console.error("Failed to update job title:", error);
+      alert("Erreur lors de la modification du poste.");
+    }
   };
 
-  const handleDeleteJobTitle = (id: string) => {
-    setJobTitles(prev => prev.filter(job => job.idJobTitle !== id));
+  const promptDeleteJobTitle = (id: string) => {
+    setItemToDelete(id);
+    setConfirmOpen(true);
+  };
+
+  const executeDeleteJobTitle = async () => {
+    if (!itemToDelete) return;
+    setIsDeleting(true);
+    try {
+      await JobTitleService.delete(itemToDelete);
+      setJobTitles((prev) => prev.filter((job) => job.idJobTitle !== itemToDelete));
+    } catch (error) {
+      console.error("Failed to delete job title:", error);
+      alert("Erreur lors de la suppression du poste.");
+    } finally {
+      setIsDeleting(false);
+      setConfirmOpen(false);
+      setItemToDelete(null);
+    }
   };
 
   return (
@@ -74,7 +114,16 @@ export function SettingsPage() {
         jobTitles={jobTitles}
         onAdd={handleAddJobTitle}
         onEdit={handleEditJobTitle}
-        onDelete={handleDeleteJobTitle}
+        onDelete={promptDeleteJobTitle}
+      />
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Confirmation de suppression"
+        description="Êtes-vous sûr de vouloir supprimer ce poste ? Cette action peut impacter les employés qui y sont assignés."
+        onConfirm={executeDeleteJobTitle}
+        loading={isDeleting}
       />
     </div>
   );

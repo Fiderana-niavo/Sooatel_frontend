@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button/button";
 import { Users, Clock, CalendarDays, Plus, Trash2 } from "lucide-react";
 import type { Team, ShiftType } from "@/features/planning/types/type";
 import type { EmployeeAvailability } from "@/features/employees/types/type";
-import { getCoveredDays } from "../../utils/availability";
+import { getCoveredDays } from "@/utils/date";
 
 interface EmployeePlanningModalProps {
   isOpen: boolean;
@@ -57,9 +57,36 @@ export function EmployeePlanningModal({
   }, [isOpen]);
 
   const handleAddAvailability = () => {
+    const usedDays = new Set<number>();
+    availabilities.forEach((a) => {
+      if (a.dayOfWeek !== undefined && a.dayOfWeek !== null) {
+        getCoveredDays(a.dayOfWeek).forEach((d) => usedDays.add(d));
+      }
+    });
+
+    let nextAvailableDay: number | null = null;
+    // Iterate through single days (0-6)
+    const singleDays = [1, 2, 3, 4, 5, 6, 0];
+    for (const d of singleDays) {
+      if (!usedDays.has(d)) {
+        nextAvailableDay = d;
+        break;
+      }
+    }
+
+    if (nextAvailableDay === null) {
+      // If all days are covered, do not add a row
+      return;
+    }
+
     setAvailabilities([
       ...availabilities,
-      { dayOfWeek: 1, idShiftType: availableShiftTypes[0]?.idShiftType || null, customStartTime: null, customEndTime: null },
+      {
+        dayOfWeek: nextAvailableDay,
+        idShiftType: availableShiftTypes[0]?.idShiftType || null,
+        customStartTime: null,
+        customEndTime: null,
+      },
     ]);
   };
 
@@ -105,7 +132,7 @@ export function EmployeePlanningModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl rounded-[2rem] overflow-hidden p-0 gap-0 bg-card">
+      <DialogContent className="max-w-5xl rounded-[2rem] overflow-hidden p-0 gap-0 bg-card">
         <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
           <DialogHeader>
             <div className="flex items-center gap-4 mb-2">
@@ -185,7 +212,21 @@ export function EmployeePlanningModal({
                       Tout effacer
                     </Button>
                   )}
-                  <Button size="sm" variant="outline" onClick={handleAddAvailability} className="gap-2 rounded-xl">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={handleAddAvailability} 
+                    className="gap-2 rounded-xl"
+                    disabled={(() => {
+                      const usedDays = new Set<number>();
+                      availabilities.forEach((a) => {
+                        if (a.dayOfWeek !== undefined && a.dayOfWeek !== null) {
+                          getCoveredDays(a.dayOfWeek).forEach((d) => usedDays.add(d));
+                        }
+                      });
+                      return usedDays.size >= 7;
+                    })()}
+                  >
                     <Plus className="size-4" />
                     Ajouter un jour
                   </Button>
@@ -225,9 +266,9 @@ export function EmployeePlanningModal({
                         })}
                       </select>
 
-                      <div className="flex-1 flex items-center gap-2 w-full">
+                      <div className="flex-1 flex flex-col gap-2 w-full">
                         <select
-                          className="flex-1 h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                           value={avail.idShiftType || ""}
                           onChange={(e) => handleChangeAvailability(index, "idShiftType", e.target.value)}
                         >
@@ -238,7 +279,7 @@ export function EmployeePlanningModal({
                         </select>
 
                         {!avail.idShiftType && (
-                          <div className="flex items-center gap-2 bg-background border rounded-lg p-1 shadow-sm h-9">
+                          <div className="flex items-center justify-center gap-2 bg-background border rounded-lg p-1 shadow-sm h-9 w-full">
                             <input
                               type="time"
                               className="text-xs w-20 border-none focus:ring-0 px-1 bg-transparent"

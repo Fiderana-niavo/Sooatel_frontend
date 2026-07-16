@@ -1,14 +1,14 @@
-import React, { useState } from "react";
-import { Search, Plus, Trash2, ChevronRight } from "lucide-react";
+import { Search, Plus, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
-import type { MockRole as Role } from "../../types/index";
+import type { Role } from "../../types/index";
 
 interface RolesListProps {
   roles: Role[];
   selectedRoleId: string | null;
   onSelectRole: (role: Role) => void;
   onCreateNew: () => void;
+  onManagePermissions: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
 }
@@ -18,10 +18,10 @@ export function RolesList({
   selectedRoleId, 
   onSelectRole, 
   onCreateNew,
+  onManagePermissions,
   searchQuery,
   setSearchQuery
 }: RolesListProps) {
-  const filteredRoles = roles.filter(r => r.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div className="w-full md:w-80 flex flex-col border-r border-border/50 pr-4">
@@ -32,6 +32,14 @@ export function RolesList({
         >
           <Plus className="mr-2 size-5 group-hover:rotate-90 transition-transform" />
           Créer un rôle
+        </Button>
+
+        <Button 
+          variant="outline"
+          onClick={onManagePermissions}
+          className="w-full py-4 rounded-xl font-semibold border-border/50 hover:bg-muted/50"
+        >
+          Gérer les permissions
         </Button>
 
         <div className="relative">
@@ -49,11 +57,11 @@ export function RolesList({
       </div>
 
       <div className="space-y-2 pr-2">
-        {filteredRoles.map(role => {
-          const isActive = role.id === selectedRoleId;
+        {roles.map(role => {
+          const isActive = role.idRole === selectedRoleId;
           return (
             <button
-              key={role.id}
+              key={role.idRole}
               onClick={() => onSelectRole(role)}
               className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center justify-between group
                 ${isActive 
@@ -62,13 +70,13 @@ export function RolesList({
                 }
               `}
             >
-              <span>{role.name}</span>
+              <span>{role.label}</span>
               <ChevronRight className={`size-4 transition-transform ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-50"}`} />
             </button>
           );
         })}
         
-        {filteredRoles.length === 0 && (
+        {roles.length === 0 && (
           <div className="text-center py-8 text-muted-foreground text-sm">
             Aucun rôle trouvé.
           </div>

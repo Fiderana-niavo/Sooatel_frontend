@@ -1,119 +1,144 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { RolesList } from "../RolesList/RolesList";
 import { RoleDetail } from "../RoleDetail/RoleDetail";
-import type { MockRole as Role, PermissionCategory } from "../../types/index";
+import type { Role, PermissionCategory } from "../../types/index";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
-
-// Mock Data
-const MOCK_SCHEMA: PermissionCategory[] = [
-  {
-    category: "Utilisateurs & RH",
-    permissions: [
-      { id: "users_read", name: "Voir les employés", category: "Utilisateurs & RH" },
-      { id: "users_create", name: "Créer un employé", category: "Utilisateurs & RH" },
-      { id: "users_update", name: "Modifier un employé", category: "Utilisateurs & RH" },
-      { id: "users_delete", name: "Supprimer un employé", category: "Utilisateurs & RH" },
-    ]
-  },
-  {
-    category: "Opérations de Vente",
-    permissions: [
-      { id: "sales_read", name: "Voir les ventes", category: "Opérations de Vente" },
-      { id: "sales_create", name: "Enregistrer une vente", category: "Opérations de Vente" },
-      { id: "sales_refund", name: "Effectuer un remboursement", category: "Opérations de Vente" },
-    ]
-  },
-  {
-    category: "Gestion des Stocks",
-    permissions: [
-      { id: "inventory_read", name: "Voir l'inventaire", category: "Gestion des Stocks" },
-      { id: "inventory_update", name: "Mettre à jour le stock", category: "Gestion des Stocks" },
-    ]
-  }
-];
-
-const MOCK_ROLES: Role[] = [
-  { id: "1", name: "Administrateur", permissions: ["users_read", "users_create", "users_update", "users_delete", "sales_read", "sales_create", "sales_refund", "inventory_read", "inventory_update"] },
-  { id: "2", name: "Manager", permissions: ["users_read", "sales_read", "sales_create", "sales_refund", "inventory_read", "inventory_update"] },
-  { id: "3", name: "Serveur", permissions: ["sales_create"] },
-];
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
+import { RoleService } from "../../services/role.service";
+import { PermissionService } from "../../services/permission.service";
+import { PermissionsModal } from "../PermissionsModal/PermissionsModal";
 
 export function RolesPage() {
   const [roles, setRoles] = useState<Role[]>([]);
+  const [permissionsSchema, setPermissionsSchema] = useState<PermissionCategory[]>([]);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
+  const action = searchParams.get("action");
+  const roleId = searchParams.get("id");
+  const isCreating = action === "create";
   const [searchQuery, setSearchQuery] = useState("");
+  const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
   const [snackbar, setSnackbar] = useState<{ message: string, type: SnackbarType, isOpen: boolean }>({ message: "", type: "info", isOpen: false });
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
 
   const showSnackbar = (message: string, type: SnackbarType = "info") => {
     setSnackbar({ message, type, isOpen: true });
   };
 
-  // Simulated Fetch
-  useEffect(() => {
-    setRoles(MOCK_ROLES);
-    // Auto-select first role on load if exists
-    if (MOCK_ROLES.length > 0) {
-      setSelectedRole(MOCK_ROLES[0]);
-    }
-  }, []);
+  const isInitialized = useRef(false);
 
-  const handleSelectRole = (role: Role) => {
-    setSelectedRole(role);
-    setIsCreating(false);
+  const loadData = useCallback(async () => {
+    try {
+      const [rolesData, permsData] = await Promise.all([
+        RoleService.getAll({ limit: 100, search: searchQuery }), // Assuming we want all roles here
+        PermissionService.getAllGrouped()
+      ]);
+      setRoles(rolesData.records);
+      setPermissionsSchema(permsData);
+      
+      if (!isInitialized.current) {
+        if (rolesData.first && !roleId && action !== "create") {
+          setSearchParams({ id: rolesData.first.idRole });
+        } else if (rolesData.records.length > 0 && !roleId && action !== "create") {
+          setSearchParams({ id: rolesData.records[0].idRole });
+        }
+        isInitialized.current = true;
+      }
+      
+    } catch (err: unknown) {
+      console.error(err);
+      showSnackbar("Erreur lors du chargement des données.", "error");
+    }
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      loadData();
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [loadData]);
+
+  useEffect(() => {
+    if (roleId) {
+      RoleService.getOne(roleId).then(fullRole => {
+        setSelectedRole(fullRole);
+      }).catch(err => {
+        console.error(err);
+        showSnackbar("Erreur lors de la récupération des détails du rôle.", "error");
+      });
+    } else if (action === "create") {
+      setSelectedRole(null);
+    }
+  }, [roleId, action]);
+
+  const handleSelectRole = async (role: Role) => {
+    setSearchParams({ id: role.idRole });
   };
 
   const handleCreateNew = () => {
-    setSelectedRole(null);
-    setIsCreating(true);
+    setSearchParams({ action: "create" });
   };
 
   const handleCancelCreate = () => {
-    setIsCreating(false);
     if (roles.length > 0) {
-      setSelectedRole(roles[0]);
+      setSearchParams({ id: roles[0].idRole });
+    } else {
+      setSearchParams({});
     }
   };
 
-  const handleSave = async (name: string, description: string, permissionIds: string[]) => {
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        if (isCreating) {
-          const newRole: Role = {
-            id: Math.random().toString(36).substr(2, 9),
-            name,
-            description,
-            permissions: permissionIds
-          };
-          setRoles([...roles, newRole]);
-          setSelectedRole(newRole);
-          setIsCreating(false);
-          showSnackbar("Rôle créé avec succès.", "success");
-        } else if (selectedRole) {
-          const updatedRoles = roles.map(r => r.id === selectedRole.id ? { ...r, name, description, permissions: permissionIds } : r);
-          setRoles(updatedRoles);
-          setSelectedRole({ ...selectedRole, name, description, permissions: permissionIds });
-          showSnackbar("Rôle mis à jour avec succès.", "success");
-        }
-        resolve();
-      }, 800);
-    });
+  const handleSave = async (label: string, description: string, permissionIds: string[]) => {
+    try {
+      if (isCreating) {
+        const newRole = await RoleService.create({ label, description, permissionIds });
+        showSnackbar("Rôle créé avec succès.", "success");
+        await loadData();
+        handleSelectRole(newRole);
+      } else if (selectedRole) {
+        await RoleService.update(selectedRole.idRole, { label, description, permissionIds });
+        showSnackbar("Rôle mis à jour avec succès.", "success");
+        await loadData();
+        handleSelectRole({ ...selectedRole, label, description, permissions: [] }); // Permissions fetched in handleSelectRole
+      }
+    } catch (err: unknown) {
+      console.error(err);
+      showSnackbar(err instanceof Error ? err.message : "Erreur lors de l'enregistrement.", "error");
+    }
   };
 
-  const handleDelete = async (roleId: string) => {
-    const roleToDelete = roles.find(r => r.id === roleId);
+  const promptDelete = (roleId: string) => {
+    const roleToDelete = roles.find(r => r.idRole === roleId);
+    if (!roleToDelete) return;
 
-    if (roleToDelete?.name === "Administrateur") {
-      showSnackbar("Impossible de supprimer ce rôle. Ce rôle est actuellement attribué à 4 employés.", "error");
+    if (roleToDelete.label.toLowerCase() === "administrateur") {
+      showSnackbar("Impossible de supprimer le rôle administrateur.", "error");
       return;
     }
 
-    const confirm = window.confirm(`Êtes-vous sûr de vouloir supprimer le rôle "${roleToDelete?.name}" ? Cette action est irréversible.`);
-    if (confirm) {
-      setRoles(roles.filter(r => r.id !== roleId));
+    setRoleToDelete(roleToDelete);
+    setConfirmOpen(true);
+  };
+
+  const executeDelete = async () => {
+    if (!roleToDelete) return;
+    try {
+      await RoleService.delete(roleToDelete.idRole);
+      setRoles(roles.filter(r => r.idRole !== roleToDelete.idRole));
       setSelectedRole(null);
       showSnackbar("Rôle supprimé avec succès.", "success");
+      if (roles.length > 1) {
+        handleSelectRole(roles.find(r => r.idRole !== roleToDelete.idRole)!);
+      }
+    } catch (err: unknown) {
+      console.error(err);
+      showSnackbar(err instanceof Error ? err.message : "Erreur lors de la suppression.", "error");
+    } finally {
+      setConfirmOpen(false);
+      setRoleToDelete(null);
     }
   };
 
@@ -121,9 +146,10 @@ export function RolesPage() {
     <div className="flex flex-col md:flex-row w-full gap-6">
       <RolesList
         roles={roles}
-        selectedRoleId={selectedRole?.id || null}
+        selectedRoleId={selectedRole?.idRole || null}
         onSelectRole={handleSelectRole}
         onCreateNew={handleCreateNew}
+        onManagePermissions={() => setIsPermissionsModalOpen(true)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
       />
@@ -133,10 +159,17 @@ export function RolesPage() {
       <RoleDetail
         role={selectedRole}
         isCreating={isCreating}
-        permissionsSchema={MOCK_SCHEMA}
+        permissionsSchema={permissionsSchema}
         onSave={handleSave}
-        onDelete={handleDelete}
+        onDelete={promptDelete}
         onCancel={handleCancelCreate}
+      />
+
+      <PermissionsModal
+        open={isPermissionsModalOpen}
+        onOpenChange={setIsPermissionsModalOpen}
+        onPermissionsChanged={loadData}
+        showSnackbar={showSnackbar}
       />
 
       {snackbar.isOpen && (
@@ -146,6 +179,14 @@ export function RolesPage() {
           onClose={() => setSnackbar({ ...snackbar, isOpen: false })}
         />
       )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Confirmation de suppression"
+        description={`Êtes-vous sûr de vouloir supprimer le rôle "${roleToDelete?.label}" ? Cette action est irréversible.`}
+        onConfirm={executeDelete}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { Employee } from "../../types/type";
 import type { Role, Permission } from "@/features/roles/types";
 import { Switch } from "@/components/ui/Switch/switch";
@@ -11,9 +11,10 @@ import { EmployeePlanningModal } from "../EmployeePlanningModal/EmployeePlanning
 
 import type { Team, ShiftType } from "@/features/planning/types/type";
 import { CalendarDays } from "lucide-react";
+import { generateUsername } from "../../utils/employee.utils";
 
 interface EmployeeFormProps {
-  initialData?: Employee;
+  initialData?: any;
   availableJobTitles: { idJobTitle: string; title: string }[];
   availableEmploymentTypes: { idEmploymentType: string; label: string }[];
   availableRoles: Role[];
@@ -43,8 +44,8 @@ export function EmployeeForm({
   const [isPlanningModalOpen, setIsPlanningModalOpen] = useState(false);
   
   const [planningData, setPlanningData] = useState<{ teamId: string | null; availabilities: any[] }>({ 
-    teamId: null, 
-    availabilities: [] 
+    teamId: initialData?.team?.idTeam || null, 
+    availabilities: initialData?.availabilities || [] 
   });
 
   const [formData, setFormData] = useState<Employee>(
@@ -67,7 +68,13 @@ export function EmployeeForm({
   );
 
   const [username, setUsername] = useState(initialData?.userAccount?.username || "");
-  const [password, setPassword] = useState("");
+  const [isUsernameManuallyEdited, setIsUsernameManuallyEdited] = useState(false);
+
+  useEffect(() => {
+    if (!initialData?.userAccount?.username && !isUsernameManuallyEdited) {
+      setUsername(generateUsername(formData.name, formData.lastname));
+    }
+  }, [formData.name, formData.lastname, initialData?.userAccount?.username, isUsernameManuallyEdited]);
   const [selectedRoles, setSelectedRoles] = useState<Role[]>(initialData?.userAccount?.roles || []);
   const [overrides, setOverrides] = useState<Record<string, "grant" | "deny" | "default">>(() => {
     const map: Record<string, "grant" | "deny" | "default"> = {};
@@ -79,13 +86,41 @@ export function EmployeeForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ formData, username, password, selectedRoles, overrides, planningData });
+    const trimmedFormData = {
+      ...formData,
+      name: formData.name.trim(),
+      lastname: formData.lastname.trim(),
+      address: formData.address?.trim(),
+      emailContact: formData.emailContact?.trim(),
+      phoneNumber: formData.phoneNumber?.trim(),
+      notes: formData.notes?.trim(),
+    };
+    onSave({ 
+      formData: trimmedFormData, 
+      username: username.trim(), 
+      selectedRoles, 
+      overrides, 
+      planningData 
+    });
   };
 
   const handleSaveJobChange = (jobData: any) => {
     setFormData(prev => ({ ...prev, ...jobData }));
     // Si besoin, on pourrait aussi déclencher une sauvegarde API directe ici 
     // ou attendre le onSave principal. Pour l'instant on met à jour le form local.
+  };
+
+  const handleInternshipChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      internship: {
+        schoolName: prev.internship?.schoolName || null,
+        academicSupervisorName: prev.internship?.academicSupervisorName || null,
+        professionnalSupervisorName: prev.internship?.professionnalSupervisorName || null,
+        ...prev.internship,
+        [field]: value || null
+      }
+    }));
   };
 
   return (
@@ -118,23 +153,20 @@ export function EmployeeForm({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
               <div className="space-y-2">
-                <label className="text-sm font-medium">Code Employé</label>
-                <Input className="bg-background" value={formData.employeeCode || ""} onChange={(e) => setFormData({ ...formData, employeeCode: e.target.value })} placeholder="ex: EMP-001" />
+                <label className="text-sm font-medium">Nom <span className="text-destructive">*</span></label>
+                <Input required className="bg-background" value={formData.lastname} onChange={(e) => setFormData({ ...formData, lastname: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Prénom <span className="text-destructive">*</span></label>
                 <Input required className="bg-background" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Nom <span className="text-destructive">*</span></label>
-                <Input required className="bg-background" value={formData.lastname} onChange={(e) => setFormData({ ...formData, lastname: e.target.value })} />
-              </div>
-              <div className="space-y-2">
                 <label className="text-sm font-medium">Date de naissance</label>
                 <Input type="date" className="bg-background" value={formData.birthdate || ""} onChange={(e) => setFormData({ ...formData, birthdate: e.target.value })} />
               </div>
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2">
                 <label className="text-sm font-medium">Adresse</label>
                 <Input className="bg-background" value={formData.address || ""} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
               </div>
@@ -157,7 +189,6 @@ export function EmployeeForm({
                     <label className="text-sm font-medium">Poste / Fonction <span className="text-destructive">*</span></label>
                     <select 
                       required
-                      disabled={isEditMode}
                       className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                       value={formData.idJobTitle || ""}
                       onChange={(e) => setFormData({ ...formData, idJobTitle: e.target.value })}
@@ -172,7 +203,6 @@ export function EmployeeForm({
                     <label className="text-sm font-medium">Type de contrat <span className="text-destructive">*</span></label>
                     <select 
                       required
-                      disabled={isEditMode}
                       className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                       value={formData.idEmploymentType || ""}
                       onChange={(e) => setFormData({ ...formData, idEmploymentType: e.target.value })}
@@ -185,20 +215,48 @@ export function EmployeeForm({
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Date de début <span className="text-destructive">*</span></label>
-                    <Input required type="date" className="bg-background" value={formData.assignmentDate || ""} onChange={(e) => setFormData({ ...formData, assignmentDate: e.target.value })} disabled={isEditMode} />
+                    <Input required type="date" className="bg-background" value={formData.assignmentDate || ""} onChange={(e) => setFormData({ ...formData, assignmentDate: e.target.value })} />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Date de fin</label>
-                    <Input type="date" className="bg-background" value={formData.endDate || ""} onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} disabled={isEditMode} />
+                    <Input type="date" className="bg-background" value={formData.endDate || ""} onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} />
                   </div>
                   <div className="md:col-span-2 flex items-center gap-3 mt-1">
                     <Switch
                       checked={formData.hasFixedSchedule}
                       onCheckedChange={(checked) => setFormData({ ...formData, hasFixedSchedule: checked })}
-                      disabled={isEditMode}
                     />
-                    <label className="text-sm font-medium cursor-pointer" onClick={() => !isEditMode && setFormData({...formData, hasFixedSchedule: !formData.hasFixedSchedule})}>Horaires fixes</label>
+                    <label className="text-sm font-medium cursor-pointer" onClick={() => setFormData({...formData, hasFixedSchedule: !formData.hasFixedSchedule})}>Horaires fixes</label>
                   </div>
+                  
+                  {availableEmploymentTypes.find(t => t.idEmploymentType === formData.idEmploymentType)?.label.toLowerCase().includes("stage") && (
+                    <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 pt-4 border-t">
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-sm font-medium">École d'origine</label>
+                        <Input 
+                          className="bg-background" 
+                          value={formData.internship?.schoolName || ""} 
+                          onChange={(e) => handleInternshipChange("schoolName", e.target.value)} 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Tuteur Académique</label>
+                        <Input 
+                          className="bg-background" 
+                          value={formData.internship?.academicSupervisorName || ""} 
+                          onChange={(e) => handleInternshipChange("academicSupervisorName", e.target.value)} 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Tuteur Professionnel</label>
+                        <Input 
+                          className="bg-background" 
+                          value={formData.internship?.professionnalSupervisorName || ""} 
+                          onChange={(e) => handleInternshipChange("professionnalSupervisorName", e.target.value)} 
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="space-y-2">
@@ -215,7 +273,6 @@ export function EmployeeForm({
               </div>
             </div>
 
-            {!isEditMode && (
               <div className="pt-6 border-t mt-8">
                 <div className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border">
                   <div>
@@ -225,7 +282,7 @@ export function EmployeeForm({
                     </h3>
                     <p className="text-sm text-muted-foreground mt-1">
                       {planningData.teamId || planningData.availabilities.length > 0 
-                        ? <span className="text-primary font-medium">Des paramètres de planification ont été configurés pour ce nouvel employé.</span>
+                        ? <span className="text-primary font-medium">Des paramètres de planification ont été configurés.</span>
                         : "Assignez une équipe ou des horaires personnalisés."}
                     </p>
                   </div>
@@ -234,7 +291,6 @@ export function EmployeeForm({
                   </Button>
                 </div>
               </div>
-            )}
 
             <div className="pt-6 border-t mt-8">
               <div className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border">
@@ -245,6 +301,7 @@ export function EmployeeForm({
                 <Switch
                   checked={formData.hasUserAccount}
                   onCheckedChange={(c) => setFormData({ ...formData, hasUserAccount: c })}
+                  className="border-2 border-muted-foreground/20 shadow-sm"
                 />
               </div>
             </div>
@@ -253,13 +310,13 @@ export function EmployeeForm({
               <div className="pt-2">
                 <AccountCredentials
                   username={username}
-                  onUsernameChange={setUsername}
-                  password={password}
-                  onPasswordChange={setPassword}
+                  onUsernameChange={(val) => {
+                    setUsername(val);
+                    setIsUsernameManuallyEdited(true);
+                  }}
                   selectedRoles={selectedRoles}
                   onRolesChange={setSelectedRoles}
                   availableRoles={availableRoles}
-                  isEditMode={isEditMode}
                 />
               </div>
             )}
@@ -292,18 +349,16 @@ export function EmployeeForm({
         onSaveJob={handleSaveJobChange}
       />
 
-      {!isEditMode && (
-        <EmployeePlanningModal
-          isOpen={isPlanningModalOpen}
-          onClose={() => setIsPlanningModalOpen(false)}
-          employeeName="Nouvel Employé"
-          availableTeams={availableTeams}
-          availableShiftTypes={availableShiftTypes}
-          initialTeamId={planningData.teamId || undefined}
-          initialAvailabilities={planningData.availabilities}
-          onSave={setPlanningData}
-        />
-      )}
+      <EmployeePlanningModal
+        isOpen={isPlanningModalOpen}
+        onClose={() => setIsPlanningModalOpen(false)}
+        employeeName={isEditMode ? `${formData.name} ${formData.lastname}` : "Nouvel Employé"}
+        availableTeams={availableTeams}
+        availableShiftTypes={availableShiftTypes}
+        initialTeamId={planningData.teamId || undefined}
+        initialAvailabilities={planningData.availabilities}
+        onSave={setPlanningData}
+      />
     </div>
   );
 }

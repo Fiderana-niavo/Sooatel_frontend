@@ -1,296 +1,224 @@
-import React, { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { EmployeesTable } from "../EmployeesTable/EmployeesTable";
 import { EmployeeForm } from "../EmployeeForm/EmployeeForm";
 import { EmployeePlanningModal } from "../EmployeePlanningModal/EmployeePlanningModal";
 import type { EmployeeListItem, EmployeeDetail } from "../../types/type";
 import type { Role, Permission } from "@/features/roles/types";
 import { Button } from "@/components/ui/Button/button";
-import { ArrowLeft, Briefcase, Trash2, Edit, CalendarDays, Key, Copy, Check, UserX } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog/dialog";
+import {
+  ArrowLeft,
+  Briefcase,
+  Trash2,
+  Edit,
+  CalendarDays,
+  Key,
+  Copy,
+  Check,
+  UserX,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/Dialog/dialog";
 import { Input } from "@/components/ui/Inputs/input";
 import { Switch } from "@/components/ui/Switch/switch";
-// Mock Data
-const MOCK_JOB_TITLES = [
-  { idJobTitle: "j1", title: "Manager" },
-  { idJobTitle: "j2", title: "Serveur" },
-  { idJobTitle: "j3", title: "Cuisinier" },
-  { idJobTitle: "j4", title: "Réceptionniste" },
-];
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
+import { EmployeeService } from "../../services/employee.service";
+import { EmploymentTypeService } from "@/features/employment-types/services/employment-type.service";
+import { JobTitleService, type JobTitle } from "@/features/job-titles";
+import type { EmploymentType } from "@/features/employment-types/types/type";
+import { TeamService } from "@/features/planning/services/team.service";
+import { ShiftTypeService } from "@/features/planning/services/shift-type.service";
+import type { Team, ShiftType } from "@/features/planning/types/type";
+import { RoleService } from "@/features/roles/services/role.service";
+import { PermissionService } from "@/features/roles/services/permission.service";
+import { Snackbar } from "@/components/ui/Snackbar/snackbar";
+import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
-const MOCK_EMPLOYMENT_TYPES = [
-  { idEmploymentType: "et1", label: "CDI" },
-  { idEmploymentType: "et2", label: "CDD" },
-  { idEmploymentType: "et3", label: "Freelance" },
-  { idEmploymentType: "et4", label: "Stage" },
-];
-
-const MOCK_ROLES: Role[] = [
-  { idRole: "1", label: "Serveur", description: "Prend les commandes" },
-  { idRole: "2", label: "Manager", description: "Supervise l'équipe" },
-  { idRole: "3", label: "Cuisinier", description: "Prépare les plats" },
-];
-
-const MOCK_PERMISSIONS: Permission[] = [
-  { idPermission: "p1", permissionName: "Créer Commande", category: "Ventes" },
-  { idPermission: "p2", permissionName: "Supprimer Commande", category: "Ventes" },
-  { idPermission: "p3", permissionName: "Voir Inventaire", category: "Stock" },
-  { idPermission: "p4", permissionName: "Modifier Inventaire", category: "Stock" },
-  { idPermission: "p5", permissionName: "Gérer Employés", category: "RH" },
-];
-
-const MOCK_ROLE_PERMS: Record<string, string[]> = {
-  "1": ["p1"],
-  "2": ["p1", "p2", "p3", "p4", "p5"],
-  "3": ["p3"],
-};
-
-const MOCK_TEAMS = [
-  { idTeam: "t1", teamName: "Équipe Cuisine", description: "" },
-  { idTeam: "t2", teamName: "Équipe Salle", description: "" },
-];
-
-const MOCK_SHIFT_TYPES = [
-  { idShiftType: "s1", label: "Matin", customStartTime: "08:00", customEndTime: "16:00", description: "" },
-  { idShiftType: "s2", label: "Soir", customStartTime: "16:00", customEndTime: "00:00", description: "" },
-];
-
-const MOCK_EMPLOYEES_LIST: EmployeeListItem[] = [
-  {
-    idEmployee: "demo-1",
-    employeeCode: "EMP-001",
-    name: "Jean",
-    lastname: "Dupont",
-    jobTitle: "Manager",
-    isInternship: false,
-    hasAccount: true,
-  },
-  {
-    idEmployee: "demo-2",
-    employeeCode: "EMP-002",
-    name: "Marie",
-    lastname: "Curie",
-    jobTitle: "Serveur",
-    isInternship: true,
-    hasAccount: false,
-  },
-];
-
-const MOCK_EMPLOYEES_DETAILS: Record<string, EmployeeDetail> = {
-  "demo-1": {
-    idEmployee: "demo-1",
-    employeeCode: "EMP-001",
-    name: "Jean",
-    lastname: "Dupont",
-    birthdate: "1990-05-15",
-    address: "123 Rue de la Paix, Paris",
-    emailContact: "jean.dupont@example.com",
-    phoneNumber: "0345678901",
-    notes: "Employé modèle avec d'excellents retours clients.",
-    job: {
-      idEmpJob: "job-1",
-      assignmentDate: "2025-01-10",
-      endDate: null,
-      hasFixedSchedule: true,
-      jobTitle: "Manager",
-    },
-    internship: null,
-    hasUserAccount: true,
-    userAccount: {
-      username: "jdupont",
-      roles: [{ idRole: "2", label: "Manager", description: "Supervise l'équipe" }],
-      permissionsOverrides: [{ idPermission: "p5", overrideType: "grant" }],
-    },
-  },
-  "demo-2": {
-    idEmployee: "demo-2",
-    employeeCode: "EMP-002",
-    name: "Marie",
-    lastname: "Curie",
-    birthdate: "1998-11-20",
-    address: "45 Avenue des Sciences, Lyon",
-    emailContact: "marie.curie@example.com",
-    phoneNumber: "0321234567",
-    notes: "Stagiaire en fin d'études, très rigoureuse.",
-    job: {
-      idEmpJob: "job-2",
-      assignmentDate: "2026-06-01",
-      endDate: "2026-09-01",
-      hasFixedSchedule: false,
-      jobTitle: "Serveur",
-    },
-    internship: {
-      idInternship: "intern-2",
-      schoolName: "Sorbonne Université",
-      academicSupervisorName: "M. Albert Einstein",
-      professionnalSupervisorName: "Jean Dupont",
-    },
-    hasUserAccount: false,
-  },
-};
-
-export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) => void }) {
-  const [view, setView] = useState<"list" | "create" | "edit" | "details">("list");
-  const [selectedEmployeeDetail, setSelectedEmployeeDetail] = useState<EmployeeDetail | null>(null);
-
-  const [employeesList, setEmployeesList] = useState<EmployeeListItem[]>(MOCK_EMPLOYEES_LIST);
-  const [employeesDetails, setEmployeesDetails] = useState<Record<string, EmployeeDetail>>(MOCK_EMPLOYEES_DETAILS);
-  const jobTitles = MOCK_JOB_TITLES;
-
-  // Planning State
-  const [planningEmployee, setPlanningEmployee] = useState<EmployeeListItem | null>(null);
-  const [employeesPlanning, setEmployeesPlanning] = useState<Record<string, { teamId?: string; availabilities: any[] }>>({});
-
-  const handleEditPlanning = (employee: EmployeeListItem) => {
-    setPlanningEmployee(employee);
+export function EmployeesPage({
+  setPageTitle,
+}: {
+  setPageTitle: (title: string) => void;
+}) {
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: SnackbarType;
+    isOpen: boolean;
+  }>({ message: "", type: "info", isOpen: false });
+  const showSnackbar = (message: string, type: SnackbarType = "info") => {
+    setSnackbar({ message, type, isOpen: true });
   };
 
-  // Key Generation State
-  const [generatedKey, setGeneratedKey] = useState<{ token: string; expiresAt: string } | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const view =
+    (searchParams.get("action") as "list" | "create" | "edit" | "details") ||
+    "list";
+  const [selectedEmployeeDetail, setSelectedEmployeeDetail] =
+    useState<EmployeeDetail | null>(null);
 
-  const handleGenerateKey = () => {
-    // Simulation of API key generation
-    const mockToken = "d39d9390-dc22-4cda-8ea0-242da65e1ada";
-    const mockExpiresAt = new Date();
-    mockExpiresAt.setDate(mockExpiresAt.getDate() + 2); // Expiration in 2 days
-    setGeneratedKey({ token: mockToken, expiresAt: mockExpiresAt.toISOString() });
-  };
-
-  // Change Job State
-  const [changeJobEmployee, setChangeJobEmployee] = useState<EmployeeListItem | null>(null);
-  const [newJobId, setNewJobId] = useState("");
-  const [newEmpTypeId, setNewEmpTypeId] = useState("");
-  const [newAssignmentDate, setNewAssignmentDate] = useState("");
-  const [newEndDate, setNewEndDate] = useState("");
-  const [newHasFixedSchedule, setNewHasFixedSchedule] = useState(false);
-
-  const openChangeJobModal = (employeeListItem: EmployeeListItem) => {
-    const detail = employeesDetails[employeeListItem.idEmployee];
-    setChangeJobEmployee(employeeListItem);
-    if (detail && detail.job) {
-      const jobTitleId = jobTitles.find(j => j.title === detail.job?.jobTitle)?.idJobTitle || "";
-      setNewJobId(jobTitleId);
-      setNewEmpTypeId("et1");
-      setNewAssignmentDate(detail.job.assignmentDate || new Date().toISOString().split("T")[0]);
-      setNewEndDate(detail.job.endDate || "");
-      setNewHasFixedSchedule(detail.job.hasFixedSchedule || false);
-    } else {
-      setNewJobId("");
-      setNewEmpTypeId("et1");
-      setNewAssignmentDate(new Date().toISOString().split("T")[0]);
-      setNewEndDate("");
-      setNewHasFixedSchedule(false);
-    }
-  };
-
-  const saveChangeJob = () => {
-    if (!changeJobEmployee) return;
-    const employeeId = changeJobEmployee.idEmployee;
-    const selectedJobTitle = jobTitles.find(j => j.idJobTitle === newJobId)?.title || "";
-
-    setEmployeesDetails(prev => {
-      const current = prev[employeeId];
-      if (!current) return prev;
-      return {
-        ...prev,
-        [employeeId]: {
-          ...current,
-          job: {
-            idEmpJob: current.job?.idEmpJob || `job-${employeeId}`,
-            assignmentDate: newAssignmentDate || null,
-            endDate: newEndDate || null,
-            hasFixedSchedule: newHasFixedSchedule,
-            jobTitle: selectedJobTitle || null,
-          }
-        }
-      };
-    });
-
-    setEmployeesList(prev => prev.map(emp => {
-      if (emp.idEmployee === employeeId) {
-        return {
-          ...emp,
-          jobTitle: selectedJobTitle || null,
-        };
+  const setView = useCallback(
+    (newView: "list" | "create" | "edit" | "details", id?: string) => {
+      if (newView === "list") {
+        setSearchParams({});
+      } else {
+        setSearchParams({ action: newView, ...(id ? { id } : {}) });
       }
-      return emp;
-    }));
+    },
+    [setSearchParams],
+  );
 
-    if (selectedEmployeeDetail && selectedEmployeeDetail.idEmployee === employeeId) {
-      setSelectedEmployeeDetail(prev => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          job: {
-            idEmpJob: prev.job?.idEmpJob || `job-${employeeId}`,
-            assignmentDate: newAssignmentDate || null,
-            endDate: newEndDate || null,
-            hasFixedSchedule: newHasFixedSchedule,
-            jobTitle: selectedJobTitle || null,
-          }
-        };
-      });
+  useEffect(() => {
+    const action = searchParams.get("action");
+    const id = searchParams.get("id");
+    if (
+      (action === "edit" || action === "details") &&
+      id &&
+      !selectedEmployeeDetail
+    ) {
+      EmployeeService.getById(id)
+        .then((detail) => {
+          setSelectedEmployeeDetail(detail);
+        })
+        .catch((err) => {
+          console.error(err);
+          setSearchParams({});
+        });
+    } else if (!action || action === "list") {
+      if (selectedEmployeeDetail) setSelectedEmployeeDetail(null);
     }
+  }, [searchParams, selectedEmployeeDetail, setSearchParams]);
 
-    setChangeJobEmployee(null);
-  };
+  // Reference data from API
+  const [jobTitles, setJobTitles] = useState<JobTitle[]>([]);
+  const [employmentTypes, setEmploymentTypes] = useState<EmploymentType[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [shiftTypes, setShiftTypes] = useState<ShiftType[]>([]);
+  const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
+  const [availablePermissions, setAvailablePermissions] = useState<
+    Permission[]
+  >([]);
+  const [rolePermissionsMapping, setRolePermissionsMapping] = useState<
+    Record<string, string[]>
+  >({});
 
-  // Terminate Contract State
-  const [terminateContractEmployee, setTerminateContractEmployee] = useState<EmployeeListItem | null>(null);
-  const [contractEndDate, setContractEndDate] = useState("");
-
-  const openTerminateContractModal = (employeeListItem: EmployeeListItem) => {
-    setTerminateContractEmployee(employeeListItem);
-    setContractEndDate(new Date().toISOString().split("T")[0]);
-  };
-
-  const saveTerminateContract = () => {
-    if (!terminateContractEmployee) return;
-    const employeeId = terminateContractEmployee.idEmployee;
-
-    setEmployeesDetails(prev => {
-      const current = prev[employeeId];
-      if (!current || !current.job) return prev;
-      return {
-        ...prev,
-        [employeeId]: {
-          ...current,
-          job: {
-            ...current.job,
-            endDate: contractEndDate,
-          }
-        }
-      };
-    });
-
-    if (selectedEmployeeDetail && selectedEmployeeDetail.idEmployee === employeeId && selectedEmployeeDetail.job) {
-      setSelectedEmployeeDetail(prev => {
-        if (!prev || !prev.job) return null;
-        return {
-          ...prev,
-          job: {
-            ...prev.job,
-            endDate: contractEndDate,
-          }
-        };
-      });
-    }
-
-    setTerminateContractEmployee(null);
-  };
-
-  // Table State
+  // List state (server-side)
+  const [employeesList, setEmployeesList] = useState<EmployeeListItem[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
 
-  // Filter & Sort States
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm((prev) => {
+        if (prev !== searchTerm) {
+          setCurrentPage(1);
+          return searchTerm;
+        }
+        return prev;
+      });
+    }, 1000); // 1 second debounce
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
   const [selectedJobTitleId, setSelectedJobTitleId] = useState("");
-  const [selectedInternship, setSelectedInternship] = useState<"all" | "yes" | "no">("all");
-  const [selectedUserAccount, setSelectedUserAccount] = useState<"all" | "yes" | "no">("all");
-  const [sortBy, setSortBy] = useState<"name" | "lastname" | "employeeCode">("name");
+  const [selectedInternship, setSelectedInternship] = useState<
+    "all" | "yes" | "no"
+  >("all");
+  const [selectedUserAccount, setSelectedUserAccount] = useState<
+    "all" | "yes" | "no"
+  >("all");
+  const [sortBy, setSortBy] = useState<"name" | "lastname" | "employeeCode">(
+    "name",
+  );
   const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("ASC");
+  const [selectedStatus, setSelectedStatus] = useState<"active" | "former">(
+    "active",
+  );
 
-  React.useEffect(() => {
+  // Load reference data once
+  useEffect(() => {
+    Promise.all([
+      JobTitleService.getAll(),
+      EmploymentTypeService.getAll(),
+      TeamService.getAll(),
+      ShiftTypeService.getAll(),
+      RoleService.getAll({ limit: 100 }).then((r) => r.records),
+    ])
+      .then(([jt, et, tm, st, roles]) => {
+        setJobTitles(jt);
+        setEmploymentTypes(et);
+        setTeams(tm);
+        setShiftTypes(st);
+        setAvailableRoles(roles);
+        // Build rolePermissionsMapping
+        const mapping: Record<string, string[]> = {};
+        roles.forEach((r) => {
+          mapping[r.idRole] = (r.permissions || []).map((p) => p.idPermission);
+        });
+        setRolePermissionsMapping(mapping);
+      })
+      .catch(console.error);
+
+    // Load permissions for the form
+    PermissionService.getAll({ limit: 1000 })
+      .then((res) => {
+        const perms: Permission[] = res.records.map((p: any) => ({
+          idPermission: p.idPermission,
+          permissionName: p.permissionName,
+          category: p.category?.name || "Autres",
+        }));
+        setAvailablePermissions(perms);
+      })
+      .catch(console.error);
+  }, []);
+
+  // Load employees list (server-side search/filter/sort/pagination)
+  const loadEmployees = useCallback(async () => {
+    try {
+      const params = {
+        page: currentPage,
+        limit: 10,
+        search: debouncedSearchTerm || undefined,
+        idJobTitle: selectedJobTitleId || undefined,
+        hasUserAccount:
+          selectedUserAccount !== "all" ? selectedUserAccount : undefined,
+        isInternship:
+          selectedInternship !== "all" ? selectedInternship : undefined,
+        status: selectedStatus,
+        sortBy,
+        sortOrder,
+      };
+      const result = await EmployeeService.getAll(params);
+      setEmployeesList(result.records);
+      setTotalPages(result.totalPages);
+    } catch (err: any) {
+      console.error(err);
+      showSnackbar(
+        err.response?.data?.error || err.message || "Erreur lors du chargement des employés.",
+        "error"
+      );
+    }
+  }, [
+    currentPage,
+    debouncedSearchTerm,
+    selectedJobTitleId,
+    selectedUserAccount,
+    selectedInternship,
+    selectedStatus,
+    sortBy,
+    sortOrder,
+  ]);
+
+  useEffect(() => {
+    if (view === "list") loadEmployees();
+  }, [loadEmployees, view]);
+
+  useEffect(() => {
     switch (view) {
       case "list":
         setPageTitle("Gestion des Employés");
@@ -299,166 +227,437 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
         setPageTitle("Ajouter un Employé");
         break;
       case "edit":
-        setPageTitle(`Modifier : ${selectedEmployeeDetail?.name} ${selectedEmployeeDetail?.lastname}`);
+        setPageTitle(
+          `Modifier : ${selectedEmployeeDetail?.name} ${selectedEmployeeDetail?.lastname}`,
+        );
         break;
       case "details":
-        setPageTitle(`Détails : ${selectedEmployeeDetail?.name} ${selectedEmployeeDetail?.lastname}`);
+        setPageTitle(
+          `Détails : ${selectedEmployeeDetail?.name} ${selectedEmployeeDetail?.lastname}`,
+        );
         break;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, selectedEmployeeDetail]);
 
-  // Handle Search, Filter, Sort and Pagination
-  const filteredEmployees = employeesList.filter((emp) => {
-    const searchStr = `${emp.name} ${emp.lastname} ${emp.employeeCode}`.toLowerCase();
-    if (!searchStr.includes(searchTerm.toLowerCase())) return false;
+  // Planning State
+  const [planningEmployee, setPlanningEmployee] =
+    useState<EmployeeDetail | null>(null);
 
-    if (selectedJobTitleId) {
-      const targetTitle = jobTitles.find(j => j.idJobTitle === selectedJobTitleId)?.title;
-      if (emp.jobTitle !== targetTitle) return false;
+  const handleEditPlanning = async (employee: EmployeeListItem) => {
+    try {
+      const detail = await EmployeeService.getById(employee.idEmployee);
+      setPlanningEmployee(detail);
+    } catch (err: any) {
+      console.error(err);
+      showSnackbar(
+        err.response?.data?.error || err.message || "Erreur lors de la récupération de la planification.",
+        "error"
+      );
     }
+  };
 
-    if (selectedInternship === "yes" && !emp.isInternship) return false;
-    if (selectedInternship === "no" && emp.isInternship) return false;
+  // Key Generation State
+  const [generatedKey, setGeneratedKey] = useState<{
+    token: string;
+    expiresAt: string;
+  } | null>(null);
 
-    if (selectedUserAccount === "yes" && !emp.hasAccount) return false;
-    if (selectedUserAccount === "no" && emp.hasAccount) return false;
+  const handleGenerateKey = async () => {
+    if (!selectedEmployeeDetail?.userAccount) return;
+    try {
+      const result = await EmployeeService.generateAccessToken(
+        selectedEmployeeDetail.userAccount.idUser,
+      );
+      setGeneratedKey(result);
+    } catch (err: any) {
+      console.error(err);
+      showSnackbar(
+        err.response?.data?.error || err.message || "Erreur lors de la génération de la clé.",
+        "error"
+      );
+    }
+  };
 
-    return true;
-  });
+  // Change Job State
+  const [changeJobEmployee, setChangeJobEmployee] =
+    useState<EmployeeListItem | null>(null);
+  const [isRenewal, setIsRenewal] = useState(false);
+  const [newJobId, setNewJobId] = useState("");
+  const [newEmpTypeId, setNewEmpTypeId] = useState("");
+  const [newAssignmentDate, setNewAssignmentDate] = useState("");
+  const [newEndDate, setNewEndDate] = useState("");
+  const [newHasFixedSchedule, setNewHasFixedSchedule] = useState(false);
 
-  const sortedEmployees = [...filteredEmployees].sort((a, b) => {
-    const valA = (a[sortBy] || "").toString().toLowerCase();
-    const valB = (b[sortBy] || "").toString().toLowerCase();
+  const openChangeJobModal = (item: EmployeeListItem) => {
+    setIsRenewal(false);
+    setChangeJobEmployee(item);
 
-    if (valA < valB) return sortOrder === "ASC" ? -1 : 1;
-    if (valA > valB) return sortOrder === "ASC" ? 1 : -1;
-    return 0;
-  });
+    // Try to get job title ID from item
+    const jt = item.jobTitle
+      ? jobTitles.find((j) => j.title === item.jobTitle)
+      : undefined;
+    const initialJobId = jt?.idJobTitle || "";
 
-  const totalPages = Math.ceil(sortedEmployees.length / itemsPerPage);
-  const paginatedEmployees = sortedEmployees.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    if (
+      selectedEmployeeDetail?.idEmployee === item.idEmployee &&
+      selectedEmployeeDetail.job
+    ) {
+      setNewJobId(initialJobId);
+      setNewEmpTypeId(
+        selectedEmployeeDetail.job.idEmploymentType ||
+          employmentTypes[0]?.idEmploymentType ||
+          "",
+      );
+      setNewAssignmentDate(
+        selectedEmployeeDetail.job.assignmentDate ||
+          new Date().toISOString().split("T")[0],
+      );
+      setNewEndDate(selectedEmployeeDetail.job.endDate || "");
+      setNewHasFixedSchedule(
+        selectedEmployeeDetail.job.hasFixedSchedule || false,
+      );
+    } else {
+      setNewJobId(initialJobId);
+      setNewEmpTypeId(employmentTypes[0]?.idEmploymentType || "");
+      setNewAssignmentDate(new Date().toISOString().split("T")[0]);
+      setNewEndDate("");
+      setNewHasFixedSchedule(false);
+    }
+  };
+
+  const openRenewContractModal = (item: EmployeeListItem) => {
+    setIsRenewal(true);
+    setChangeJobEmployee(item);
+
+    const jt = item.jobTitle
+      ? jobTitles.find((j) => j.title === item.jobTitle)
+      : undefined;
+    const initialJobId = jt?.idJobTitle || "";
+
+    if (
+      selectedEmployeeDetail?.idEmployee === item.idEmployee &&
+      selectedEmployeeDetail.job
+    ) {
+      setNewJobId(initialJobId);
+      setNewEmpTypeId(
+        selectedEmployeeDetail.job.idEmploymentType ||
+          employmentTypes[0]?.idEmploymentType ||
+          "",
+      );
+      setNewAssignmentDate(new Date().toISOString().split("T")[0]);
+      setNewEndDate("");
+      setNewHasFixedSchedule(
+        selectedEmployeeDetail.job.hasFixedSchedule || false,
+      );
+    } else {
+      setNewJobId(initialJobId);
+      setNewEmpTypeId(employmentTypes[0]?.idEmploymentType || "");
+      setNewAssignmentDate(new Date().toISOString().split("T")[0]);
+      setNewEndDate("");
+      setNewHasFixedSchedule(false);
+    }
+  };
+
+  const getSelectedEmployeeListItem = (): EmployeeListItem | null => {
+    if (!selectedEmployeeDetail) return null;
+    return {
+      idEmployee: selectedEmployeeDetail.idEmployee,
+      employeeCode: selectedEmployeeDetail.employeeCode,
+      name: selectedEmployeeDetail.name,
+      lastname: selectedEmployeeDetail.lastname,
+      jobTitle: selectedEmployeeDetail.job?.jobTitle || null,
+      isInternship: !!selectedEmployeeDetail.internship,
+      hasAccount: !!selectedEmployeeDetail.userAccount,
+    };
+  };
+
+  const handleChangeJobClick = () => {
+    const item = getSelectedEmployeeListItem();
+    if (item) openChangeJobModal(item);
+  };
+
+  const handleEditClick = () => {
+    const item = getSelectedEmployeeListItem();
+    if (item) handleEdit(item);
+  };
+
+  const handleEditPlanningClick = () => {
+    const item = getSelectedEmployeeListItem();
+    if (item) handleEditPlanning(item);
+  };
+
+  const handleTerminateContractClick = () => {
+    const item = getSelectedEmployeeListItem();
+    if (item) openTerminateContractModal(item);
+  };
+
+  const handleDeleteClick = () => {
+    const item = getSelectedEmployeeListItem();
+    if (item) promptDelete(item);
+  };
+
+  const handleStatusChange = (val: "active" | "former") => {
+    setSelectedStatus(val);
+    setCurrentPage(1);
+  };
+
+  const saveChangeJob = async () => {
+    if (!changeJobEmployee || !newJobId || !newAssignmentDate) return;
+    try {
+      const dto = {
+        idJobTitle: newJobId,
+        idEmploymentType: newEmpTypeId,
+        assignmentDate: newAssignmentDate,
+        endDate: newEndDate || null,
+        hasFixedSchedule: newHasFixedSchedule,
+      };
+      if (isRenewal) {
+        await EmployeeService.renewContract(changeJobEmployee.idEmployee, dto);
+      } else {
+        await EmployeeService.changeJob(changeJobEmployee.idEmployee, dto);
+      }
+      setChangeJobEmployee(null);
+      loadEmployees();
+      if (selectedEmployeeDetail?.idEmployee === changeJobEmployee.idEmployee) {
+        const updated = await EmployeeService.getById(
+          changeJobEmployee.idEmployee,
+        );
+        setSelectedEmployeeDetail(updated);
+      }
+    } catch (err: any) {
+      console.error(err);
+      showSnackbar(
+        err.response?.data?.error || err.message || "Erreur lors du changement de poste.",
+        "error"
+      );
+    }
+  };
+
+  // Terminate Contract State
+  const [terminateContractEmployee, setTerminateContractEmployee] =
+    useState<EmployeeListItem | null>(null);
+  const [contractEndDate, setContractEndDate] = useState("");
+
+  const openTerminateContractModal = (item: EmployeeListItem) => {
+    setTerminateContractEmployee(item);
+    setContractEndDate(new Date().toISOString().split("T")[0]);
+  };
+
+  const saveTerminateContract = async () => {
+    if (!terminateContractEmployee) return;
+    try {
+      await EmployeeService.endJob(
+        terminateContractEmployee.idEmployee,
+        contractEndDate,
+      );
+      setTerminateContractEmployee(null);
+      loadEmployees();
+      if (
+        view === "details" &&
+        selectedEmployeeDetail?.idEmployee ===
+          terminateContractEmployee.idEmployee
+      ) {
+        setView("list");
+      }
+    } catch (err: any) {
+      console.error(err);
+      showSnackbar(
+        err.response?.data?.error || err.message || "Erreur lors de la clôture du contrat.",
+        "error"
+      );
+    }
+  };
+
+  const savePlanning = async (data: {
+    teamId: string;
+    availabilities: any[];
+  }) => {
+    if (!planningEmployee) return;
+    try {
+      if (data.teamId !== undefined) {
+        await EmployeeService.setTeam(planningEmployee.idEmployee, data.teamId);
+      }
+      if (data.availabilities) {
+        await EmployeeService.setAvailabilities(
+          planningEmployee.idEmployee,
+          data.availabilities.map((a) => ({
+            dayOfWeek: a.dayOfWeek as number,
+            customStartTime: a.customStartTime ?? null,
+            customEndTime: a.customEndTime ?? null,
+            idShiftType: a.idShiftType ?? null,
+          })),
+        );
+      }
+      loadEmployees();
+      if (selectedEmployeeDetail?.idEmployee === planningEmployee.idEmployee) {
+        const updated = await EmployeeService.getById(
+          planningEmployee.idEmployee,
+        );
+        setSelectedEmployeeDetail(updated);
+      }
+    } catch (err: any) {
+      console.error(err);
+      showSnackbar(
+        err.response?.data?.error || err.message || "Erreur lors de la sauvegarde de la planification.",
+        "error"
+      );
+    }
+  };
 
   const handleCreate = () => {
     setSelectedEmployeeDetail(null);
     setView("create");
   };
 
-  const handleEdit = (employeeListItem: EmployeeListItem) => {
-    const detail = employeesDetails[employeeListItem.idEmployee] || {
-      idEmployee: employeeListItem.idEmployee,
-      employeeCode: employeeListItem.employeeCode,
-      name: employeeListItem.name,
-      lastname: employeeListItem.lastname,
-      birthdate: null,
-      address: null,
-      emailContact: null,
-      phoneNumber: null,
-      notes: null,
-      job: null,
-      internship: null,
-    };
-    setSelectedEmployeeDetail(detail);
-    setView("edit");
-  };
-
-  const handleViewDetails = (employeeListItem: EmployeeListItem) => {
-    const detail = employeesDetails[employeeListItem.idEmployee] || {
-      idEmployee: employeeListItem.idEmployee,
-      employeeCode: employeeListItem.employeeCode,
-      name: employeeListItem.name,
-      lastname: employeeListItem.lastname,
-      birthdate: null,
-      address: null,
-      emailContact: null,
-      phoneNumber: null,
-      notes: null,
-      job: null,
-      internship: null,
-    };
-    setSelectedEmployeeDetail(detail);
-    setView("details");
-  };
-
-  const handleDelete = (employeeListItem: EmployeeListItem) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer l'employé ${employeeListItem.name} ${employeeListItem.lastname} ?`)) {
-      setEmployeesList(prev => prev.filter(emp => emp.idEmployee !== employeeListItem.idEmployee));
-      setEmployeesDetails(prev => {
-        const copy = { ...prev };
-        delete copy[employeeListItem.idEmployee];
-        return copy;
-      });
+  const handleEdit = async (item: EmployeeListItem) => {
+    try {
+      const detail = await EmployeeService.getById(item.idEmployee);
+      setSelectedEmployeeDetail(detail);
+      setView("edit", item.idEmployee);
+    } catch (err: any) {
+      console.error(err);
+      showSnackbar(
+        err.response?.data?.error || err.message || "Erreur lors de la récupération de l'employé.",
+        "error"
+      );
     }
   };
 
-  const handleSaveForm = (savedData: any) => {
-    const { formData, username, password, selectedRoles, overrides } = savedData;
+  const handleViewDetails = async (item: EmployeeListItem) => {
+    try {
+      const detail = await EmployeeService.getById(item.idEmployee);
+      setSelectedEmployeeDetail(detail);
+      setView("details", item.idEmployee);
+    } catch (err: any) {
+      console.error(err);
+      showSnackbar(
+        err.response?.data?.error || err.message || "Erreur lors de la récupération des détails.",
+        "error"
+      );
+    }
+  };
 
-    // Map UserAccount overrides back to structure
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] =
+    useState<EmployeeListItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const promptDelete = (item: EmployeeListItem) => {
+    setEmployeeToDelete(item);
+    setConfirmOpen(true);
+  };
+
+  const executeDelete = async () => {
+    if (!employeeToDelete) return;
+    setIsDeleting(true);
+    try {
+      await EmployeeService.delete(employeeToDelete.idEmployee);
+      setConfirmOpen(false);
+      setEmployeeToDelete(null);
+      if (view === "details") setView("list");
+      else loadEmployees();
+    } catch (err: any) {
+      console.error(err);
+      showSnackbar(
+        err.response?.data?.error || err.message || "Erreur lors de la suppression de l'employé.",
+        "error"
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleSaveForm = async (savedData: any) => {
+    const { formData, username, selectedRoles, overrides, planningData } =
+      savedData;
+
     const permissionsOverrides = Object.entries(overrides)
-      .filter(([_, value]) => value !== "default")
+      .filter(([, value]) => value !== "default")
       .map(([idPermission, value]) => ({
         idPermission,
-        overrideType: value as "grant" | "deny" | "default"
+        overrideType: value as "grant" | "deny" | "default",
       }));
 
-    const userAccount = formData.hasUserAccount ? {
-      username,
-      ...(password ? { password } : (selectedEmployeeDetail?.userAccount?.password ? { password: selectedEmployeeDetail.userAccount.password } : {})),
-      roles: selectedRoles,
-      permissionsOverrides,
-    } : undefined;
+    const userAccount = formData.hasUserAccount
+      ? {
+          username,
+          roles: (selectedRoles as Role[]).map((r) => r.idRole),
+          permissionsOverrides,
+        }
+      : null;
 
-    const idEmployee = selectedEmployeeDetail?.idEmployee || `demo-${Date.now()}`;
-    const employeeCode = formData.employeeCode || selectedEmployeeDetail?.employeeCode || `EMP-00${employeesList.length + 1}`;
-
-    const newDetail: EmployeeDetail = {
-      idEmployee,
-      employeeCode,
+    const dto = {
       name: formData.name,
       lastname: formData.lastname,
-      birthdate: formData.birthdate || null,
-      address: formData.address || null,
-      emailContact: formData.emailContact || null,
-      phoneNumber: formData.phoneNumber || null,
-      notes: formData.notes || null,
-      job: formData.idJobTitle ? {
-        idEmpJob: `job-${idEmployee}`,
-        assignmentDate: formData.assignmentDate || null,
-        endDate: formData.endDate || null,
-        hasFixedSchedule: formData.hasFixedSchedule || false,
-        jobTitle: jobTitles.find(j => j.idJobTitle === formData.idJobTitle)?.title || formData.idJobTitle,
-      } : null,
-      internship: formData.isInternship ? {
-        idInternship: `intern-${idEmployee}`,
-        schoolName: "Université de Test",
-        academicSupervisorName: "M. Tuteur Académique",
-        professionnalSupervisorName: "Jean Dupont",
-      } : null,
-      hasUserAccount: formData.hasUserAccount,
+      birthdate: formData.birthdate || undefined,
+      address: formData.address || undefined,
+      emailContact: formData.emailContact || undefined,
+      phoneNumber: formData.phoneNumber || undefined,
+      notes: formData.notes || undefined,
+      job: formData.idJobTitle
+        ? {
+            idJobTitle: formData.idJobTitle,
+            idEmploymentType: formData.idEmploymentType,
+            assignmentDate: formData.assignmentDate,
+            endDate: formData.endDate || null,
+            hasFixedSchedule: formData.hasFixedSchedule || false,
+          }
+        : null,
+      internship: formData.internship
+        ? {
+            schoolName: formData.internship.schoolName || null,
+            academicSupervisorName:
+              formData.internship.academicSupervisorName || null,
+            professionnalSupervisorName:
+              formData.internship.professionnalSupervisorName || null,
+          }
+        : null,
       userAccount,
     };
 
-    const newListItem: EmployeeListItem = {
-      idEmployee,
-      employeeCode,
-      name: formData.name,
-      lastname: formData.lastname,
-      jobTitle: newDetail.job?.jobTitle || null,
-      isInternship: !!formData.isInternship,
-      hasAccount: !!formData.hasUserAccount,
-    };
+    try {
+      let employeeId = selectedEmployeeDetail?.idEmployee;
 
-    if (view === "create") {
-      setEmployeesList(prev => [...prev, newListItem]);
-      setEmployeesDetails(prev => ({ ...prev, [idEmployee]: newDetail }));
-    } else {
-      setEmployeesList(prev => prev.map(emp => emp.idEmployee === idEmployee ? newListItem : emp));
-      setEmployeesDetails(prev => ({ ...prev, [idEmployee]: newDetail }));
+      if (view === "create") {
+        const newEmployee = await EmployeeService.create(dto);
+        employeeId = newEmployee.idEmployee;
+      } else if (employeeId) {
+        await EmployeeService.update(employeeId, dto);
+      }
+
+      // Save planning data if we have an employeeId and planningData is provided
+      if (employeeId && planningData) {
+        if (planningData.teamId !== undefined) {
+          await EmployeeService.setTeam(employeeId, planningData.teamId);
+        }
+        if (planningData.availabilities) {
+          const formattedAvailabilities = planningData.availabilities.map(
+            (a: any) => ({
+              dayOfWeek: a.dayOfWeek as number,
+              customStartTime: a.customStartTime ?? null,
+              customEndTime: a.customEndTime ?? null,
+              idShiftType: a.idShiftType ?? null,
+            }),
+          );
+          await EmployeeService.setAvailabilities(
+            employeeId,
+            formattedAvailabilities,
+          );
+        }
+      }
+
+      setView("list");
+      setSelectedEmployeeDetail(null);
+      // Let the useEffect handle loadEmployees to avoid duplicate requests
+    } catch (err: any) {
+      console.error(err);
+      showSnackbar(
+        err.response?.data?.error ||
+          err.message ||
+          "Erreur lors de l'enregistrement de l'employé.",
+        "error",
+      );
     }
-
-    setView("list");
-    setSelectedEmployeeDetail(null);
   };
 
   const handleBack = () => {
@@ -469,7 +668,11 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
   return (
     <div className="w-full">
       {view !== "list" && (
-        <Button variant="ghost" onClick={handleBack} className="mb-6 -ml-4 gap-2 text-muted-foreground hover:text-foreground">
+        <Button
+          variant="ghost"
+          onClick={handleBack}
+          className="mb-6 -ml-4 gap-2 text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="size-4" />
           Retour à la liste
         </Button>
@@ -477,11 +680,10 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
 
       {view === "list" && (
         <EmployeesTable
-          employees={paginatedEmployees}
+          employees={employeesList}
           searchTerm={searchTerm}
           onSearchChange={(val) => {
             setSearchTerm(val);
-            setCurrentPage(1);
           }}
           currentPage={currentPage}
           totalPages={totalPages}
@@ -489,10 +691,11 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
           onCreate={handleCreate}
           onEdit={handleEdit}
           onViewDetails={handleViewDetails}
-          onDelete={handleDelete}
+          onDelete={promptDelete}
           onChangeJob={openChangeJobModal}
           onEditPlanning={handleEditPlanning}
           onTerminateContract={openTerminateContractModal}
+          onRenewContract={openRenewContractModal}
           jobTitles={jobTitles}
           selectedJobTitleId={selectedJobTitleId}
           onJobTitleChange={(id) => {
@@ -519,37 +722,58 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
             setSortOrder(val);
             setCurrentPage(1);
           }}
+          selectedStatus={selectedStatus}
+          onStatusChange={handleStatusChange}
         />
       )}
 
-      {(view === "create" || view === "edit") && (
+      {(view === "create" || (view === "edit" && selectedEmployeeDetail)) && (
         <EmployeeForm
-          initialData={selectedEmployeeDetail ? {
-            idEmployee: selectedEmployeeDetail.idEmployee,
-            employeeCode: selectedEmployeeDetail.employeeCode,
-            name: selectedEmployeeDetail.name || "",
-            lastname: selectedEmployeeDetail.lastname || "",
-            birthdate: selectedEmployeeDetail.birthdate || undefined,
-            address: selectedEmployeeDetail.address || undefined,
-            emailContact: selectedEmployeeDetail.emailContact || undefined,
-            phoneNumber: selectedEmployeeDetail.phoneNumber || undefined,
-            notes: selectedEmployeeDetail.notes || undefined,
-            idJobTitle: selectedEmployeeDetail.job ? (jobTitles.find(j => j.title === selectedEmployeeDetail.job?.jobTitle)?.idJobTitle || selectedEmployeeDetail.job.jobTitle || undefined) : undefined,
-            assignmentDate: selectedEmployeeDetail.job?.assignmentDate || undefined,
-            endDate: selectedEmployeeDetail.job?.endDate || undefined,
-            hasFixedSchedule: selectedEmployeeDetail.job?.hasFixedSchedule || undefined,
-            idEmploymentType: selectedEmployeeDetail.job ? "et1" : undefined,
-            isInternship: !!selectedEmployeeDetail.internship,
-            hasUserAccount: !!selectedEmployeeDetail.userAccount,
-            userAccount: selectedEmployeeDetail.userAccount,
-          } : undefined}
+          initialData={
+            selectedEmployeeDetail
+              ? {
+                  idEmployee: selectedEmployeeDetail.idEmployee,
+                  employeeCode: selectedEmployeeDetail.employeeCode,
+                  name: selectedEmployeeDetail.name || "",
+                  lastname: selectedEmployeeDetail.lastname || "",
+                  birthdate: selectedEmployeeDetail.birthdate || undefined,
+                  address: selectedEmployeeDetail.address || undefined,
+                  emailContact:
+                    selectedEmployeeDetail.emailContact || undefined,
+                  phoneNumber: selectedEmployeeDetail.phoneNumber || undefined,
+                  notes: selectedEmployeeDetail.notes || undefined,
+                  idJobTitle:
+                    selectedEmployeeDetail.job?.idJobTitle || undefined,
+                  assignmentDate: selectedEmployeeDetail.job?.assignmentDate
+                    ? new Date(selectedEmployeeDetail.job.assignmentDate)
+                        .toISOString()
+                        .split("T")[0]
+                    : undefined,
+                  endDate: selectedEmployeeDetail.job?.endDate
+                    ? new Date(selectedEmployeeDetail.job.endDate)
+                        .toISOString()
+                        .split("T")[0]
+                    : undefined,
+                  hasFixedSchedule:
+                    selectedEmployeeDetail.job?.hasFixedSchedule || undefined,
+                  idEmploymentType:
+                    selectedEmployeeDetail.job?.idEmploymentType || undefined,
+                  isInternship: !!selectedEmployeeDetail.internship,
+                  internship: selectedEmployeeDetail.internship,
+                  hasUserAccount: !!selectedEmployeeDetail.userAccount,
+                  userAccount: selectedEmployeeDetail.userAccount,
+                  team: selectedEmployeeDetail.team,
+                  availabilities: selectedEmployeeDetail.availabilities,
+                }
+              : undefined
+          }
           availableJobTitles={jobTitles}
-          availableEmploymentTypes={MOCK_EMPLOYMENT_TYPES}
-          availableRoles={MOCK_ROLES}
-          availablePermissions={MOCK_PERMISSIONS}
-          rolePermissionsMapping={MOCK_ROLE_PERMS}
-          availableTeams={MOCK_TEAMS}
-          availableShiftTypes={MOCK_SHIFT_TYPES}
+          availableEmploymentTypes={employmentTypes}
+          availableRoles={availableRoles}
+          availablePermissions={availablePermissions}
+          rolePermissionsMapping={rolePermissionsMapping}
+          availableTeams={teams}
+          availableShiftTypes={shiftTypes}
           onSave={handleSaveForm}
           onCancel={handleBack}
         />
@@ -561,7 +785,8 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
             <div>
               <div className="flex items-center gap-3">
                 <h3 className="text-3xl font-extrabold tracking-tight text-secondary">
-                  {selectedEmployeeDetail.name} {selectedEmployeeDetail.lastname}
+                  {selectedEmployeeDetail.name}{" "}
+                  {selectedEmployeeDetail.lastname}
                 </h3>
                 {selectedEmployeeDetail.internship && (
                   <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-600 border border-blue-500/20">
@@ -570,7 +795,9 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
                 )}
               </div>
               <p className="text-muted-foreground mt-1.5 flex items-center gap-2">
-                <span className="font-bold text-primary">{selectedEmployeeDetail.employeeCode || "CODE-NON-DEFINI"}</span>
+                <span className="font-bold text-primary">
+                  {selectedEmployeeDetail.employeeCode || "CODE-NON-DEFINI"}
+                </span>
                 {selectedEmployeeDetail.job?.jobTitle && (
                   <>
                     <span>•</span>
@@ -583,74 +810,44 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
-                onClick={() => {
-                  const item: EmployeeListItem = {
-                    idEmployee: selectedEmployeeDetail.idEmployee,
-                    employeeCode: selectedEmployeeDetail.employeeCode,
-                    name: selectedEmployeeDetail.name,
-                    lastname: selectedEmployeeDetail.lastname,
-                    jobTitle: selectedEmployeeDetail.job?.jobTitle || null,
-                    isInternship: !!selectedEmployeeDetail.internship,
-                    hasAccount: !!selectedEmployeeDetail.userAccount,
-                  };
-                  handleEdit(item);
-                }}
+                onClick={handleEditClick}
                 className="rounded-xl px-4 gap-2 font-medium border-border hover:bg-muted"
               >
                 <Edit className="size-4 text-muted-foreground" />
                 Modifier le profil
               </Button>
+              {selectedStatus === "active" && (
+                <Button
+                  variant="outline"
+                  onClick={handleEditPlanningClick}
+                  className="rounded-xl px-4 gap-2 font-medium border-border hover:bg-muted text-primary"
+                >
+                  <CalendarDays className="size-4" />
+                  Disponibilités
+                </Button>
+              )}
+              {selectedStatus === "active" ? (
+                <Button
+                  onClick={handleChangeJobClick}
+                  className="rounded-xl px-4 gap-2 bg-primary hover:bg-primary/90 text-white font-medium"
+                >
+                  <Briefcase className="size-4" />
+                  Changer de poste
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => {
+                    const item = getSelectedEmployeeListItem();
+                    if (item) openRenewContractModal(item);
+                  }}
+                  className="rounded-xl px-4 gap-2 bg-green-600 hover:bg-green-700 text-white font-medium"
+                >
+                  <Briefcase className="size-4" />
+                  Renouveler le contrat
+                </Button>
+              )}
               <Button
-                variant="outline"
-                onClick={() => {
-                  const item: EmployeeListItem = {
-                    idEmployee: selectedEmployeeDetail.idEmployee,
-                    employeeCode: selectedEmployeeDetail.employeeCode,
-                    name: selectedEmployeeDetail.name,
-                    lastname: selectedEmployeeDetail.lastname,
-                    jobTitle: selectedEmployeeDetail.job?.jobTitle || null,
-                    isInternship: !!selectedEmployeeDetail.internship,
-                    hasAccount: !!selectedEmployeeDetail.userAccount,
-                  };
-                  handleEditPlanning(item);
-                }}
-                className="rounded-xl px-4 gap-2 font-medium border-border hover:bg-muted text-primary"
-              >
-                <CalendarDays className="size-4" />
-                Disponibilités
-              </Button>
-              <Button
-                onClick={() => {
-                  const item: EmployeeListItem = {
-                    idEmployee: selectedEmployeeDetail.idEmployee,
-                    employeeCode: selectedEmployeeDetail.employeeCode,
-                    name: selectedEmployeeDetail.name,
-                    lastname: selectedEmployeeDetail.lastname,
-                    jobTitle: selectedEmployeeDetail.job?.jobTitle || null,
-                    isInternship: !!selectedEmployeeDetail.internship,
-                    hasAccount: !!selectedEmployeeDetail.userAccount,
-                  };
-                  openChangeJobModal(item);
-                }}
-                className="rounded-xl px-4 gap-2 bg-primary hover:bg-primary/90 text-white font-medium"
-              >
-                <Briefcase className="size-4" />
-                Changer de poste
-              </Button>
-              <Button
-                onClick={() => {
-                  const item: EmployeeListItem = {
-                    idEmployee: selectedEmployeeDetail.idEmployee,
-                    employeeCode: selectedEmployeeDetail.employeeCode,
-                    name: selectedEmployeeDetail.name,
-                    lastname: selectedEmployeeDetail.lastname,
-                    jobTitle: selectedEmployeeDetail.job?.jobTitle || null,
-                    isInternship: !!selectedEmployeeDetail.internship,
-                    hasAccount: !!selectedEmployeeDetail.userAccount,
-                  };
-                  handleDelete(item);
-                  setView("list");
-                }}
+                onClick={handleDeleteClick}
                 className="rounded-xl px-4 gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium"
               >
                 <Trash2 className="size-4" />
@@ -662,53 +859,102 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6">
               <div>
-                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">Informations Personnelles</h4>
+                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">
+                  Informations Personnelles
+                </h4>
                 <div className="bg-muted/15 border rounded-2xl p-5 space-y-4">
                   <div>
-                    <span className="text-xs text-muted-foreground block">Nom Complet</span>
-                    <span className="font-semibold text-foreground text-base">{selectedEmployeeDetail.name} {selectedEmployeeDetail.lastname}</span>
+                    <span className="text-xs text-muted-foreground block">
+                      Nom Complet
+                    </span>
+                    <span className="font-semibold text-foreground text-base">
+                      {selectedEmployeeDetail.name}{" "}
+                      {selectedEmployeeDetail.lastname}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-xs text-muted-foreground block">Date de naissance</span>
-                    <span className="font-medium text-foreground">{selectedEmployeeDetail.birthdate ? new Date(selectedEmployeeDetail.birthdate).toLocaleDateString("fr-FR") : "-"}</span>
+                    <span className="text-xs text-muted-foreground block">
+                      Date de naissance
+                    </span>
+                    <span className="font-medium text-foreground">
+                      {selectedEmployeeDetail.birthdate
+                        ? new Date(
+                            selectedEmployeeDetail.birthdate,
+                          ).toLocaleDateString("fr-FR", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })
+                        : "-"}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-xs text-muted-foreground block">Adresse</span>
-                    <span className="font-medium text-foreground">{selectedEmployeeDetail.address || "-"}</span>
+                    <span className="text-xs text-muted-foreground block">
+                      Adresse
+                    </span>
+                    <span className="font-medium text-foreground">
+                      {selectedEmployeeDetail.address || "-"}
+                    </span>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">Informations de Contact</h4>
+                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">
+                  Informations de Contact
+                </h4>
                 <div className="bg-muted/15 border rounded-2xl p-5 space-y-4">
                   <div>
-                    <span className="text-xs text-muted-foreground block">E-mail de contact</span>
-                    <span className="font-medium text-foreground">{selectedEmployeeDetail.emailContact || "-"}</span>
+                    <span className="text-xs text-muted-foreground block">
+                      E-mail de contact
+                    </span>
+                    <span className="font-medium text-foreground">
+                      {selectedEmployeeDetail.emailContact || "-"}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-xs text-muted-foreground block">Numéro de téléphone</span>
-                    <span className="font-medium text-foreground">{selectedEmployeeDetail.phoneNumber || "-"}</span>
+                    <span className="text-xs text-muted-foreground block">
+                      Numéro de téléphone
+                    </span>
+                    <span className="font-medium text-foreground">
+                      {selectedEmployeeDetail.phoneNumber || "-"}
+                    </span>
                   </div>
                 </div>
               </div>
 
               {selectedEmployeeDetail.internship && (
                 <div>
-                  <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">Détails du Stage</h4>
+                  <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">
+                    Détails du Stage
+                  </h4>
                   <div className="bg-muted/15 border rounded-2xl p-5 space-y-4">
                     <div>
-                      <span className="text-xs text-muted-foreground block">École d'origine</span>
-                      <span className="font-semibold text-foreground">{selectedEmployeeDetail.internship.schoolName || "-"}</span>
+                      <span className="text-xs text-muted-foreground block">
+                        École d'origine
+                      </span>
+                      <span className="font-semibold text-foreground">
+                        {selectedEmployeeDetail.internship.schoolName || "-"}
+                      </span>
                     </div>
                     <div className="grid grid-cols-2 gap-4 border-t pt-3">
                       <div>
-                        <span className="text-xs text-muted-foreground block">Tuteur Académique</span>
-                        <span className="font-medium text-foreground">{selectedEmployeeDetail.internship.academicSupervisorName || "-"}</span>
+                        <span className="text-xs text-muted-foreground block">
+                          Tuteur Académique
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {selectedEmployeeDetail.internship
+                            .academicSupervisorName || "-"}
+                        </span>
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground block">Tuteur Professionnel</span>
-                        <span className="font-medium text-foreground">{selectedEmployeeDetail.internship.professionnalSupervisorName || "-"}</span>
+                        <span className="text-xs text-muted-foreground block">
+                          Tuteur Professionnel
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {selectedEmployeeDetail.internship
+                            .professionnalSupervisorName || "-"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -718,60 +964,100 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
 
             <div className="space-y-6">
               <div>
-                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">Informations du Poste</h4>
+                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">
+                  Informations du Poste
+                </h4>
                 {selectedEmployeeDetail.job ? (
                   <div className="bg-muted/15 border rounded-2xl p-5 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <span className="text-xs text-muted-foreground block">Poste actuel</span>
-                        <span className="font-semibold text-foreground">{selectedEmployeeDetail.job.jobTitle || "Non assigné"}</span>
+                        <span className="text-xs text-muted-foreground block">
+                          Poste actuel
+                        </span>
+                        <span className="font-semibold text-foreground">
+                          {selectedEmployeeDetail.job.jobTitle || "Non assigné"}
+                        </span>
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground block">Type de contrat</span>
+                        <span className="text-xs text-muted-foreground block">
+                          Type de contrat
+                        </span>
                         <span className="font-semibold text-foreground">
-                          {selectedEmployeeDetail.internship ? "Stage" : "CDI / CDD"}
+                          {selectedEmployeeDetail.internship
+                            ? "Stage"
+                            : "CDI / CDD"}
                         </span>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 border-t pt-3">
                       <div>
-                        <span className="text-xs text-muted-foreground block">Date d'assignation</span>
-                        <span className="font-medium text-foreground">{selectedEmployeeDetail.job.assignmentDate ? new Date(selectedEmployeeDetail.job.assignmentDate).toLocaleDateString("fr-FR") : "-"}</span>
+                        <span className="text-xs text-muted-foreground block">
+                          Date d'assignation
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {selectedEmployeeDetail.job.assignmentDate
+                            ? new Date(
+                                selectedEmployeeDetail.job.assignmentDate,
+                              ).toLocaleDateString("fr-FR")
+                            : "-"}
+                        </span>
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground block">Date de fin</span>
-                        <span className="font-medium text-foreground">{selectedEmployeeDetail.job.endDate ? new Date(selectedEmployeeDetail.job.endDate).toLocaleDateString("fr-FR") : "Indéterminée"}</span>
+                        <span className="text-xs text-muted-foreground block">
+                          Date de fin
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {selectedEmployeeDetail.job.endDate
+                            ? new Date(
+                                selectedEmployeeDetail.job.endDate,
+                              ).toLocaleDateString("fr-FR")
+                            : "Indéterminée"}
+                        </span>
                       </div>
                     </div>
                     <div className="border-t pt-3 flex items-center justify-between">
                       <div>
-                        <span className="text-xs text-muted-foreground block">Gestion des horaires</span>
-                        <span className="font-medium text-foreground">{selectedEmployeeDetail.job.hasFixedSchedule ? "Horaires de travail fixes" : "Horaires de travail flexibles"}</span>
+                        <span className="text-xs text-muted-foreground block">
+                          Gestion des horaires
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {selectedEmployeeDetail.job.hasFixedSchedule
+                            ? "Horaires de travail fixes"
+                            : "Horaires de travail flexibles"}
+                        </span>
                       </div>
-                      <span className={`size-3 rounded-full ${selectedEmployeeDetail.job.hasFixedSchedule ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]"}`} />
+                      <span
+                        className={`size-3 rounded-full ${selectedEmployeeDetail.job.hasFixedSchedule ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]"}`}
+                      />
                     </div>
-                    <div className="border-t pt-3 mt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const item: EmployeeListItem = {
-                            idEmployee: selectedEmployeeDetail.idEmployee,
-                            employeeCode: selectedEmployeeDetail.employeeCode,
-                            name: selectedEmployeeDetail.name,
-                            lastname: selectedEmployeeDetail.lastname,
-                            jobTitle: selectedEmployeeDetail.job?.jobTitle || null,
-                            isInternship: !!selectedEmployeeDetail.internship,
-                            hasAccount: !!selectedEmployeeDetail.userAccount,
-                          };
-                          openTerminateContractModal(item);
-                        }}
-                        className="w-full text-xs font-semibold gap-2 border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 rounded-xl"
-                      >
-                        <UserX className="size-3.5" />
-                        Terminer le contrat
-                      </Button>
-                    </div>
+                    {selectedStatus === "active" ? (
+                      <div className="border-t pt-3 mt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleTerminateContractClick}
+                          className="w-full text-xs font-semibold gap-2 border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 rounded-xl"
+                        >
+                          <UserX className="size-3.5" />
+                          Terminer le contrat
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="border-t pt-3 mt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const item = getSelectedEmployeeListItem();
+                            if (item) openRenewContractModal(item);
+                          }}
+                          className="w-full text-xs font-semibold gap-2 border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700 rounded-xl"
+                        >
+                          <Briefcase className="size-3.5" />
+                          Renouveler le contrat
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="bg-muted/15 border rounded-2xl p-5 text-center text-muted-foreground text-sm py-8">
@@ -781,16 +1067,86 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
               </div>
 
               <div>
-                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">Sécurité & Compte Utilisateur</h4>
+                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">
+                  Équipe & Planification
+                </h4>
+                <div className="bg-muted/15 border rounded-2xl p-5 space-y-4">
+                  <div>
+                    <span className="text-xs text-muted-foreground block">
+                      Équipe Assignée
+                    </span>
+                    <span className="font-semibold text-foreground">
+                      {selectedEmployeeDetail.team?.teamName || "Aucune équipe"}
+                    </span>
+                  </div>
+                  <div className="border-t pt-3">
+                    <span className="text-xs text-muted-foreground block mb-2">
+                      Disponibilités / Horaires Spécifiques
+                    </span>
+                    {selectedEmployeeDetail.availabilities &&
+                    selectedEmployeeDetail.availabilities.length > 0 ? (
+                      <ul className="space-y-1">
+                        {selectedEmployeeDetail.availabilities.map(
+                          (avail, index) => {
+                            const days = [
+                              "Dimanche",
+                              "Lundi",
+                              "Mardi",
+                              "Mercredi",
+                              "Jeudi",
+                              "Vendredi",
+                              "Samedi",
+                            ];
+                            const dayName =
+                              avail.dayOfWeek !== null
+                                ? days[avail.dayOfWeek]
+                                : "Tous les jours";
+                            return (
+                              <li
+                                key={index}
+                                className="text-sm text-foreground flex justify-between items-center bg-background px-3 py-1.5 rounded-lg border"
+                              >
+                                <span className="font-medium">{dayName}</span>
+                                <span className="text-muted-foreground">
+                                  {avail.idShiftType
+                                    ? avail.shiftLabel
+                                    : `${avail.customStartTime} - ${avail.customEndTime}`}
+                                </span>
+                              </li>
+                            );
+                          },
+                        )}
+                      </ul>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        Aucune disponibilité spécifique
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">
+                  Sécurité & Compte Utilisateur
+                </h4>
                 <div className="bg-muted/15 border rounded-2xl p-5 space-y-4">
                   <div className="flex justify-between items-center">
                     <div>
-                      <span className="text-xs text-muted-foreground block">Statut du compte</span>
-                      <span className={`font-semibold ${selectedEmployeeDetail.userAccount ? "text-green-600" : "text-muted-foreground"}`}>
-                        {selectedEmployeeDetail.userAccount ? "Compte actif" : "Pas de compte utilisateur"}
+                      <span className="text-xs text-muted-foreground block">
+                        Statut du compte
+                      </span>
+                      <span
+                        className={`font-semibold ${selectedEmployeeDetail.userAccount ? "text-green-600" : "text-muted-foreground"}`}
+                      >
+                        {selectedEmployeeDetail.userAccount
+                          ? "Compte actif"
+                          : "Pas de compte utilisateur"}
                       </span>
                     </div>
-                    <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${selectedEmployeeDetail.userAccount ? "bg-green-500/10 text-green-700" : "bg-muted text-muted-foreground"}`}>
+                    <span
+                      className={`px-2.5 py-1 text-xs font-semibold rounded-full ${selectedEmployeeDetail.userAccount ? "bg-green-500/10 text-green-700" : "bg-muted text-muted-foreground"}`}
+                    >
                       {selectedEmployeeDetail.userAccount ? "Actif" : "Inactif"}
                     </span>
                   </div>
@@ -798,19 +1154,31 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
                   {selectedEmployeeDetail.userAccount && (
                     <div className="border-t pt-3 space-y-3">
                       <div>
-                        <span className="text-xs text-muted-foreground block">Nom d'utilisateur</span>
-                        <span className="font-semibold text-foreground">{selectedEmployeeDetail.userAccount.username}</span>
+                        <span className="text-xs text-muted-foreground block">
+                          Nom d'utilisateur
+                        </span>
+                        <span className="font-semibold text-foreground">
+                          {selectedEmployeeDetail.userAccount.username}
+                        </span>
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground block">Rôles système attribués</span>
+                        <span className="text-xs text-muted-foreground block">
+                          Rôles système attribués
+                        </span>
                         <div className="flex flex-wrap gap-1.5 mt-1.5">
-                          {selectedEmployeeDetail.userAccount.roles.map(r => (
-                            <span key={r.idRole} className="px-2 py-0.5 text-xs font-semibold rounded-md bg-secondary/10 text-secondary border border-secondary/15">
+                          {selectedEmployeeDetail.userAccount.roles.map((r) => (
+                            <span
+                              key={r.idRole}
+                              className="px-2 py-0.5 text-xs font-semibold rounded-md bg-secondary/10 text-secondary border border-secondary/15"
+                            >
                               {r.label}
                             </span>
                           ))}
-                          {selectedEmployeeDetail.userAccount.roles.length === 0 && (
-                            <span className="text-xs italic text-muted-foreground">Aucun rôle attribué</span>
+                          {selectedEmployeeDetail.userAccount.roles.length ===
+                            0 && (
+                            <span className="text-xs italic text-muted-foreground">
+                              Aucun rôle attribué
+                            </span>
                           )}
                         </div>
                       </div>
@@ -834,7 +1202,9 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
 
           {selectedEmployeeDetail.notes && (
             <div className="border-t pt-6">
-              <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">Notes Additionnelles</h4>
+              <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">
+                Notes Additionnelles
+              </h4>
               <p className="text-sm bg-muted/10 border border-border/30 rounded-xl p-4 text-muted-foreground italic leading-relaxed">
                 "{selectedEmployeeDetail.notes}"
               </p>
@@ -844,22 +1214,29 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
       )}
 
       {/* Change Job Dialog */}
-      <Dialog open={!!changeJobEmployee} onOpenChange={(open) => !open && setChangeJobEmployee(null)}>
+      <Dialog
+        open={!!changeJobEmployee}
+        onOpenChange={(open) => !open && setChangeJobEmployee(null)}
+      >
         <DialogContent className="max-w-md rounded-2xl p-6">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <Briefcase className="size-5 text-primary" />
-              Changer de poste
+              {isRenewal ? "Renouvellement de contrat" : "Changer de poste"}
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground mt-1">
-              Affectez {changeJobEmployee?.name} {changeJobEmployee?.lastname} à un nouveau poste de travail. L'ancien poste sera automatiquement historisé.
+              {isRenewal
+                ? `Renouveler le contrat de ${changeJobEmployee?.name} ${changeJobEmployee?.lastname}. Une nouvelle ligne de poste sera créée et l'employé redeviendra actif.`
+                : `Affectez ${changeJobEmployee?.name} ${changeJobEmployee?.lastname} à un nouveau poste de travail. L'ancien poste sera automatiquement historisé.`}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             {/* Job Title */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Intitulé du poste</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Intitulé du poste
+              </label>
               <select
                 value={newJobId}
                 onChange={(e) => setNewJobId(e.target.value)}
@@ -876,13 +1253,15 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
 
             {/* Employment Type */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Type de contrat</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Type de contrat
+              </label>
               <select
                 value={newEmpTypeId}
                 onChange={(e) => setNewEmpTypeId(e.target.value)}
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
-                {MOCK_EMPLOYMENT_TYPES.map((et) => (
+                {employmentTypes.map((et) => (
                   <option key={et.idEmploymentType} value={et.idEmploymentType}>
                     {et.label}
                   </option>
@@ -892,7 +1271,9 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
 
             {/* Assignment Date */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date d'affectation</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Date d'affectation
+              </label>
               <Input
                 type="date"
                 value={newAssignmentDate}
@@ -902,7 +1283,9 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
 
             {/* End Date */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date de fin (Optionnelle)</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Date de fin (Optionnelle)
+              </label>
               <Input
                 type="date"
                 value={newEndDate}
@@ -911,25 +1294,39 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
             </div>
 
             {/* Fixed Schedule Switch */}
-            <div className="flex items-center justify-between bg-muted/20 border p-3.5 rounded-xl">
+            <div className="flex items-center justify-between bg-muted/10 border border-border p-3.5 rounded-xl shadow-sm">
               <div>
-                <span className="text-sm font-semibold block">Horaires de travail fixes</span>
-                <span className="text-xs text-muted-foreground block">Cet employé a-t-il des horaires fixes ou variables ?</span>
+                <span className="text-sm font-semibold block text-foreground">
+                  Horaires de travail fixes
+                </span>
+                <span className="text-xs text-muted-foreground block">
+                  Cet employé a-t-il des horaires fixes ou variables ?
+                </span>
               </div>
-              <Switch checked={newHasFixedSchedule} onCheckedChange={setNewHasFixedSchedule} />
+              <Switch
+                checked={newHasFixedSchedule}
+                onCheckedChange={setNewHasFixedSchedule}
+                className="border border-input/50 shadow-sm data-[state=checked]:border-primary"
+              />
             </div>
           </div>
 
           <DialogFooter className="gap-2">
-            <Button variant="ghost" onClick={() => setChangeJobEmployee(null)} className="rounded-xl">
+            <Button
+              variant="ghost"
+              onClick={() => setChangeJobEmployee(null)}
+              className="rounded-xl"
+            >
               Annuler
             </Button>
             <Button
               onClick={saveChangeJob}
               disabled={!newJobId || !newAssignmentDate}
-              className="bg-primary hover:bg-primary/90 text-white rounded-xl font-medium"
+              className={`rounded-xl font-medium text-white ${isRenewal ? "bg-green-600 hover:bg-green-700 disabled:bg-green-600/50" : "bg-primary hover:bg-primary/90"}`}
             >
-              Confirmer le changement
+              {isRenewal
+                ? "Enregistrer le renouvellement"
+                : "Confirmer le changement"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -938,31 +1335,23 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
       <EmployeePlanningModal
         isOpen={!!planningEmployee}
         onClose={() => setPlanningEmployee(null)}
-        employeeName={planningEmployee ? `${planningEmployee.name} ${planningEmployee.lastname}` : undefined}
-        availableTeams={MOCK_TEAMS}
-        availableShiftTypes={MOCK_SHIFT_TYPES}
-        initialTeamId={planningEmployee ? employeesPlanning[planningEmployee.idEmployee]?.teamId : undefined}
-        initialAvailabilities={planningEmployee ? employeesPlanning[planningEmployee.idEmployee]?.availabilities || [] : []}
-        onSaveTeam={(teamId) => {
-          if (planningEmployee) {
-            setEmployeesPlanning(prev => ({
-              ...prev,
-              [planningEmployee.idEmployee]: { ...prev[planningEmployee.idEmployee], teamId, availabilities: prev[planningEmployee.idEmployee]?.availabilities || [] }
-            }));
-          }
-        }}
-        onSaveAvailabilities={(availabilities) => {
-          if (planningEmployee) {
-            setEmployeesPlanning(prev => ({
-              ...prev,
-              [planningEmployee.idEmployee]: { ...prev[planningEmployee.idEmployee], teamId: prev[planningEmployee.idEmployee]?.teamId, availabilities }
-            }));
-          }
-        }}
+        employeeName={
+          planningEmployee
+            ? `${planningEmployee.name} ${planningEmployee.lastname}`
+            : undefined
+        }
+        availableTeams={teams}
+        availableShiftTypes={shiftTypes}
+        initialTeamId={planningEmployee?.team?.idTeam}
+        initialAvailabilities={planningEmployee?.availabilities || []}
+        onSave={savePlanning}
       />
 
       {/* Terminate Contract Dialog */}
-      <Dialog open={!!terminateContractEmployee} onOpenChange={(open) => !open && setTerminateContractEmployee(null)}>
+      <Dialog
+        open={!!terminateContractEmployee}
+        onOpenChange={(open) => !open && setTerminateContractEmployee(null)}
+      >
         <DialogContent className="max-w-md rounded-2xl p-6">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
@@ -970,16 +1359,21 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
               Terminer le contrat
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground mt-1">
-              Veuillez définir la date de fin de contrat pour {terminateContractEmployee?.name} {terminateContractEmployee?.lastname}.
+              Veuillez définir la date de fin de contrat pour{" "}
+              {terminateContractEmployee?.name}{" "}
+              {terminateContractEmployee?.lastname}.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date de fin</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Date de fin
+              </label>
               <Input
                 type="date"
                 value={contractEndDate}
+                max={new Date().toISOString().split("T")[0]}
                 onChange={(e) => setContractEndDate(e.target.value)}
                 className="w-full"
               />
@@ -987,10 +1381,17 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0 mt-4">
-            <Button variant="ghost" onClick={() => setTerminateContractEmployee(null)} className="rounded-xl">
+            <Button
+              variant="ghost"
+              onClick={() => setTerminateContractEmployee(null)}
+              className="rounded-xl"
+            >
               Annuler
             </Button>
-            <Button onClick={saveTerminateContract} className="rounded-xl bg-orange-600 hover:bg-orange-700 text-white">
+            <Button
+              onClick={saveTerminateContract}
+              className="rounded-xl bg-orange-600 hover:bg-orange-700 text-white"
+            >
               Confirmer la fin
             </Button>
           </DialogFooter>
@@ -998,7 +1399,10 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
       </Dialog>
 
       {/* Generated Key Modal */}
-      <Dialog open={!!generatedKey} onOpenChange={(open) => !open && setGeneratedKey(null)}>
+      <Dialog
+        open={!!generatedKey}
+        onOpenChange={(open) => !open && setGeneratedKey(null)}
+      >
         <DialogContent className="max-w-md rounded-[2rem] p-0 overflow-hidden bg-card border">
           <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 border-b">
             <DialogHeader>
@@ -1017,12 +1421,16 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
           <div className="p-6 space-y-4">
             <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 text-yellow-700 text-sm rounded-xl">
               <span className="font-bold block mb-1">Attention :</span>
-              Veuillez copier cette clé immédiatement. Pour des raisons de sécurité, elle ne sera plus affichée après la fermeture de cette fenêtre.
+              Veuillez copier cette clé immédiatement. Pour des raisons de
+              sécurité, elle ne sera plus affichée après la fermeture de cette
+              fenêtre.
             </div>
 
             <div className="flex flex-col space-y-4">
               <div>
-                <label className="text-sm font-semibold text-muted-foreground">Clé d'accès générée</label>
+                <label className="text-sm font-semibold text-muted-foreground">
+                  Clé d'accès générée
+                </label>
                 <div className="flex items-center gap-2 mt-1.5">
                   <Input
                     readOnly
@@ -1034,7 +1442,8 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
                     variant="outline"
                     className="size-12 rounded-xl shrink-0"
                     onClick={() => {
-                      if (generatedKey) navigator.clipboard.writeText(generatedKey.token);
+                      if (generatedKey)
+                        navigator.clipboard.writeText(generatedKey.token);
                     }}
                     title="Copier"
                   >
@@ -1045,22 +1454,54 @@ export function EmployeesPage({ setPageTitle }: { setPageTitle: (title: string) 
 
               {generatedKey && (
                 <div>
-                  <label className="text-sm font-semibold text-muted-foreground">Date d'expiration</label>
+                  <label className="text-sm font-semibold text-muted-foreground">
+                    Date d'expiration
+                  </label>
                   <p className="text-sm font-medium mt-1 text-orange-600 bg-orange-50 border border-orange-100 p-2 rounded-lg inline-block">
-                    {new Date(generatedKey.expiresAt).toLocaleDateString("fr-FR", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    {new Date(generatedKey.expiresAt).toLocaleDateString(
+                      "fr-FR",
+                      {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      },
+                    )}
                   </p>
                 </div>
               )}
             </div>
           </div>
           <DialogFooter className="p-4 bg-muted/10 border-t">
-            <Button onClick={() => setGeneratedKey(null)} className="w-full rounded-xl font-semibold bg-primary hover:bg-primary/90 text-white">
+            <Button
+              onClick={() => setGeneratedKey(null)}
+              className="w-full rounded-xl font-semibold bg-primary hover:bg-primary/90 text-white"
+            >
               <Check className="size-4 mr-2" />
               J'ai copié la clé
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Confirmation de suppression"
+        description={`Êtes-vous sûr de vouloir supprimer l'employé ${employeeToDelete?.name} ${employeeToDelete?.lastname} ?`}
+        onConfirm={executeDelete}
+        loading={isDeleting}
+      />
+
+      {snackbar.isOpen && (
+        <Snackbar
+          message={snackbar.message}
+          type={snackbar.type}
+          onClose={() => setSnackbar({ ...snackbar, isOpen: false })}
+        />
+      )}
     </div>
   );
 }

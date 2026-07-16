@@ -19,7 +19,7 @@ export function LoginForm({ onSubmit, onForgotPasswordClick }: LoginFormProps) {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await onSubmit(username, password);
+      await onSubmit(username.trim(), password.trim());
     } finally {
       setIsLoading(false);
     }

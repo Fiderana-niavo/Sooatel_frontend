@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { TeamsTab } from "../TeamsTab/TeamsTab";
 import { ShiftTypesTab } from "../ShiftTypesTab/ShiftTypesTab";
 import { Users, Clock, Settings2 } from "lucide-react";
 
 import type { Team, ShiftType } from "../../types/type";
+import { TeamService } from "../../services/team.service";
+import { ShiftTypeService } from "../../services/shift-type.service";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 
 export function PlanningPage() {
   const [activeTab, setActiveTab] = useState<"teams" | "shifts">("teams");
@@ -19,36 +22,34 @@ export function PlanningPage() {
   const [shiftId, setShiftId] = useState<string | null>(null);
   const [shiftForm, setShiftForm] = useState<Partial<ShiftType>>({});
 
-  const API_BASE = "http://localhost:3000/api";
+  // Confirmation state
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [deleteType, setDeleteType] = useState<"team" | "shift" | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const loadTeams = async () => {
+  const loadTeams = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/teams?limit=100`);
-      const data = await res.json() as { ok: boolean; payload: { records: Team[] } };
-      if (data.ok) {
-        setTeams(data.payload.records);
-      }
+      const records = await TeamService.getAll();
+      setTeams(records);
     } catch (err: unknown) {
       console.error("Failed to load teams:", err);
     }
-  };
+  }, []);
 
-  const loadShifts = async () => {
+  const loadShifts = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/shift-types?limit=100`);
-      const data = await res.json() as { ok: boolean; payload: { records: ShiftType[] } };
-      if (data.ok) {
-        setShifts(data.payload.records);
-      }
+      const records = await ShiftTypeService.getAll();
+      setShifts(records);
     } catch (err: unknown) {
       console.error("Failed to load shift types:", err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadTeams();
     loadShifts();
-  }, []);
+  }, [loadTeams, loadShifts]);
 
   // Team Handlers
   const addTeam = () => {
@@ -65,57 +66,29 @@ export function PlanningPage() {
     if (!teamForm.teamName?.trim()) return;
 
     try {
-      let res: Response;
+      const payload = {
+        teamName: teamForm.teamName.trim(),
+        description: teamForm.description?.trim() || "",
+      };
+
       if (editId === "new") {
-        res = await fetch(`${API_BASE}/teams`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            teamName: teamForm.teamName,
-            description: teamForm.description || "",
-          }),
-        });
-      } else {
-        res = await fetch(`${API_BASE}/teams/${editId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            teamName: teamForm.teamName,
-            description: teamForm.description || "",
-          }),
-        });
+        await TeamService.create(payload);
+      } else if (editId) {
+        await TeamService.update(editId, payload);
       }
 
-      const data = await res.json() as { ok: boolean; error?: string };
-      if (data.ok) {
-        setEditId(null);
-        await loadTeams();
-      } else {
-        alert(data.error || "Une erreur est survenue lors de l'enregistrement de l'équipe.");
-      }
+      setEditId(null);
+      await loadTeams();
     } catch (err: unknown) {
       console.error("Error saving team:", err);
-      alert("Impossible de se connecter au serveur.");
+      alert(err instanceof Error ? err.message : "Une erreur est survenue lors de l'enregistrement de l'équipe.");
     }
   };
 
-  const deleteTeam = async (id: string) => {
-    if (!window.confirm("Voulez-vous vraiment supprimer cette équipe ?")) return;
-
-    try {
-      const res = await fetch(`${API_BASE}/teams/${id}`, {
-        method: "DELETE",
-      });
-      const data = await res.json() as { ok: boolean; error?: string };
-      if (data.ok) {
-        await loadTeams();
-      } else {
-        alert(data.error || "Une erreur est survenue lors de la suppression de l'équipe.");
-      }
-    } catch (err: unknown) {
-      console.error("Error deleting team:", err);
-      alert("Impossible de se connecter au serveur.");
-    }
+  const promptDeleteTeam = (id: string) => {
+    setItemToDelete(id);
+    setDeleteType("team");
+    setConfirmOpen(true);
   };
 
   // Shift Handlers
@@ -130,63 +103,55 @@ export function PlanningPage() {
   };
 
   const saveShift = async () => {
-    if (!shiftForm.label?.trim() || !shiftForm.customStartTime || !shiftForm.customEndTime) return;
+    if (!shiftForm.label?.trim() || !shiftForm.customStartTime?.trim() || !shiftForm.customEndTime?.trim()) return;
 
     try {
-      let res: Response;
+      const payload = {
+        label: shiftForm.label.trim(),
+        customStartTime: shiftForm.customStartTime.trim(),
+        customEndTime: shiftForm.customEndTime.trim(),
+        description: shiftForm.description?.trim() || "",
+      };
+
       if (shiftId === "new") {
-        res = await fetch(`${API_BASE}/shift-types`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            label: shiftForm.label,
-            customStartTime: shiftForm.customStartTime,
-            customEndTime: shiftForm.customEndTime,
-            description: shiftForm.description || "",
-          }),
-        });
-      } else {
-        res = await fetch(`${API_BASE}/shift-types/${shiftId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            label: shiftForm.label,
-            customStartTime: shiftForm.customStartTime,
-            customEndTime: shiftForm.customEndTime,
-            description: shiftForm.description || "",
-          }),
-        });
+        await ShiftTypeService.create(payload);
+      } else if (shiftId) {
+        await ShiftTypeService.update(shiftId, payload);
       }
 
-      const data = await res.json() as { ok: boolean; error?: string };
-      if (data.ok) {
-        setShiftId(null);
-        await loadShifts();
-      } else {
-        alert(data.error || "Une erreur est survenue lors de l'enregistrement de l'horaire.");
-      }
+      setShiftId(null);
+      await loadShifts();
     } catch (err: unknown) {
       console.error("Error saving shift:", err);
-      alert("Impossible de se connecter au serveur.");
+      alert(err instanceof Error ? err.message : "Une erreur est survenue lors de l'enregistrement de l'horaire.");
     }
   };
 
-  const deleteShift = async (id: string) => {
-    if (!window.confirm("Voulez-vous vraiment supprimer cet horaire ?")) return;
+  const promptDeleteShift = (id: string) => {
+    setItemToDelete(id);
+    setDeleteType("shift");
+    setConfirmOpen(true);
+  };
 
+  const executeDelete = async () => {
+    if (!itemToDelete || !deleteType) return;
+    setIsDeleting(true);
     try {
-      const res = await fetch(`${API_BASE}/shift-types/${id}`, {
-        method: "DELETE",
-      });
-      const data = await res.json() as { ok: boolean; error?: string };
-      if (data.ok) {
-        await loadShifts();
+      if (deleteType === "team") {
+        await TeamService.delete(itemToDelete);
+        await loadTeams();
       } else {
-        alert(data.error || "Une erreur est survenue lors de la suppression de l'horaire.");
+        await ShiftTypeService.delete(itemToDelete);
+        await loadShifts();
       }
     } catch (err: unknown) {
-      console.error("Error deleting shift:", err);
-      alert("Impossible de se connecter au serveur.");
+      console.error("Error deleting:", err);
+      alert(err instanceof Error ? err.message : "Une erreur est survenue lors de la suppression.");
+    } finally {
+      setIsDeleting(false);
+      setConfirmOpen(false);
+      setItemToDelete(null);
+      setDeleteType(null);
     }
   };
 
@@ -238,7 +203,7 @@ export function PlanningPage() {
             onCreate={addTeam}
             onEdit={editTeam}
             onSave={saveTeam}
-            onDelete={deleteTeam}
+            onDelete={promptDeleteTeam}
           />
         ) : (
           <ShiftTypesTab 
@@ -250,10 +215,19 @@ export function PlanningPage() {
             onCreate={addShift}
             onEdit={editShift}
             onSave={saveShift}
-            onDelete={deleteShift}
+            onDelete={promptDeleteShift}
           />
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Confirmation de suppression"
+        description={`Êtes-vous sûr de vouloir supprimer cet élément ?`}
+        onConfirm={executeDelete}
+        loading={isDeleting}
+      />
     </div>
   );
 }

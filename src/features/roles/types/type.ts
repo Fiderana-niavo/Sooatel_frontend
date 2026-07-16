@@ -1,19 +1,13 @@
-import type { MockPermission } from "./permission";
+import type { PermissionItem } from "./permission";
 
 export interface Role {
   idRole: string;
   label: string;
   description?: string;
-}
-
-export interface MockRole {
-  id: string;
-  name: string;
-  description?: string;
-  permissions: string[]; // array of Permission IDs
+  permissions?: PermissionItem[];
 }
 
 export interface PermissionCategory {
   category: string;
-  permissions: MockPermission[];
+  permissions: PermissionItem[];
 }

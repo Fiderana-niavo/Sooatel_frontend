@@ -22,9 +22,9 @@ export function ForgotPasswordForm({ onBackToLogin, onSubmitEmail, onSubmitKey }
     setIsLoading(true);
     try {
       if (recoveryMethod === "email") {
-        await onSubmitEmail(username);
+        await onSubmitEmail(username.trim());
       } else {
-        await onSubmitKey(recoveryKey, username);
+        await onSubmitKey(recoveryKey.trim(), username.trim());
       }
     } finally {
       setIsLoading(false);

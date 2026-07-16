@@ -11,11 +11,6 @@ export interface UserAccount {
   }[];
 }
 
-export interface JobTitle {
-  idJobTitle: string;
-  title: string;
-}
-
 export interface Employee {
   idEmployee?: string;
   employeeCode?: string;
@@ -34,6 +29,14 @@ export interface Employee {
   isInternship?: boolean;
   hasUserAccount: boolean;
   userAccount?: UserAccount;
+  team?: { idTeam: string; teamName: string } | null;
+  availabilities?: any[];
+  internship?: {
+    idInternship?: string;
+    schoolName: string | null;
+    academicSupervisorName: string | null;
+    professionnalSupervisorName: string | null;
+  } | null;
 }
 
 export interface EmployeeListItem {
@@ -48,6 +51,8 @@ export interface EmployeeListItem {
 
 export interface EmployeeJobInfo {
   idEmpJob: string;
+  idJobTitle: string | null;
+  idEmploymentType: string | null;
   assignmentDate: string | null;
   endDate: string | null;
   hasFixedSchedule: boolean | null;
@@ -73,6 +78,8 @@ export interface EmployeeDetail {
   notes: string | null;
   job: EmployeeJobInfo | null;
   internship: InternshipInfo | null;
+  team: { idTeam: string; teamName: string } | null;
+  availabilities: any[];
   // compatibility with form account stuff if needed
   hasUserAccount?: boolean;
   userAccount?: UserAccount;
@@ -81,8 +88,67 @@ export interface EmployeeDetail {
 export interface EmployeeAvailability {
   idAvailability: string;
   idShiftType: string | null;
+  shiftLabel?: string;
   dayOfWeek: number | null; // 0=Sunday, 1=Monday...
   customStartTime: string | null;
   customEndTime: string | null;
 }
+
+export interface EmployeeSearchParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  idJobTitle?: string;
+  hasUserAccount?: "yes" | "no";
+  isInternship?: "yes" | "no";
+  sortBy?: "name" | "lastname" | "employeeCode";
+  sortOrder?: "ASC" | "DESC";
+}
+
+export interface CreateEmployeeDto {
+  name: string;
+  lastname: string;
+  birthdate?: string;
+  address?: string;
+  emailContact?: string;
+  phoneNumber?: string;
+  notes?: string;
+  job?: {
+    idJobTitle: string;
+    idEmploymentType: string;
+    assignmentDate: string;
+    endDate: string | null;
+    hasFixedSchedule: boolean;
+  } | null;
+  internship?: {
+    schoolName: string | null;
+    academicSupervisorName: string | null;
+    professionnalSupervisorName: string | null;
+  } | null;
+  userAccount?: {
+    username: string;
+    password?: string;
+    roles: string[];
+    permissionsOverrides: Array<{
+      idPermission: string;
+      overrideType: "grant" | "deny" | "default";
+    }>;
+  } | null;
+}
+
+export interface ChangeJobDto {
+  idJobTitle: string;
+  idEmploymentType: string;
+  assignmentDate: string;
+  endDate: string | null;
+  hasFixedSchedule: boolean;
+}
+
+export interface SetAvailabilityDto {
+  dayOfWeek: number;
+  customStartTime: string | null;
+  customEndTime: string | null;
+  idShiftType: string | null;
+}
+
 

@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Trash2, Save } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
-import type { MockRole as Role, PermissionCategory } from "../../types/index";
+import type { Role, PermissionCategory } from "../../types/index";
 
 interface RoleDetailProps {
   role: Role | null;
   isCreating: boolean;
   permissionsSchema: PermissionCategory[];
-  onSave: (name: string, description: string, permissionIds: string[]) => Promise<void>;
+  onSave: (label: string, description: string, permissionIds: string[]) => Promise<void>;
   onDelete: (roleId: string) => void;
   onCancel?: () => void;
 }
@@ -21,7 +21,7 @@ export function RoleDetail({
   onDelete,
   onCancel
 }: RoleDetailProps) {
-  const [name, setName] = useState("");
+  const [label, setLabel] = useState("");
   const [description, setDescription] = useState("");
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
@@ -29,13 +29,13 @@ export function RoleDetail({
   // Sync state when role changes
   useEffect(() => {
     if (isCreating) {
-      setName("");
+      setLabel("");
       setDescription("");
       setSelectedPermissions(new Set());
     } else if (role) {
-      setName(role.name);
+      setLabel(role.label);
       setDescription(role.description || "");
-      setSelectedPermissions(new Set(role.permissions));
+      setSelectedPermissions(new Set(role.permissions?.map(p => p.idPermission) || []));
     }
   }, [role, isCreating]);
 
@@ -47,7 +47,7 @@ export function RoleDetail({
   };
 
   const handleToggleCategory = (category: PermissionCategory) => {
-    const categoryIds = category.permissions.map(p => p.id);
+    const categoryIds = category.permissions.map(p => p.idPermission);
     const allSelected = categoryIds.every(id => selectedPermissions.has(id));
 
     const next = new Set(selectedPermissions);
@@ -61,11 +61,11 @@ export function RoleDetail({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!label.trim()) return;
 
     setIsLoading(true);
     try {
-      await onSave(name, description, Array.from(selectedPermissions));
+      await onSave(label.trim(), description.trim(), Array.from(selectedPermissions));
     } finally {
       setIsLoading(false);
     }
@@ -105,8 +105,8 @@ export function RoleDetail({
             <label className="text-sm font-semibold text-muted-foreground ml-1">Nom du rôle <span className="text-destructive">*</span></label>
             <Input
               required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
               placeholder="ex: Manager"
               className="bg-muted/20 border-border/50 text-secondary focus-visible:ring-primary/50 py-6 text-lg rounded-xl"
             />
@@ -133,7 +133,7 @@ export function RoleDetail({
         <div className="max-h-[350px] overflow-y-auto border border-border/50 rounded-2xl bg-muted/10 p-6 mb-8 custom-scrollbar">
           <div className="space-y-6">
             {permissionsSchema.map(category => {
-              const categoryIds = category.permissions.map(p => p.id);
+              const categoryIds = category.permissions.map(p => p.idPermission);
               const allSelected = categoryIds.every(id => selectedPermissions.has(id));
               const someSelected = categoryIds.some(id => selectedPermissions.has(id));
 
@@ -158,9 +158,9 @@ export function RoleDetail({
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {category.permissions.map(permission => (
                       <label
-                        key={permission.id}
+                        key={permission.idPermission}
                         className={`flex items-start space-x-3 p-3 rounded-lg border transition-all cursor-pointer
-                          ${selectedPermissions.has(permission.id)
+                          ${selectedPermissions.has(permission.idPermission)
                             ? "border-primary/40 bg-primary/5 shadow-sm"
                             : "border-border/30 hover:border-primary/30 hover:bg-muted/30"
                           }
@@ -168,13 +168,13 @@ export function RoleDetail({
                       >
                         <input
                           type="checkbox"
-                          checked={selectedPermissions.has(permission.id)}
-                          onChange={() => handleTogglePermission(permission.id)}
+                          checked={selectedPermissions.has(permission.idPermission)}
+                          onChange={() => handleTogglePermission(permission.idPermission)}
                           className="mt-0.5 w-4 h-4 rounded border-border text-primary focus:ring-primary/50"
                         />
                         <div className="flex flex-col">
                           <span className={`text-sm font-semibold text-muted-foreground`}>
-                            {permission.name}
+                            {permission.permissionName}
                           </span>
                           {permission.description && (
                             <span className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
@@ -197,7 +197,7 @@ export function RoleDetail({
               <Button
                 type="button"
                 variant="destructive"
-                onClick={() => onDelete(role.id)}
+                onClick={() => onDelete(role.idRole)}
                 className="rounded-xl px-6 font-semibold"
               >
                 <Trash2 className="size-4 mr-2" />
@@ -219,7 +219,7 @@ export function RoleDetail({
             )}
             <Button
               type="submit"
-              disabled={isLoading || !name.trim()}
+              disabled={isLoading || !label.trim()}
               className="rounded-xl px-8 py-6 text-base font-bold shadow-lg shadow-primary/20"
             >
               <Save className="size-5 mr-2" />

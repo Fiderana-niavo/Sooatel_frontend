@@ -17,13 +17,13 @@ export function ResetPasswordForm({ onSubmit, onCancel }: ResetPasswordFormProps
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword !== confirmPassword) {
+    if (newPassword.trim() !== confirmPassword.trim()) {
       alert("Les mots de passe ne correspondent pas.");
       return;
     }
     setIsLoading(true);
     try {
-      await onSubmit(newPassword);
+      await onSubmit(newPassword.trim());
     } finally {
       setIsLoading(false);
     }

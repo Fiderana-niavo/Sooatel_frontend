@@ -45,9 +45,7 @@ export function JobTitlesModal({ isOpen, onClose, jobTitles, onAdd, onEdit, onDe
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer ce poste ? Cette action peut impacter les employés qui y sont assignés.")) {
-      onDelete(id);
-    }
+    onDelete(id);
   };
 
   return (
