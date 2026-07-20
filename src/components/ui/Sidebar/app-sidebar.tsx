@@ -34,10 +34,16 @@ import {
   Settings,
   ChevronRight,
   ShieldCheck,
+  LogOut,
+  KeyRound,
 } from "lucide-react";
 import sooatelLogo from "@/assets/Sooatel.jpeg";
 import utopiaLogo from "@/assets/Utopia.jpeg";
 import { useSidebar } from "@/components/ui/Sidebar/hooks/sidebar.hook";
+import { useAppStore } from "@/store/app.store";
+import { ChangePasswordModal } from "@/features/settings/components/ChangePasswordModal/ChangePasswordModal";
+import { AuthService } from "@/features/auth/services/auth.service";
+import { Snackbar, type SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
 // --- Navigation Data Models ---
 
@@ -45,38 +51,42 @@ export const navigationGroups = [
   {
     title: "Opérations restaurant",
     icon: UtensilsCrossed,
+    permission: "restaurant.access",
     items: [
-      { title: "Tableau de bord", url: "/resto/dashboard", icon: LayoutDashboard },
-      { title: "Caisse & PDV", url: "/resto/pos", icon: CreditCard },
-      { title: "Achats & Dépenses", url: "/resto/purchases", icon: ShoppingCart },
+      { title: "Tableau de bord", url: "/resto/dashboard", icon: LayoutDashboard, permission: "restaurant.access" },
+      { title: "Caisse & PDV", url: "/resto/pos", icon: CreditCard, permission: "restaurant.pos" },
+      { title: "Achats & Dépenses", url: "/resto/purchases", icon: ShoppingCart, permission: "restaurant.purchases" },
     ],
   },
   {
     title: "Inventaire & logistique",
     icon: Package,
+    permission: "stock.access",
     items: [
-      { title: "Niveaux de Stock", url: "/inventory/stock", icon: Boxes },
-      { title: "Mouvements", url: "/inventory/movements", icon: ArrowRightLeft },
-      { title: "Audits & Alertes", url: "/inventory/audits", icon: AlertTriangle },
-      { title: "Prévisions IA", url: "/inventory/ai", icon: TrendingUp },
+      { title: "Niveaux de Stock", url: "/inventory/stock", icon: Boxes, permission: "stock.read" },
+      { title: "Mouvements", url: "/inventory/movements", icon: ArrowRightLeft, permission: "stock.read" },
+      { title: "Audits & Alertes", url: "/inventory/audits", icon: AlertTriangle, permission: "stock.audit" },
+      { title: "Prévisions IA", url: "/inventory/ai", icon: TrendingUp, permission: "stock.forecast" },
     ],
   },
   {
     title: "Ressources humaines",
     icon: Users,
+    permission: "hr.access",
     items: [
-      { title: "Annuaire du Personnel", url: "/hr/directory", icon: Contact },
-      { title: "Plannings", url: "/hr/schedules", icon: CalendarDays },
-      { title: "Bien-être de l'Équipe", url: "/hr/welfare", icon: HeartHandshake },
-      { title: "Gestion des Utilisateurs", url: "/hr/users", icon: Users },
-      { title: "Rôles et Permissions", url: "/hr/roles", icon: ShieldCheck },
+      { title: "Annuaire du Personnel", url: "/hr/directory", icon: Contact, permission: "hr.access" },
+      { title: "Plannings", url: "/hr/schedules", icon: CalendarDays, permission: "hr.schedule" },
+      { title: "Bien-être de l'Équipe", url: "/hr/welfare", icon: HeartHandshake, permission: "hr.welfare" },
+      { title: "Gestion des Utilisateurs", url: "/hr/users", icon: Users, permission: "employee.read" },
+      { title: "Rôles et Permissions", url: "/hr/roles", icon: ShieldCheck, permission: "security.access" },
     ],
   },
   {
     title: "Configuration",
     icon: Settings,
+    permission: "settings.access",
     items: [
-      { title: "Paramètres Globaux", url: "/settings/global", icon: Settings },
+      { title: "Paramètres Globaux", url: "/settings/global", icon: Settings, permission: "settings.access" },
     ],
   },
 ];
@@ -86,6 +96,10 @@ function AccordionMenuItem({ group, activeTab, setActiveTab }: { group: typeof n
   const [isOpen, setIsOpen] = React.useState(false);
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const hasPermission = useAppStore((s) => s.hasPermission);
+
+  const visibleItems = group.items.filter((item) => hasPermission(item.permission));
+  if (visibleItems.length === 0) return null;
 
   return (
     <SidebarMenuItem>
@@ -103,10 +117,9 @@ function AccordionMenuItem({ group, activeTab, setActiveTab }: { group: typeof n
         )}
       </SidebarMenuButton>
 
-      {/* When expanded, show submenu if open. In mini mode, the CSS handles hiding it or showing it via Tooltip. */}
       {(!isCollapsed && isOpen) && (
         <SidebarMenuSub>
-          {group.items.map((item) => (
+          {visibleItems.map((item) => (
             <SidebarMenuSubItem key={item.title}>
               <SidebarMenuSubButton
                 isActive={activeTab === item.title}
@@ -127,6 +140,113 @@ function AccordionMenuItem({ group, activeTab, setActiveTab }: { group: typeof n
   );
 }
 
+// --- Dynamic User Menu Component ---
+function UserProfileMenu() {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+  const { connectedUser, clear } = useAppStore();
+
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = React.useState(false);
+  const [isChangingPassword, setIsChangingPassword] = React.useState(false);
+  const [snackbar, setSnackbar] = React.useState<{ message: string; type: SnackbarType; isOpen: boolean }>({
+    message: "",
+    type: "info",
+    isOpen: false,
+  });
+
+  const showSnackbar = (message: string, type: SnackbarType = "info") => {
+    setSnackbar({ message, type, isOpen: true });
+  };
+
+  const handleLogout = () => {
+    AuthService.logout();
+    clear();
+    window.location.href = "/login";
+  };
+
+  const handleChangePassword = async (current: string, next: string) => {
+    if (!connectedUser) {
+      showSnackbar("Aucun utilisateur connecté.", "error");
+      return;
+    }
+    setIsChangingPassword(true);
+    try {
+      await AuthService.changeAuthenticatedPassword({
+        idUser: connectedUser.idUser,
+        currentPassword: current,
+        newPassword: next,
+      });
+      showSnackbar("Mot de passe modifié avec succès.", "success");
+      setIsPasswordModalOpen(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur lors du changement de mot de passe.";
+      showSnackbar(msg, "error");
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  return (
+    <>
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          size="lg"
+          className="mt-2 bg-card border border-border shadow-sm min-w-0 w-full"
+          onClick={() => !isCollapsed && setIsOpen(!isOpen)}
+        >
+          <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-secondary text-secondary-foreground shrink-0">
+            <Users className="size-4" />
+          </div>
+          <div className="flex flex-col gap-0.5 leading-none flex-1 min-w-0">
+            <span className="font-semibold text-sm truncate w-full text-left block">
+              {connectedUser ? `${connectedUser.name ?? ''} ${connectedUser.lastname ?? ''}`.trim() || connectedUser.username : "Administrateur"}
+            </span>
+            <span className="text-xs text-muted-foreground truncate w-full text-left block">
+              {connectedUser ? "Utilisateur connecté" : "Super-administrateur"}
+            </span>
+          </div>
+          <Settings className="ml-auto size-4 text-muted-foreground shrink-0" />
+        </SidebarMenuButton>
+
+        {(!isCollapsed && isOpen) && (
+          <div className="absolute bottom-full left-0 mb-2 w-full bg-popover border border-border shadow-lg rounded-xl overflow-hidden z-50 flex flex-col p-1 animate-in fade-in slide-in-from-bottom-2">
+            <button
+              onClick={() => { setIsPasswordModalOpen(true); setIsOpen(false); }}
+              className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground rounded-md transition-colors w-full text-left"
+            >
+              <KeyRound className="size-4 shrink-0 text-primary" />
+              <span className="truncate">Changer le mot de passe</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive rounded-md transition-colors w-full text-left mt-1"
+            >
+              <LogOut className="size-4 shrink-0" />
+              <span className="truncate">Logout</span>
+            </button>
+          </div>
+        )}
+      </SidebarMenuItem>
+
+      <ChangePasswordModal
+        isOpen={isPasswordModalOpen}
+        isLoading={isChangingPassword}
+        onClose={() => setIsPasswordModalOpen(false)}
+        onSubmit={handleChangePassword}
+      />
+
+      {snackbar.isOpen && (
+        <Snackbar
+          message={snackbar.message}
+          type={snackbar.type}
+          onClose={() => setSnackbar({ ...snackbar, isOpen: false })}
+        />
+      )}
+    </>
+  );
+}
+
 // --- App Sidebar Component ---
 interface AppSidebarProps {
   appMode: "utopia" | "sooatel";
@@ -138,6 +258,11 @@ interface AppSidebarProps {
 export function AppSidebar({ appMode, setAppMode, activeTab, setActiveTab }: AppSidebarProps) {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const hasPermission = useAppStore((s) => s.hasPermission);
+  const permissions = useAppStore((s) => s.permissions);
+  console.log("APP STORE PERMISSIONS:", permissions);
+  
+  const canSwitchMode = hasPermission("hotel.access") && hasPermission("restaurant.access");
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
@@ -147,9 +272,9 @@ export function AppSidebar({ appMode, setAppMode, activeTab, setActiveTab }: App
           <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"
-              onClick={() => setAppMode(appMode === "utopia" ? "sooatel" : "utopia")}
-              className="bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
-              tooltip={`Basculer vers ${appMode === "utopia" ? "Hôtel Sooatel" : "Restaurant Utopia"}`}
+              onClick={() => canSwitchMode && setAppMode(appMode === "utopia" ? "sooatel" : "utopia")}
+              className={`bg-primary/10 text-primary transition-colors ${canSwitchMode ? "hover:bg-primary/20 cursor-pointer" : "cursor-default"}`}
+              tooltip={canSwitchMode ? `Basculer vers ${appMode === "utopia" ? "Hôtel Sooatel" : "Restaurant Utopia"}` : undefined}
             >
               <div className="flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground overflow-hidden">
                 {appMode === "utopia" ? (
@@ -164,9 +289,8 @@ export function AppSidebar({ appMode, setAppMode, activeTab, setActiveTab }: App
                     <span className="font-bold text-sm">
                       {appMode === "utopia" ? "Restaurant Utopia" : "Hôtel Sooatel"}
                     </span>
-                    {/* <span className="text-[10px] opacity-70 uppercase tracking-wider">Sélecteur de contexte</span> */}
                   </div>
-                  <ChevronRight className="ml-auto size-4 shrink-0" />
+                  {canSwitchMode && <ChevronRight className="ml-auto size-4 shrink-0" />}
                 </>
               )}
             </SidebarMenuButton>
@@ -205,18 +329,7 @@ export function AppSidebar({ appMode, setAppMode, activeTab, setActiveTab }: App
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" className="mt-2 bg-card border border-border shadow-sm">
-              <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-                <Users className="size-4" />
-              </div>
-              <div className="flex flex-col gap-0.5 leading-none">
-                <span className="font-semibold text-sm">Administrateur</span>
-                <span className="text-xs text-muted-foreground">Super-administrateur</span>
-              </div>
-              <Settings className="ml-auto size-4 text-muted-foreground" />
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          <UserProfileMenu />
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

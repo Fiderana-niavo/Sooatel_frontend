@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Briefcase, Building, Clock } from "lucide-react";
 import { JobTitlesModal, JobTitleService, type JobTitle } from "@/features/job-titles";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
+import { Snackbar } from "@/components/ui/Snackbar/snackbar";
+import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
 export function SettingsPage() {
   const [isJobTitlesModalOpen, setIsJobTitlesModalOpen] = useState(false);
@@ -9,6 +11,16 @@ export function SettingsPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({
+    message: "",
+    type: "info",
+    isOpen: false,
+  });
+
+
+  const showSnackbar = (message: string, type: SnackbarType = "info") => {
+    setSnackbar({ message, type, isOpen: true });
+  };
 
   const fetchJobTitles = useCallback(async () => {
     try {
@@ -16,7 +28,7 @@ export function SettingsPage() {
       setJobTitles(data);
     } catch (error) {
       console.error("Failed to fetch job titles:", error);
-      alert("Erreur lors de la récupération des postes.");
+      showSnackbar("Erreur lors de la récupération des postes.", "error");
     }
   }, []);
 
@@ -30,7 +42,7 @@ export function SettingsPage() {
       setJobTitles((prev) => [...prev, newJobTitle]);
     } catch (error) {
       console.error("Failed to create job title:", error);
-      alert("Erreur lors de la création du poste.");
+      showSnackbar("Erreur lors de la création du poste.", "error");
     }
   };
 
@@ -42,7 +54,7 @@ export function SettingsPage() {
       );
     } catch (error) {
       console.error("Failed to update job title:", error);
-      alert("Erreur lors de la modification du poste.");
+      showSnackbar("Erreur lors de la modification du poste.", "error");
     }
   };
 
@@ -59,7 +71,7 @@ export function SettingsPage() {
       setJobTitles((prev) => prev.filter((job) => job.idJobTitle !== itemToDelete));
     } catch (error) {
       console.error("Failed to delete job title:", error);
-      alert("Erreur lors de la suppression du poste.");
+      showSnackbar("Erreur lors de la suppression du poste.", "error");
     } finally {
       setIsDeleting(false);
       setConfirmOpen(false);
@@ -125,6 +137,15 @@ export function SettingsPage() {
         onConfirm={executeDeleteJobTitle}
         loading={isDeleting}
       />
+
+      {snackbar.isOpen && (
+        <Snackbar
+          message={snackbar.message}
+          type={snackbar.type}
+          onClose={() => setSnackbar({ ...snackbar, isOpen: false })}
+        />
+      )}
     </div>
   );
 }
+

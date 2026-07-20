@@ -8,6 +8,7 @@ import { AccountCredentials } from "./AccountCredentials";
 import { PermissionsGrid } from "./PermissionsGrid";
 import { ChangeJobModal } from "./ChangeJobModal";
 import { EmployeePlanningModal } from "../EmployeePlanningModal/EmployeePlanningModal";
+import { Can } from "@/components/Can/Can";
 
 import type { Team, ShiftType } from "@/features/planning/types/type";
 import { CalendarDays } from "lucide-react";
@@ -134,13 +135,15 @@ export function EmployeeForm({
           >
             Informations de l'employé
           </button>
-          <button
-            type="button"
-            className={`flex-1 py-4 text-sm font-medium border-b-2 transition-all duration-300 ${activeTab === "permissions" ? "border-primary text-primary bg-background" : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/20"}`}
-            onClick={() => setActiveTab("permissions")}
-          >
-            Accès & Sécurité
-          </button>
+          <Can permission="security.access">
+            <button
+              type="button"
+              className={`flex-1 py-4 text-sm font-medium border-b-2 transition-all duration-300 ${activeTab === "permissions" ? "border-primary text-primary bg-background" : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/20"}`}
+              onClick={() => setActiveTab("permissions")}
+            >
+              Accès & Sécurité
+            </button>
+          </Can>
         </div>
       )}
 
@@ -292,34 +295,36 @@ export function EmployeeForm({
                 </div>
               </div>
 
-            <div className="pt-6 border-t mt-8">
-              <div className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border">
-                <div>
-                  <h3 className="text-lg font-semibold">Activer le compte utilisateur</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Permet à l'employé de se connecter au système avec des identifiants.</p>
+            <Can permission="security.access">
+              <div className="pt-6 border-t mt-8">
+                <div className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border">
+                  <div>
+                    <h3 className="text-lg font-semibold">Activer le compte utilisateur</h3>
+                    <p className="text-sm text-muted-foreground mt-1">Permet à l'employé de se connecter au système avec des identifiants.</p>
+                  </div>
+                  <Switch
+                    checked={formData.hasUserAccount}
+                    onCheckedChange={(c) => setFormData({ ...formData, hasUserAccount: c })}
+                    className="border-2 border-muted-foreground/20 shadow-sm"
+                  />
                 </div>
-                <Switch
-                  checked={formData.hasUserAccount}
-                  onCheckedChange={(c) => setFormData({ ...formData, hasUserAccount: c })}
-                  className="border-2 border-muted-foreground/20 shadow-sm"
-                />
               </div>
-            </div>
 
-            {formData.hasUserAccount && (
-              <div className="pt-2">
-                <AccountCredentials
-                  username={username}
-                  onUsernameChange={(val) => {
-                    setUsername(val);
-                    setIsUsernameManuallyEdited(true);
-                  }}
-                  selectedRoles={selectedRoles}
-                  onRolesChange={setSelectedRoles}
-                  availableRoles={availableRoles}
-                />
-              </div>
-            )}
+              {formData.hasUserAccount && (
+                <div className="pt-2">
+                  <AccountCredentials
+                    username={username}
+                    onUsernameChange={(val) => {
+                      setUsername(val);
+                      setIsUsernameManuallyEdited(true);
+                    }}
+                    selectedRoles={selectedRoles}
+                    onRolesChange={setSelectedRoles}
+                    availableRoles={availableRoles}
+                  />
+                </div>
+              )}
+            </Can>
           </div>
         </div>
 

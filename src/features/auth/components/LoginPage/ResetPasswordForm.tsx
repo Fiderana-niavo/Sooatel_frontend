@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/Button/button";
-import { Input } from "@/components/ui/Inputs/input";
+import { PasswordInput } from "@/components/ui/Inputs/password-input";
 import { Lock } from "lucide-react";
 
 interface ResetPasswordFormProps {
@@ -43,11 +43,10 @@ export function ResetPasswordForm({ onSubmit, onCancel }: ResetPasswordFormProps
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-700 ml-1">Nouveau mot de passe</label>
             <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#223c56] transition-colors">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#223c56] transition-colors z-10">
                 <Lock className="size-5" />
               </div>
-              <Input 
-                type="password" 
+              <PasswordInput
                 required
                 placeholder="••••••••"
                 value={newPassword}
@@ -60,11 +59,10 @@ export function ResetPasswordForm({ onSubmit, onCancel }: ResetPasswordFormProps
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-700 ml-1">Confirmer le mot de passe</label>
             <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#223c56] transition-colors">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#223c56] transition-colors z-10">
                 <Lock className="size-5" />
               </div>
-              <Input 
-                type="password" 
+              <PasswordInput
                 required
                 placeholder="••••••••"
                 value={confirmPassword}

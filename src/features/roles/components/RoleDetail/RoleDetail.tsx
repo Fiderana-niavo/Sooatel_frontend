@@ -174,7 +174,7 @@ export function RoleDetail({
                         />
                         <div className="flex flex-col">
                           <span className={`text-sm font-semibold text-muted-foreground`}>
-                            {permission.permissionName}
+                            {permission.name}
                           </span>
                           {permission.description && (
                             <span className="text-xs text-muted-foreground mt-0.5 line-clamp-2">

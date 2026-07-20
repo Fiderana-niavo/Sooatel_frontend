@@ -26,7 +26,8 @@ export const PermissionService = {
       
       groups[catName].permissions.push({
         idPermission: record.idPermission,
-        permissionName: record.permissionName,
+        name: record.name,
+        code: record.code,
         description: record.description,
         categoryLabel: catName,
       } as PermissionItem);
@@ -46,13 +47,13 @@ export const PermissionService = {
     return res.data.payload;
   },
 
-  create: async (data: { permissionName: string; description?: string; idCategory: string }) => {
+  create: async (data: { name: string; code: string; description?: string; idCategory: string }) => {
     const res = await axios.post<ApiResponse<any>>(`${BASE}/permissions`, data);
     if (!res.data.ok) throw new Error(res.data.error);
     return res.data.payload;
   },
 
-  update: async (id: string, data: { permissionName: string; description?: string; idCategory: string }) => {
+  update: async (id: string, data: { name: string; code: string; description?: string; idCategory: string }) => {
     const res = await axios.put<ApiResponse<void>>(`${BASE}/permissions/${id}`, data);
     if (!res.data.ok) throw new Error(res.data.error);
   },

@@ -1,5 +1,6 @@
 import axios from "axios";
 import type {
+  ChangeAuthenticatedPasswordDto,
   ChangePasswordDto,
   LoginDto,
   LoginPayload,
@@ -16,6 +17,11 @@ export const AuthService = {
     const res = await axios.post<ApiResponse<LoginPayload>>(`${BASE}/auth/login`, dto);
     if (!res.data.ok) throw new Error(res.data.error);
     return res.data.payload;
+  },
+
+  logout: () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("refreshToken");
   },
 
   refresh: async (token: string): Promise<{ accessToken: string }> => {
@@ -52,4 +58,14 @@ export const AuthService = {
     if (!res.data.ok) throw new Error(res.data.error);
     return res.data.payload;
   },
+
+  changeAuthenticatedPassword: async (dto: ChangeAuthenticatedPasswordDto): Promise<{ success: boolean }> => {
+    const res = await axios.post<ApiResponse<{ success: boolean }>>(
+      `${BASE}/auth/password/change`,
+      dto,
+    );
+    if (!res.data.ok) throw new Error(res.data.error);
+    return res.data.payload;
+  },
 };
+

@@ -8,7 +8,6 @@ import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { RoleService } from "../../services/role.service";
 import { PermissionService } from "../../services/permission.service";
-import { PermissionsModal } from "../PermissionsModal/PermissionsModal";
 
 export function RolesPage() {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -19,7 +18,6 @@ export function RolesPage() {
   const roleId = searchParams.get("id");
   const isCreating = action === "create";
   const [searchQuery, setSearchQuery] = useState("");
-  const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
   const [snackbar, setSnackbar] = useState<{ message: string, type: SnackbarType, isOpen: boolean }>({ message: "", type: "info", isOpen: false });
 
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -149,7 +147,6 @@ export function RolesPage() {
         selectedRoleId={selectedRole?.idRole || null}
         onSelectRole={handleSelectRole}
         onCreateNew={handleCreateNew}
-        onManagePermissions={() => setIsPermissionsModalOpen(true)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
       />
@@ -163,13 +160,6 @@ export function RolesPage() {
         onSave={handleSave}
         onDelete={promptDelete}
         onCancel={handleCancelCreate}
-      />
-
-      <PermissionsModal
-        open={isPermissionsModalOpen}
-        onOpenChange={setIsPermissionsModalOpen}
-        onPermissionsChanged={loadData}
-        showSnackbar={showSnackbar}
       />
 
       {snackbar.isOpen && (

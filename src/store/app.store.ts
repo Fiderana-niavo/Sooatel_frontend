@@ -8,7 +8,7 @@ interface AppStore {
   permissions: PermissionItem[];
   setConnectedUser: (user: AuthUser) => void;
   setPermissions: (permissions: PermissionItem[]) => void;
-  hasPermission: (name: string) => boolean;
+  hasPermission: (code: string) => boolean;
   clear: () => void;
 }
 
@@ -22,13 +22,14 @@ export const useAppStore = create<AppStore>()(
 
       setPermissions: (permissions) => set({ permissions }),
 
-      hasPermission: (name) =>
-        get().permissions.some((p) => p.permissionName === name),
+      hasPermission: (code) =>
+        get().permissions.some((p) => p.code === code),
 
       clear: () => set({ connectedUser: null, permissions: [] }),
     }),
     {
       name: "app-store",
+      version: 2, // Invalide le cache précédent (qui utilisait permissionName au lieu de code)
       partialize: (state) => ({
         connectedUser: state.connectedUser,
         permissions: state.permissions,

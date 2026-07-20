@@ -11,15 +11,49 @@ import { LoginPage } from "@/features/auth";
 import { RolesPage } from "@/features/roles";
 import { PlanningPage } from "@/features/planning";
 import { SettingsPage } from "@/features/settings";
+import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
+import { useAppStore } from "@/store/app.store";
 
 function App() {
   const navigate = useNavigate();
-  const [appMode, setAppMode] = useState<"utopia" | "sooatel">("sooatel");
+  const [appMode, setAppMode] = useState<"utopia" | "sooatel">(() => {
+    const hasPermission = useAppStore.getState().hasPermission;
+    const hasHotel = hasPermission("hotel.access");
+    const hasRestaurant = hasPermission("restaurant.access");
+    
+    if (hasRestaurant && !hasHotel) {
+      return "utopia";
+    }
+    return "sooatel";
+  });
+
   const [activeTab, setActiveTab] = useState<string>(() => {
-    return localStorage.getItem("activeTab") || "Tableau de bord";
+    const savedTab = localStorage.getItem("activeTab");
+    const hasPermission = useAppStore.getState().hasPermission;
+    
+    let isPermitted = false;
+    let firstPermittedTab = null;
+
+    for (const group of navigationGroups) {
+      if (!group.permission || hasPermission(group.permission)) {
+        for (const item of group.items) {
+          if (!item.permission || hasPermission(item.permission)) {
+            if (!firstPermittedTab) firstPermittedTab = item.title;
+            if (item.title === savedTab) isPermitted = true;
+          }
+        }
+      }
+    }
+
+    if (savedTab && isPermitted) {
+      return savedTab;
+    }
+    return firstPermittedTab || "Tableau de bord";
   });
   const [employeesPageTitle, setEmployeesPageTitle] = useState("Gestion des Employés");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem("authToken");
+  });
 
   useEffect(() => {
     const modeName = appMode === "utopia" ? "Restaurant Utopia" : "Hôtel Sooatel";
@@ -61,6 +95,34 @@ function App() {
 
   const handleLogin = () => {
     setIsAuthenticated(true);
+    
+    const hasPermission = useAppStore.getState().hasPermission;
+    const hasHotel = hasPermission("hotel.access");
+    const hasRestaurant = hasPermission("restaurant.access");
+    
+    if (hasRestaurant && !hasHotel) {
+      setAppMode("utopia");
+    } else {
+      setAppMode("sooatel");
+    }
+
+    let firstPermittedTab = null;
+    for (const group of navigationGroups) {
+      if (!group.permission || hasPermission(group.permission)) {
+        for (const item of group.items) {
+          if (!item.permission || hasPermission(item.permission)) {
+            if (!firstPermittedTab) firstPermittedTab = item.title;
+            break;
+          }
+        }
+        if (firstPermittedTab) break;
+      }
+    }
+    
+    if (firstPermittedTab) {
+      setActiveTab(firstPermittedTab);
+    }
+    
     navigate("/");
   };
 
@@ -70,78 +132,87 @@ function App() {
         isAuthenticated ? <Navigate to="/" replace /> : <LoginPage onLogin={handleLogin} />
       } />
       <Route path="/" element={
-        (
+        isAuthenticated ? (
           <SidebarProvider className={appMode === "utopia" ? "theme-utopia" : "theme-sooatel"}>
-      <AppSidebar
-        appMode={appMode}
-        setAppMode={setAppMode}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
-      <SidebarInset className="bg-secondary/5">
-        <main className="w-full flex flex-col min-h-svh transition-colors duration-300 p-4 md:px-8 md:pb-8 md:pt-[14px]">
+            <AppSidebar
+              appMode={appMode}
+              setAppMode={setAppMode}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+            <SidebarInset className="bg-secondary/5">
+              <main className="w-full flex flex-col min-h-svh transition-colors duration-300 p-4 md:px-8 md:pb-8 md:pt-[14px]">
+                <div className="w-full mb-8 relative">
+                  <div className="absolute left-0 top-1">
+                    <SidebarTrigger className="text-secondary hover:bg-secondary/20 hover:text-secondary-foreground -ml-4 md:-ml-6" />
+                  </div>
 
-          <div className="w-full mb-8 relative">
-            <div className="absolute left-0 top-1">
-              <SidebarTrigger className="text-secondary hover:bg-secondary/20 hover:text-secondary-foreground -ml-4 md:-ml-6" />
-            </div>
+                  <div className="w-full max-w-5xl mx-auto flex flex-col items-start justify-center text-left pl-12 xl:pl-0">
+                    <h1 className="font-extrabold text-3xl md:text-4xl text-secondary tracking-tight uppercase">
+                      {activeTab === "Gestion des Utilisateurs" 
+                        ? employeesPageTitle 
+                        : activeTab === "Rôles et Permissions"
+                        ? "Rôles et Permissions"
+                        : activeTab === "Plannings"
+                        ? "Plannings"
+                        : activeTab === "Paramètres Globaux"
+                        ? "Paramètres Globaux"
+                        : (appMode === "utopia" ? "Tableau de Bord" : "Vue d'ensemble")}
+                    </h1>
+                    <span className="text-primary font-bold text-sm md:text-base uppercase tracking-widest mt-1">
+                      {appMode === "utopia" ? "Utopia Restaurant" : "Sooatel Hôtel"}
+                    </span>
+                  </div>
+                </div>
 
-            <div className="w-full max-w-5xl mx-auto flex flex-col items-start justify-center text-left pl-12 xl:pl-0">
-              <h1 className="font-extrabold text-3xl md:text-4xl text-secondary tracking-tight uppercase">
-                {activeTab === "Gestion des Utilisateurs" 
-                  ? employeesPageTitle 
-                  : activeTab === "Rôles et Permissions"
-                  ? "Rôles et Permissions"
-                  : activeTab === "Plannings"
-                  ? "Plannings"
-                  : activeTab === "Paramètres Globaux"
-                  ? "Paramètres Globaux"
-                  : (appMode === "utopia" ? "Tableau de Bord" : "Vue d'ensemble")}
-              </h1>
-              <span className="text-primary font-bold text-sm md:text-base uppercase tracking-widest mt-1">
-                {appMode === "utopia" ? "Utopia Restaurant" : "Sooatel Hôtel"}
-              </span>
-            </div>
-          </div>
+                <section className="bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[2rem] p-8 md:p-12 border border-border/50 flex-1 w-full max-w-5xl mx-auto space-y-10 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
 
-          <section className="bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[2rem] p-8 md:p-12 border border-border/50 flex-1 w-full max-w-5xl mx-auto space-y-10 relative overflow-hidden">
-            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
+                  {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Plannings" && activeTab !== "Paramètres Globaux" && (
+                    <div>
+                      <h2 className="text-2xl font-bold mb-2">Bienvenue sur {appMode === "utopia" ? "Utopia" : "Sooatel"}</h2>
+                      <p className="text-muted-foreground m-0 text-lg">
+                        Vous visualisez actuellement la page <span className="font-bold text-primary">{activeTab}</span>.
+                      </p>
+                    </div>
+                  )}
 
-            {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Plannings" && activeTab !== "Paramètres Globaux" && (
-              <div>
-                <h2 className="text-2xl font-bold mb-2">Bienvenue sur {appMode === "utopia" ? "Utopia" : "Sooatel"}</h2>
-                <p className="text-muted-foreground m-0 text-lg">
-                  Vous visualisez actuellement la page <span className="font-bold text-primary">{activeTab}</span>.
-                </p>
-              </div>
-            )}
-
-            {activeTab === "Gestion des Utilisateurs" ? (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                <EmployeesPage setPageTitle={setEmployeesPageTitle} />
-              </div>
-            ) : activeTab === "Rôles et Permissions" ? (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full !mt-0 md:!-mt-4">
-                <RolesPage />
-              </div>
-            ) : activeTab === "Plannings" ? (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                <PlanningPage />
-              </div>
-            ) : activeTab === "Paramètres Globaux" ? (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                <SettingsPage />
-              </div>
-            ) : (
-              <div className="bg-muted/30 rounded-2xl p-6 border border-border/50 flex flex-col items-center justify-center min-h-[300px] text-center">
-                <h3 className="text-xl font-semibold mb-2">Contenu : {activeTab}</h3>
-                <p className="text-muted-foreground">Cette section est en cours de développement.</p>
-              </div>
-            )}
-          </section>
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+                  {activeTab === "Gestion des Utilisateurs" ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                      <ProtectedRoute permission="employee.read">
+                        <EmployeesPage setPageTitle={setEmployeesPageTitle} />
+                      </ProtectedRoute>
+                    </div>
+                  ) : activeTab === "Rôles et Permissions" ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full !mt-0 md:!-mt-4">
+                      <ProtectedRoute permission="security.access">
+                        <RolesPage />
+                      </ProtectedRoute>
+                    </div>
+                  ) : activeTab === "Plannings" ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                      <ProtectedRoute permission="hr.schedule">
+                        <PlanningPage />
+                      </ProtectedRoute>
+                    </div>
+                  ) : activeTab === "Paramètres Globaux" ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                      <ProtectedRoute permission="settings.access">
+                        <SettingsPage />
+                      </ProtectedRoute>
+                    </div>
+                  ) : (
+                    <div className="bg-muted/30 rounded-2xl p-6 border border-border/50 flex flex-col items-center justify-center min-h-[300px] text-center">
+                      <h3 className="text-xl font-semibold mb-2">Contenu : {activeTab}</h3>
+                      <p className="text-muted-foreground">Cette section est en cours de développement.</p>
+                    </div>
+                  )}
+                </section>
+              </main>
+            </SidebarInset>
+          </SidebarProvider>
+        ) : (
+          <Navigate to="/login" replace />
         )
       } />
       <Route path="*" element={<Navigate to="/" replace />} />

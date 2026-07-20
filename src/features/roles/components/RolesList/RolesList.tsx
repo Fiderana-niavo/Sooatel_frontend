@@ -8,7 +8,6 @@ interface RolesListProps {
   selectedRoleId: string | null;
   onSelectRole: (role: Role) => void;
   onCreateNew: () => void;
-  onManagePermissions: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
 }
@@ -18,7 +17,6 @@ export function RolesList({
   selectedRoleId, 
   onSelectRole, 
   onCreateNew,
-  onManagePermissions,
   searchQuery,
   setSearchQuery
 }: RolesListProps) {
@@ -32,14 +30,6 @@ export function RolesList({
         >
           <Plus className="mr-2 size-5 group-hover:rotate-90 transition-transform" />
           Créer un rôle
-        </Button>
-
-        <Button 
-          variant="outline"
-          onClick={onManagePermissions}
-          className="w-full py-4 rounded-xl font-semibold border-border/50 hover:bg-muted/50"
-        >
-          Gérer les permissions
         </Button>
 
         <div className="relative">

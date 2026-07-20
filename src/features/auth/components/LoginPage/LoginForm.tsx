@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
+import { PasswordInput } from "@/components/ui/Inputs/password-input";
 import { User, Lock, ArrowRight } from "lucide-react";
 
 interface LoginFormProps {
@@ -56,11 +57,10 @@ export function LoginForm({ onSubmit, onForgotPasswordClick }: LoginFormProps) {
             <button type="button" onClick={onForgotPasswordClick} className="text-xs text-[#223c56] hover:text-[#1a2d41] font-medium transition-colors">Mot de passe oublié ?</button>
           </div>
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#223c56] transition-colors">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#223c56] transition-colors z-10">
               <Lock className="size-5" />
             </div>
-            <Input 
-              type="password" 
+            <PasswordInput
               required
               placeholder="••••••••"
               value={password}

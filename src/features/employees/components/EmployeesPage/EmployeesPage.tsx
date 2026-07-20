@@ -6,6 +6,7 @@ import { EmployeePlanningModal } from "../EmployeePlanningModal/EmployeePlanning
 import type { EmployeeListItem, EmployeeDetail } from "../../types/type";
 import type { Role, Permission } from "@/features/roles/types";
 import { Button } from "@/components/ui/Button/button";
+import { Can } from "@/components/Can/Can";
 import {
   ArrowLeft,
   Briefcase,
@@ -169,7 +170,8 @@ export function EmployeesPage({
       .then((res) => {
         const perms: Permission[] = res.records.map((p: any) => ({
           idPermission: p.idPermission,
-          permissionName: p.permissionName,
+          name: p.name,
+          code: p.code,
           category: p.category?.name || "Autres",
         }));
         setAvailablePermissions(perms);
@@ -808,51 +810,59 @@ export function EmployeesPage({
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                onClick={handleEditClick}
-                className="rounded-xl px-4 gap-2 font-medium border-border hover:bg-muted"
-              >
-                <Edit className="size-4 text-muted-foreground" />
-                Modifier le profil
-              </Button>
-              {selectedStatus === "active" && (
+              <Can permission="employee.update">
                 <Button
                   variant="outline"
-                  onClick={handleEditPlanningClick}
-                  className="rounded-xl px-4 gap-2 font-medium border-border hover:bg-muted text-primary"
+                  onClick={handleEditClick}
+                  className="rounded-xl px-4 gap-2 font-medium border-border hover:bg-muted"
                 >
-                  <CalendarDays className="size-4" />
-                  Disponibilités
+                  <Edit className="size-4 text-muted-foreground" />
+                  Modifier le profil
                 </Button>
+              </Can>
+              {selectedStatus === "active" && (
+                <Can permission="employee.update">
+                  <Button
+                    variant="outline"
+                    onClick={handleEditPlanningClick}
+                    className="rounded-xl px-4 gap-2 font-medium border-border hover:bg-muted text-primary"
+                  >
+                    <CalendarDays className="size-4" />
+                    Disponibilités
+                  </Button>
+                </Can>
               )}
-              {selectedStatus === "active" ? (
+              <Can permission="employee.update">
+                {selectedStatus === "active" ? (
+                  <Button
+                    onClick={handleChangeJobClick}
+                    className="rounded-xl px-4 gap-2 bg-primary hover:bg-primary/90 text-white font-medium"
+                  >
+                    <Briefcase className="size-4" />
+                    Changer de poste
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      const item = getSelectedEmployeeListItem();
+                      if (item) openRenewContractModal(item);
+                    }}
+                    className="rounded-xl px-4 gap-2 bg-green-600 hover:bg-green-700 text-white font-medium"
+                  >
+                    <Briefcase className="size-4" />
+                    Renouveler le contrat
+                  </Button>
+                )}
+              </Can>
+              <Can permission="employee.delete">
                 <Button
-                  onClick={handleChangeJobClick}
-                  className="rounded-xl px-4 gap-2 bg-primary hover:bg-primary/90 text-white font-medium"
+                  onClick={handleDeleteClick}
+                  className="rounded-xl px-4 gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium"
                 >
-                  <Briefcase className="size-4" />
-                  Changer de poste
+                  <Trash2 className="size-4" />
+                  Supprimer
                 </Button>
-              ) : (
-                <Button
-                  onClick={() => {
-                    const item = getSelectedEmployeeListItem();
-                    if (item) openRenewContractModal(item);
-                  }}
-                  className="rounded-xl px-4 gap-2 bg-green-600 hover:bg-green-700 text-white font-medium"
-                >
-                  <Briefcase className="size-4" />
-                  Renouveler le contrat
-                </Button>
-              )}
-              <Button
-                onClick={handleDeleteClick}
-                className="rounded-xl px-4 gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium"
-              >
-                <Trash2 className="size-4" />
-                Supprimer
-              </Button>
+              </Can>
             </div>
           </div>
 
@@ -1182,17 +1192,19 @@ export function EmployeesPage({
                           )}
                         </div>
                       </div>
-                      <div className="pt-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleGenerateKey}
-                          className="w-full text-xs font-semibold gap-2 border-primary/20 text-primary hover:bg-primary/10 rounded-xl"
-                        >
-                          <Key className="size-3.5" />
-                          Générer une clé d'accès
-                        </Button>
-                      </div>
+                      <Can permission="security.access">
+                        <div className="pt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleGenerateKey}
+                            className="w-full text-xs font-semibold gap-2 border-primary/20 text-primary hover:bg-primary/10 rounded-xl"
+                          >
+                            <Key className="size-3.5" />
+                            Générer une clé d'accès
+                          </Button>
+                        </div>
+                      </Can>
                     </div>
                   )}
                 </div>

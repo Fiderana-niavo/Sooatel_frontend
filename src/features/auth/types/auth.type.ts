@@ -5,6 +5,8 @@ export interface AuthUser {
   ref: string;
   username: string;
   idEmployee: string;
+  name?: string;
+  lastname?: string;
 }
 
 export interface LoginPayload {
@@ -31,6 +33,12 @@ export interface ValidateResetKeyDto {
 export interface ChangePasswordDto {
   key: string;
   username: string;
+  newPassword: string;
+}
+
+export interface ChangeAuthenticatedPasswordDto {
+  idUser: string;
+  currentPassword: string;
   newPassword: string;
 }
 

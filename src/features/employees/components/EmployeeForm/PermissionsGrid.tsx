@@ -82,7 +82,7 @@ export function PermissionsGrid({
                      <tr key={perm.idPermission} className="border-b last:border-0 hover:bg-muted/5 transition-colors">
                       <td className="p-4">
                         <div className="font-medium flex items-center gap-2">
-                          {perm.permissionName}
+                          {perm.name}
                           {isEffective ? (
                             <span title="Actif" className="flex items-center"><CheckCircle2 className="size-4 text-green-500 fill-green-500/10 shrink-0" /></span>
                           ) : (
