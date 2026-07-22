@@ -50,8 +50,6 @@ export function ForgotPasswordForm({ onBackToLogin, onSubmitEmail, onSubmitKey }
       setIsLoading(false);
     }
   };
-
-  // ── Step 1 : Choice ──────────────────────────────────────────────
   if (step === "choice") {
     return (
       <div className="animate-in fade-in slide-in-from-left-8 duration-500 mt-8 md:mt-0">
@@ -109,8 +107,6 @@ export function ForgotPasswordForm({ onBackToLogin, onSubmitEmail, onSubmitKey }
       </div>
     );
   }
-
-  // ── Step 2a : Email / Username ───────────────────────────────────
   if (step === "email") {
     return (
       <div className="animate-in fade-in slide-in-from-right-8 duration-500 mt-8 md:mt-0">
@@ -168,8 +164,6 @@ export function ForgotPasswordForm({ onBackToLogin, onSubmitEmail, onSubmitKey }
       </div>
     );
   }
-
-  // ── Step 2b : Manager Key ────────────────────────────────────────
   return (
     <div className="animate-in fade-in slide-in-from-right-8 duration-500 mt-8 md:mt-0">
       <button

@@ -10,19 +10,13 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 
 export function PlanningPage() {
   const [activeTab, setActiveTab] = useState<"teams" | "shifts">("teams");
-  
-  // Data state
   const [teams, setTeams] = useState<Team[]>([]);
   const [shifts, setShifts] = useState<ShiftType[]>([]);
-
-  // Editing state
   const [editId, setEditId] = useState<string | null>(null);
   const [teamForm, setTeamForm] = useState<Partial<Team>>({});
   
   const [shiftId, setShiftId] = useState<string | null>(null);
   const [shiftForm, setShiftForm] = useState<Partial<ShiftType>>({});
-
-  // Confirmation state
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<"team" | "shift" | null>(null);
@@ -50,8 +44,6 @@ export function PlanningPage() {
     loadTeams();
     loadShifts();
   }, [loadTeams, loadShifts]);
-
-  // Team Handlers
   const addTeam = () => {
     setTeamForm({ teamName: "", description: "" });
     setEditId("new");
@@ -90,8 +82,6 @@ export function PlanningPage() {
     setDeleteType("team");
     setConfirmOpen(true);
   };
-
-  // Shift Handlers
   const addShift = () => {
     setShiftForm({ label: "", customStartTime: "08:00", customEndTime: "16:00", description: "" });
     setShiftId("new");

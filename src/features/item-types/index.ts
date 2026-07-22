@@ -1,3 +1,3 @@
 export * from './types';
 export * from './services';
-export * from './components/ItemTypesModal/ItemTypesModal';
+export * from './components/ItemTypesModal';

@@ -150,5 +150,3 @@ export interface SetAvailabilityDto {
   customEndTime: string | null;
   idShiftType: string | null;
 }
-
-

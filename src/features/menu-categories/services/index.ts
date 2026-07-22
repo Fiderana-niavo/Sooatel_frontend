@@ -1,29 +1,39 @@
-import api from "@/services/api";
+import axios from "axios";
+import type { ApiResponse } from "@/types/api.type";
 import type { MenuCategory, CreateMenuCategoryDto } from "../types";
 
+const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
+
 export class MenuCategoryService {
-  static async getAll(params?: { page?: number; limit?: number; search?: string }): Promise<MenuCategory[]> {
-    const response = await api.get("/menu-categories", { params });
-    // Handle paginated response if backend returns it
-    return response.data.data?.data || response.data.data || [];
+  static async getAll(params?: Record<string, any>): Promise<MenuCategory[]> {
+    const res = await axios.get<ApiResponse<{ records: MenuCategory[] } | MenuCategory[]>>(`${BASE}/menu-categories`, { params });
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    if (Array.isArray(res.data.payload)) {
+      return res.data.payload;
+    }
+    return (res.data.payload as { records: MenuCategory[] }).records || [];
   }
 
   static async getById(id: string): Promise<MenuCategory> {
-    const response = await api.get(`/menu-categories/${id}`);
-    return response.data.data;
+    const res = await axios.get<ApiResponse<MenuCategory>>(`${BASE}/menu-categories/${id}`);
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    return res.data.payload;
   }
 
   static async create(data: CreateMenuCategoryDto): Promise<MenuCategory> {
-    const response = await api.post("/menu-categories", data);
-    return response.data.data;
+    const res = await axios.post<ApiResponse<MenuCategory>>(`${BASE}/menu-categories`, data);
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    return res.data.payload;
   }
 
   static async update(id: string, data: Partial<CreateMenuCategoryDto>): Promise<MenuCategory> {
-    const response = await api.put(`/menu-categories/${id}`, data);
-    return response.data.data;
+    const res = await axios.put<ApiResponse<MenuCategory>>(`${BASE}/menu-categories/${id}`, data);
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    return res.data.payload;
   }
 
   static async delete(id: string): Promise<void> {
-    await api.delete(`/menu-categories/${id}`);
+    const res = await axios.delete<ApiResponse<void>>(`${BASE}/menu-categories/${id}`);
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
   }
 }

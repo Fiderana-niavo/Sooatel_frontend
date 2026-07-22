@@ -1,1 +1,1 @@
-export * from "./components/LoginPage/LoginPage";
+export * from "./components/LoginPage";

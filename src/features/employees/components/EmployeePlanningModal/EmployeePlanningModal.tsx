@@ -65,7 +65,6 @@ export function EmployeePlanningModal({
     });
 
     let nextAvailableDay: number | null = null;
-    // Iterate through single days (0-6)
     const singleDays = [1, 2, 3, 4, 5, 6, 0];
     for (const d of singleDays) {
       if (!usedDays.has(d)) {
@@ -75,7 +74,6 @@ export function EmployeePlanningModal({
     }
 
     if (nextAvailableDay === null) {
-      // If all days are covered, do not add a row
       return;
     }
 
@@ -107,7 +105,6 @@ export function EmployeePlanningModal({
   };
 
   const handleSaveCurrentTab = () => {
-    // Unfold shortcuts (-1, -2, -3) into individual days for the backend
     const payloadAvails: Partial<EmployeeAvailability>[] = [];
     availabilities.forEach(avail => {
       if (avail.dayOfWeek !== undefined && avail.dayOfWeek !== null) {
@@ -174,8 +171,7 @@ export function EmployeePlanningModal({
 
         <div className="p-6 md:p-8 space-y-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
 
-          {/* TEAM SELECTION */}
-          {activeTab === "team" && (
+                    {activeTab === "team" && (
             <div className="space-y-4 animate-in fade-in duration-300">
               <h3 className="text-lg font-semibold flex items-center gap-2 border-b pb-2">
                 <Users className="size-5 text-primary" />
@@ -197,8 +193,7 @@ export function EmployeePlanningModal({
             </div>
           )}
 
-          {/* AVAILABILITIES */}
-          {activeTab === "availabilities" && (
+                    {activeTab === "availabilities" && (
             <div className="space-y-4 animate-in fade-in duration-300">
               <div className="flex items-center justify-between border-b pb-2">
                 <h3 className="text-lg font-semibold flex items-center gap-2">

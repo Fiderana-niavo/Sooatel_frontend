@@ -3,7 +3,8 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SidebarProvider } from "@/components/ui/Sidebar/hooks/sidebar.provider";
 import { SidebarTrigger, SidebarInset } from "@/components/ui/Sidebar/sidebar";
-import { AppSidebar, navigationGroups } from "@/components/ui/Sidebar/app-sidebar";
+import { AppSidebar } from "@/components/ui/Sidebar/app-sidebar";
+import { NAVIGATION_GROUPS } from "@/constants/app.constants";
 import sooatelLogo from "@/assets/Sooatel.jpeg";
 import utopiaLogo from "@/assets/Utopia.jpeg";
 import { EmployeesPage } from "@/features/employees";
@@ -11,6 +12,8 @@ import { LoginPage } from "@/features/auth";
 import { RolesPage } from "@/features/roles";
 import { PlanningPage } from "@/features/planning";
 import { SettingsPage } from "@/features/settings";
+import { HotelConfigPage } from "@/features/hotel-config";
+import { RestaurantCatalogPage } from "@/features/restaurant-catalog";
 import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { useAppStore } from "@/store/app.store";
 
@@ -20,7 +23,7 @@ function App() {
     const hasPermission = useAppStore.getState().hasPermission;
     const hasHotel = hasPermission("hotel.access");
     const hasRestaurant = hasPermission("restaurant.access");
-    
+
     if (hasRestaurant && !hasHotel) {
       return "utopia";
     }
@@ -30,11 +33,11 @@ function App() {
   const [activeTab, setActiveTab] = useState<string>(() => {
     const savedTab = localStorage.getItem("activeTab");
     const hasPermission = useAppStore.getState().hasPermission;
-    
+
     let isPermitted = false;
     let firstPermittedTab = null;
 
-    for (const group of navigationGroups) {
+    for (const group of NAVIGATION_GROUPS) {
       if (!group.permission || hasPermission(group.permission)) {
         for (const item of group.items) {
           if (!item.permission || hasPermission(item.permission)) {
@@ -67,7 +70,7 @@ function App() {
     }
 
     let ActiveIcon = null;
-    for (const group of navigationGroups) {
+    for (const group of NAVIGATION_GROUPS) {
       const foundItem = group.items.find(item => item.title === activeTab);
       if (foundItem) {
         ActiveIcon = foundItem.icon;
@@ -95,11 +98,11 @@ function App() {
 
   const handleLogin = () => {
     setIsAuthenticated(true);
-    
+
     const hasPermission = useAppStore.getState().hasPermission;
     const hasHotel = hasPermission("hotel.access");
     const hasRestaurant = hasPermission("restaurant.access");
-    
+
     if (hasRestaurant && !hasHotel) {
       setAppMode("utopia");
     } else {
@@ -107,7 +110,7 @@ function App() {
     }
 
     let firstPermittedTab = null;
-    for (const group of navigationGroups) {
+    for (const group of NAVIGATION_GROUPS) {
       if (!group.permission || hasPermission(group.permission)) {
         for (const item of group.items) {
           if (!item.permission || hasPermission(item.permission)) {
@@ -118,11 +121,11 @@ function App() {
         if (firstPermittedTab) break;
       }
     }
-    
+
     if (firstPermittedTab) {
       setActiveTab(firstPermittedTab);
     }
-    
+
     navigate("/");
   };
 
@@ -149,15 +152,19 @@ function App() {
 
                   <div className="w-full max-w-5xl mx-auto flex flex-col items-start justify-center text-left pl-12 xl:pl-0">
                     <h1 className="font-extrabold text-3xl md:text-4xl text-secondary tracking-tight uppercase">
-                      {activeTab === "Gestion des Utilisateurs" 
-                        ? employeesPageTitle 
+                      {activeTab === "Gestion des Utilisateurs"
+                        ? employeesPageTitle
                         : activeTab === "Rôles et Permissions"
-                        ? "Rôles et Permissions"
-                        : activeTab === "Plannings"
-                        ? "Plannings"
-                        : activeTab === "Paramètres Globaux"
-                        ? "Paramètres Globaux"
-                        : (appMode === "utopia" ? "Tableau de Bord" : "Vue d'ensemble")}
+                          ? "Rôles et Permissions"
+                          : activeTab === "Plannings"
+                            ? "Plannings"
+                            : activeTab === "Paramètres Globaux"
+                              ? "Paramètres Globaux"
+                              : activeTab === "Chambres & Évènements"
+                                ? "Configuration de l'Hôtel"
+                                : activeTab === "Catalogue & Menus"
+                                  ? "Catalogue du Restaurant"
+                                  : (appMode === "utopia" ? "Tableau de Bord" : "Vue d'ensemble")}
                     </h1>
                     <span className="text-primary font-bold text-sm md:text-base uppercase tracking-widest mt-1">
                       {appMode === "utopia" ? "Utopia Restaurant" : "Sooatel Hôtel"}
@@ -168,7 +175,7 @@ function App() {
                 <section className="bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[2rem] p-8 md:p-12 border border-border/50 flex-1 w-full max-w-5xl mx-auto space-y-10 relative overflow-hidden">
                   <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
 
-                  {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Plannings" && activeTab !== "Paramètres Globaux" && (
+                  {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Plannings" && activeTab !== "Paramètres Globaux" && activeTab !== "Chambres & Évènements" && activeTab !== "Catalogue & Menus" && (
                     <div>
                       <h2 className="text-2xl font-bold mb-2">Bienvenue sur {appMode === "utopia" ? "Utopia" : "Sooatel"}</h2>
                       <p className="text-muted-foreground m-0 text-lg">
@@ -199,6 +206,18 @@ function App() {
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
                       <ProtectedRoute permission="settings.access">
                         <SettingsPage />
+                      </ProtectedRoute>
+                    </div>
+                  ) : activeTab === "Chambres & Évènements" ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                      <ProtectedRoute permission="hotel.access">
+                        <HotelConfigPage />
+                      </ProtectedRoute>
+                    </div>
+                  ) : activeTab === "Catalogue & Menus" ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                      <ProtectedRoute permission="restaurant.access">
+                        <RestaurantCatalogPage />
                       </ProtectedRoute>
                     </div>
                   ) : (

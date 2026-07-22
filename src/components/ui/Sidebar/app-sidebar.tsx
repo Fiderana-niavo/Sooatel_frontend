@@ -16,83 +16,27 @@ import {
 } from "@/components/ui/Sidebar/sidebar";
 
 import {
-  UtensilsCrossed,
-  Package,
   Users,
-  Bot,
-  ChevronDown,
-  LayoutDashboard,
-  CreditCard,
-  ShoppingCart,
-  Boxes,
-  ArrowRightLeft,
-  AlertTriangle,
-  TrendingUp,
-  Contact,
-  CalendarDays,
-  HeartHandshake,
   Settings,
+  ChevronDown,
   ChevronRight,
-  ShieldCheck,
-  LogOut,
   KeyRound,
+  LogOut,
+  Bot
 } from "lucide-react";
+import { NAVIGATION_GROUPS } from "@/constants/app.constants";
 import sooatelLogo from "@/assets/Sooatel.jpeg";
 import utopiaLogo from "@/assets/Utopia.jpeg";
 import { useSidebar } from "@/components/ui/Sidebar/hooks/sidebar.hook";
 import { useAppStore } from "@/store/app.store";
-import { ChangePasswordModal } from "@/features/settings/components/ChangePasswordModal/ChangePasswordModal";
+import { ChangePasswordModal } from "@/features/auth/components/ChangePasswordModal";
 import { AuthService } from "@/features/auth/services/auth.service";
 import { Snackbar, type SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
 // --- Navigation Data Models ---
 
-export const navigationGroups = [
-  {
-    title: "Opérations restaurant",
-    icon: UtensilsCrossed,
-    permission: "restaurant.access",
-    items: [
-      { title: "Tableau de bord", url: "/resto/dashboard", icon: LayoutDashboard, permission: "restaurant.access" },
-      { title: "Caisse & PDV", url: "/resto/pos", icon: CreditCard, permission: "restaurant.pos" },
-      { title: "Achats & Dépenses", url: "/resto/purchases", icon: ShoppingCart, permission: "restaurant.purchases" },
-    ],
-  },
-  {
-    title: "Inventaire & logistique",
-    icon: Package,
-    permission: "stock.access",
-    items: [
-      { title: "Niveaux de Stock", url: "/inventory/stock", icon: Boxes, permission: "stock.read" },
-      { title: "Mouvements", url: "/inventory/movements", icon: ArrowRightLeft, permission: "stock.read" },
-      { title: "Audits & Alertes", url: "/inventory/audits", icon: AlertTriangle, permission: "stock.audit" },
-      { title: "Prévisions IA", url: "/inventory/ai", icon: TrendingUp, permission: "stock.forecast" },
-    ],
-  },
-  {
-    title: "Ressources humaines",
-    icon: Users,
-    permission: "hr.access",
-    items: [
-      { title: "Annuaire du Personnel", url: "/hr/directory", icon: Contact, permission: "hr.access" },
-      { title: "Plannings", url: "/hr/schedules", icon: CalendarDays, permission: "hr.schedule" },
-      { title: "Bien-être de l'Équipe", url: "/hr/welfare", icon: HeartHandshake, permission: "hr.welfare" },
-      { title: "Gestion des Utilisateurs", url: "/hr/users", icon: Users, permission: "employee.read" },
-      { title: "Rôles et Permissions", url: "/hr/roles", icon: ShieldCheck, permission: "security.access" },
-    ],
-  },
-  {
-    title: "Configuration",
-    icon: Settings,
-    permission: "settings.access",
-    items: [
-      { title: "Paramètres Globaux", url: "/settings/global", icon: Settings, permission: "settings.access" },
-    ],
-  },
-];
-
 // --- Simple Accordion Wrapper ---
-function AccordionMenuItem({ group, activeTab, setActiveTab }: { group: typeof navigationGroups[0], activeTab: string, setActiveTab: (t: string) => void }) {
+function AccordionMenuItem({ group, activeTab, setActiveTab }: { group: typeof NAVIGATION_GROUPS[0], activeTab: string, setActiveTab: (t: string) => void }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
@@ -306,7 +250,7 @@ export function AppSidebar({ appMode, setAppMode, activeTab, setActiveTab }: App
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigationGroups.map((group) => (
+              {NAVIGATION_GROUPS.filter(g => g.scopes.includes(appMode)).map((group) => (
                 <AccordionMenuItem
                   key={group.title}
                   group={group}

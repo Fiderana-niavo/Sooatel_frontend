@@ -8,8 +8,6 @@ interface CanProps {
 
 /**
  * Renders children only if the connected user has the given permission.
- * Use `fallback` to render alternative content when permission is denied.
- *
  * @example
  * <Can permission="employee.delete">
  *   <DeleteButton />

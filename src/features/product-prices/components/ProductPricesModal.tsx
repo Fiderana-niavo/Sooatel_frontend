@@ -2,36 +2,33 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
-import { Coffee, Edit, Trash2, Plus, X, Check } from "lucide-react";
-import type { MenuItem } from "../../types";
+import { Tag, Edit, Trash2, Plus, X, Check } from "lucide-react";
+import type { ProductPrice } from "../types";
 
-interface MenuItemsModalProps {
+interface ProductPricesModalProps {
   isOpen: boolean;
   onClose: () => void;
-  data: MenuItem[];
-  onAdd: (data: Partial<MenuItem>) => void;
-  onEdit: (id: string, data: Partial<MenuItem>) => void;
+  data: ProductPrice[];
+  onAdd: (data: Partial<ProductPrice>) => void;
+  onEdit: (id: string, data: Partial<ProductPrice>) => void;
   onDelete: (id: string) => void;
 }
 
-// NOTE: Ceci est une version simplifiée (1 champ texte par défaut). 
-// A adapter selon les champs réels de l'entité.
-export function MenuItemsModal({ isOpen, onClose, data, onAdd, onEdit, onDelete }: MenuItemsModalProps) {
+export function ProductPricesModal({ isOpen, onClose, data, onAdd, onEdit, onDelete }: ProductPricesModalProps) {
   const [newValue, setNewValue] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
 
   const handleAdd = () => {
     if (newValue.trim()) {
-      onAdd({ label: newValue.trim() } as any); // Adapt based on actual DTO fields
+      onAdd({ idMenu: newValue.trim() } as any); // Adapt based on actual DTO fields
       setNewValue("");
     }
   };
 
   const startEdit = (item: any) => {
-    setEditingId(item.idMenu);
-    // Guessing the main display field (label, title, name, etc.)
-    setEditingValue(item.label || item.eventName || item.roomNumber || item.ref || "Édition");
+    setEditingId(item.idProductPrice);
+    setEditingValue(item.idMenu || "Édition");
   };
 
   const cancelEdit = () => {
@@ -41,27 +38,27 @@ export function MenuItemsModal({ isOpen, onClose, data, onAdd, onEdit, onDelete 
 
   const saveEdit = () => {
     if (editingValue.trim() && editingId) {
-      onEdit(editingId, { label: editingValue.trim() } as any);
+      onEdit(editingId, { idMenu: editingValue.trim() } as any);
       setEditingId(null);
       setEditingValue("");
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
       <DialogContent className="max-w-xl rounded-[2rem] p-0 overflow-hidden bg-card border shadow-2xl">
         <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2.5 bg-primary/20 text-primary rounded-xl">
-                <Coffee className="size-6" />
+                <Tag className="size-6" />
               </div>
               <div>
                 <DialogTitle className="text-2xl font-bold tracking-tight text-secondary">
-                  Gestion: Articles du Menu
+                  Gestion: Prix Spéciaux
                 </DialogTitle>
                 <DialogDescription className="text-muted-foreground mt-1 text-sm">
-                  Gérez les plats et boissons du menu.
+                  Gérez les prix spécifiques des produits.
                 </DialogDescription>
               </div>
             </div>
@@ -100,10 +97,10 @@ export function MenuItemsModal({ isOpen, onClose, data, onAdd, onEdit, onDelete 
             ) : (
               data.map((item: any) => (
                 <div
-                  key={item.idMenu}
+                  key={item.idProductPrice}
                   className="flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors group"
                 >
-                  {editingId === item.idMenu ? (
+                  {editingId === item.idProductPrice ? (
                     <div className="flex-1 flex items-center gap-2 mr-4">
                       <Input
                         autoFocus
@@ -118,12 +115,12 @@ export function MenuItemsModal({ isOpen, onClose, data, onAdd, onEdit, onDelete 
                     </div>
                   ) : (
                     <div className="flex-1 font-semibold text-foreground text-sm">
-                      {item.label || item.eventName || item.roomNumber || item.ref || item.idMenu}
+                      {item.idMenu || "Sans nom"}
                     </div>
                   )}
 
                   <div className="flex items-center gap-1 shrink-0">
-                    {editingId === item.idMenu ? (
+                    {editingId === item.idProductPrice ? (
                       <>
                         <Button size="icon" variant="ghost" onClick={saveEdit} className="text-green-600">
                           <Check className="size-4" />
@@ -137,7 +134,7 @@ export function MenuItemsModal({ isOpen, onClose, data, onAdd, onEdit, onDelete 
                         <Button size="icon" variant="ghost" onClick={() => startEdit(item)} className="opacity-0 group-hover:opacity-100">
                           <Edit className="size-4" />
                         </Button>
-                        <Button size="icon" variant="ghost" onClick={() => onDelete(item.idMenu)} className="opacity-0 group-hover:opacity-100 text-destructive">
+                        <Button size="icon" variant="ghost" onClick={() => onDelete(item.idProductPrice)} className="opacity-0 group-hover:opacity-100 text-destructive">
                           <Trash2 className="size-4" />
                         </Button>
                       </>

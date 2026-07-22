@@ -1,3 +1,3 @@
 export * from './types';
 export * from './services';
-export * from './components/UnitOfMeasuresModal/UnitOfMeasuresModal';
+export * from './components/UnitOfMeasuresModal';

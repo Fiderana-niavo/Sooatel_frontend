@@ -20,8 +20,6 @@ interface EmployeesTableProps {
   onEditPlanning: (employee: EmployeeListItem) => void;
   onTerminateContract: (employee: EmployeeListItem) => void;
   onRenewContract: (employee: EmployeeListItem) => void;
-  
-  // Filters & Sorting
   jobTitles: Array<{ idJobTitle: string; title: string }>;
   selectedJobTitleId: string;
   onJobTitleChange: (id: string) => void;
@@ -68,8 +66,6 @@ export function EmployeesTable({
 }: EmployeesTableProps) {
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -122,8 +118,7 @@ export function EmployeesTable({
         </Button>
       </div>
 
-      {/* Discreet Filters Row */}
-      <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
         <select
           value={selectedJobTitleId}
           onChange={(e) => onJobTitleChange(e.target.value)}

@@ -1,29 +1,39 @@
-import api from "@/services/api";
+import axios from "axios";
+import type { ApiResponse } from "@/types/api.type";
 import type { UnitOfMeasure, CreateUnitOfMeasureDto } from "../types";
 
+const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
+
 export class UnitOfMeasureService {
-  static async getAll(params?: { page?: number; limit?: number; search?: string }): Promise<UnitOfMeasure[]> {
-    const response = await api.get("/unit-of-measures", { params });
-    // Handle paginated response if backend returns it
-    return response.data.data?.data || response.data.data || [];
+  static async getAll(params?: Record<string, any>): Promise<UnitOfMeasure[]> {
+    const res = await axios.get<ApiResponse<{ records: UnitOfMeasure[] } | UnitOfMeasure[]>>(`${BASE}/unit-of-measures`, { params });
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    if (Array.isArray(res.data.payload)) {
+      return res.data.payload;
+    }
+    return (res.data.payload as { records: UnitOfMeasure[] }).records || [];
   }
 
   static async getById(id: string): Promise<UnitOfMeasure> {
-    const response = await api.get(`/unit-of-measures/${id}`);
-    return response.data.data;
+    const res = await axios.get<ApiResponse<UnitOfMeasure>>(`${BASE}/unit-of-measures/${id}`);
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    return res.data.payload;
   }
 
   static async create(data: CreateUnitOfMeasureDto): Promise<UnitOfMeasure> {
-    const response = await api.post("/unit-of-measures", data);
-    return response.data.data;
+    const res = await axios.post<ApiResponse<UnitOfMeasure>>(`${BASE}/unit-of-measures`, data);
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    return res.data.payload;
   }
 
   static async update(id: string, data: Partial<CreateUnitOfMeasureDto>): Promise<UnitOfMeasure> {
-    const response = await api.put(`/unit-of-measures/${id}`, data);
-    return response.data.data;
+    const res = await axios.put<ApiResponse<UnitOfMeasure>>(`${BASE}/unit-of-measures/${id}`, data);
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    return res.data.payload;
   }
 
   static async delete(id: string): Promise<void> {
-    await api.delete(`/unit-of-measures/${id}`);
+    const res = await axios.delete<ApiResponse<void>>(`${BASE}/unit-of-measures/${id}`);
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
   }
 }

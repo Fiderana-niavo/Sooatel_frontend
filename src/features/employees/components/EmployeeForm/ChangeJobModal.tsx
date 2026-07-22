@@ -38,7 +38,6 @@ export function ChangeJobModal({
     if (isOpen) {
       setIdJobTitle(currentJobData?.idJobTitle || "");
       setIdEmploymentType(currentJobData?.idEmploymentType || "");
-      // Usually, when changing job, you'd set assignmentDate to today, but we leave it empty or pre-fill
       setAssignmentDate("");
       setEndDate("");
       setHasFixedSchedule(currentJobData?.hasFixedSchedule || false);

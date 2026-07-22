@@ -93,8 +93,6 @@ export function EmployeesPage({
       if (selectedEmployeeDetail) setSelectedEmployeeDetail(null);
     }
   }, [searchParams, selectedEmployeeDetail, setSearchParams]);
-
-  // Reference data from API
   const [jobTitles, setJobTitles] = useState<JobTitle[]>([]);
   const [employmentTypes, setEmploymentTypes] = useState<EmploymentType[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -106,8 +104,6 @@ export function EmployeesPage({
   const [rolePermissionsMapping, setRolePermissionsMapping] = useState<
     Record<string, string[]>
   >({});
-
-  // List state (server-side)
   const [employeesList, setEmployeesList] = useState<EmployeeListItem[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -140,8 +136,6 @@ export function EmployeesPage({
   const [selectedStatus, setSelectedStatus] = useState<"active" | "former">(
     "active",
   );
-
-  // Load reference data once
   useEffect(() => {
     Promise.all([
       JobTitleService.getAll(),
@@ -156,7 +150,6 @@ export function EmployeesPage({
         setTeams(tm);
         setShiftTypes(st);
         setAvailableRoles(roles);
-        // Build rolePermissionsMapping
         const mapping: Record<string, string[]> = {};
         roles.forEach((r) => {
           mapping[r.idRole] = (r.permissions || []).map((p) => p.idPermission);
@@ -164,8 +157,6 @@ export function EmployeesPage({
         setRolePermissionsMapping(mapping);
       })
       .catch(console.error);
-
-    // Load permissions for the form
     PermissionService.getAll({ limit: 1000 })
       .then((res) => {
         const perms: Permission[] = res.records.map((p: any) => ({
@@ -178,8 +169,6 @@ export function EmployeesPage({
       })
       .catch(console.error);
   }, []);
-
-  // Load employees list (server-side search/filter/sort/pagination)
   const loadEmployees = useCallback(async () => {
     try {
       const params = {
@@ -240,8 +229,6 @@ export function EmployeesPage({
         break;
     }
   }, [view, selectedEmployeeDetail]);
-
-  // Planning State
   const [planningEmployee, setPlanningEmployee] =
     useState<EmployeeDetail | null>(null);
 
@@ -257,8 +244,6 @@ export function EmployeesPage({
       );
     }
   };
-
-  // Key Generation State
   const [generatedKey, setGeneratedKey] = useState<{
     token: string;
     expiresAt: string;
@@ -279,8 +264,6 @@ export function EmployeesPage({
       );
     }
   };
-
-  // Change Job State
   const [changeJobEmployee, setChangeJobEmployee] =
     useState<EmployeeListItem | null>(null);
   const [isRenewal, setIsRenewal] = useState(false);
@@ -293,8 +276,6 @@ export function EmployeesPage({
   const openChangeJobModal = (item: EmployeeListItem) => {
     setIsRenewal(false);
     setChangeJobEmployee(item);
-
-    // Try to get job title ID from item
     const jt = item.jobTitle
       ? jobTitles.find((j) => j.title === item.jobTitle)
       : undefined;
@@ -434,8 +415,6 @@ export function EmployeesPage({
       );
     }
   };
-
-  // Terminate Contract State
   const [terminateContractEmployee, setTerminateContractEmployee] =
     useState<EmployeeListItem | null>(null);
   const [contractEndDate, setContractEndDate] = useState("");
@@ -626,8 +605,6 @@ export function EmployeesPage({
       } else if (employeeId) {
         await EmployeeService.update(employeeId, dto);
       }
-
-      // Save planning data if we have an employeeId and planningData is provided
       if (employeeId && planningData) {
         if (planningData.teamId !== undefined) {
           await EmployeeService.setTeam(employeeId, planningData.teamId);
@@ -650,7 +627,6 @@ export function EmployeesPage({
 
       setView("list");
       setSelectedEmployeeDetail(null);
-      // Let the useEffect handle loadEmployees to avoid duplicate requests
     } catch (err: any) {
       console.error(err);
       showSnackbar(
@@ -1225,8 +1201,7 @@ export function EmployeesPage({
         </div>
       )}
 
-      {/* Change Job Dialog */}
-      <Dialog
+            <Dialog
         open={!!changeJobEmployee}
         onOpenChange={(open) => !open && setChangeJobEmployee(null)}
       >
@@ -1244,8 +1219,7 @@ export function EmployeesPage({
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            {/* Job Title */}
-            <div className="space-y-1.5">
+                        <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Intitulé du poste
               </label>
@@ -1263,8 +1237,7 @@ export function EmployeesPage({
               </select>
             </div>
 
-            {/* Employment Type */}
-            <div className="space-y-1.5">
+                        <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Type de contrat
               </label>
@@ -1281,8 +1254,7 @@ export function EmployeesPage({
               </select>
             </div>
 
-            {/* Assignment Date */}
-            <div className="space-y-1.5">
+                        <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Date d'affectation
               </label>
@@ -1293,8 +1265,7 @@ export function EmployeesPage({
               />
             </div>
 
-            {/* End Date */}
-            <div className="space-y-1.5">
+                        <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Date de fin (Optionnelle)
               </label>
@@ -1305,8 +1276,7 @@ export function EmployeesPage({
               />
             </div>
 
-            {/* Fixed Schedule Switch */}
-            <div className="flex items-center justify-between bg-muted/10 border border-border p-3.5 rounded-xl shadow-sm">
+                        <div className="flex items-center justify-between bg-muted/10 border border-border p-3.5 rounded-xl shadow-sm">
               <div>
                 <span className="text-sm font-semibold block text-foreground">
                   Horaires de travail fixes
@@ -1359,8 +1329,7 @@ export function EmployeesPage({
         onSave={savePlanning}
       />
 
-      {/* Terminate Contract Dialog */}
-      <Dialog
+            <Dialog
         open={!!terminateContractEmployee}
         onOpenChange={(open) => !open && setTerminateContractEmployee(null)}
       >
@@ -1410,8 +1379,7 @@ export function EmployeesPage({
         </DialogContent>
       </Dialog>
 
-      {/* Generated Key Modal */}
-      <Dialog
+            <Dialog
         open={!!generatedKey}
         onOpenChange={(open) => !open && setGeneratedKey(null)}
       >

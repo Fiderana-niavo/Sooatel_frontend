@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Badge } from "@/components/ui/Badge/badge";
 import { X } from "lucide-react";
 
@@ -110,7 +110,7 @@ export function MultiSelectCombobox<T>({
           })}
         </div>
       )}
-      
+
       {isOpen && filteredOptions.length === 0 && searchTerm && (
         <div className="absolute z-10 w-full mt-1 bg-card border rounded-md shadow-lg p-4 text-center text-sm text-muted-foreground">
           {emptyMessage}

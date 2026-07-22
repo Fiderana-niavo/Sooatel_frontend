@@ -1,10 +1,10 @@
 export interface RoomType {
   idRoomType: string;
-  label: string; Description?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  label: string;
+  description?: string;
 }
 
 export interface CreateRoomTypeDto {
-  label: string; Description?: string;
+  label: string;
+  description?: string;
 }

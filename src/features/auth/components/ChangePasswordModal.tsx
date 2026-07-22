@@ -60,8 +60,7 @@ export function ChangePasswordModal({ isOpen, isLoading, onClose, onSubmit }: Ch
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Mot de passe actuel */}
-          <div className="space-y-2">
+                    <div className="space-y-2">
             <label className="text-sm font-medium text-foreground/80">Mot de passe actuel</label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors z-10">
@@ -77,8 +76,7 @@ export function ChangePasswordModal({ isOpen, isLoading, onClose, onSubmit }: Ch
             </div>
           </div>
 
-          {/* Nouveau mot de passe */}
-          <div className="space-y-2">
+                    <div className="space-y-2">
             <label className="text-sm font-medium text-foreground/80">Nouveau mot de passe</label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors z-10">
@@ -94,8 +92,7 @@ export function ChangePasswordModal({ isOpen, isLoading, onClose, onSubmit }: Ch
             </div>
           </div>
 
-          {/* Confirmer le nouveau mot de passe */}
-          <div className="space-y-2">
+                    <div className="space-y-2">
             <label className="text-sm font-medium text-foreground/80">Confirmer le nouveau mot de passe</label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors z-10">

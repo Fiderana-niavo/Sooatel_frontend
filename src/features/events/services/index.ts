@@ -1,29 +1,39 @@
-import api from "@/services/api";
+import axios from "axios";
+import type { ApiResponse } from "@/types/api.type";
 import type { Event, CreateEventDto } from "../types";
 
+const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
+
 export class EventService {
-  static async getAll(params?: { page?: number; limit?: number; search?: string }): Promise<Event[]> {
-    const response = await api.get("/events", { params });
-    // Handle paginated response if backend returns it
-    return response.data.data?.data || response.data.data || [];
+  static async getAll(params?: Record<string, any>): Promise<Event[]> {
+    const res = await axios.get<ApiResponse<{ records: Event[] } | Event[]>>(`${BASE}/events`, { params });
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    if (Array.isArray(res.data.payload)) {
+      return res.data.payload;
+    }
+    return (res.data.payload as { records: Event[] }).records || [];
   }
 
   static async getById(id: string): Promise<Event> {
-    const response = await api.get(`/events/${id}`);
-    return response.data.data;
+    const res = await axios.get<ApiResponse<Event>>(`${BASE}/events/${id}`);
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    return res.data.payload;
   }
 
   static async create(data: CreateEventDto): Promise<Event> {
-    const response = await api.post("/events", data);
-    return response.data.data;
+    const res = await axios.post<ApiResponse<Event>>(`${BASE}/events`, data);
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    return res.data.payload;
   }
 
   static async update(id: string, data: Partial<CreateEventDto>): Promise<Event> {
-    const response = await api.put(`/events/${id}`, data);
-    return response.data.data;
+    const res = await axios.put<ApiResponse<Event>>(`${BASE}/events/${id}`, data);
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    return res.data.payload;
   }
 
   static async delete(id: string): Promise<void> {
-    await api.delete(`/events/${id}`);
+    const res = await axios.delete<ApiResponse<void>>(`${BASE}/events/${id}`);
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
   }
 }

@@ -83,8 +83,7 @@ export function SettingsPage() {
     <div className="w-full max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        {/* Card: Gestion des Postes */}
-        <div
+                <div
           onClick={() => setIsJobTitlesModalOpen(true)}
           className="bg-card border border-border/50 rounded-[2rem] p-6 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] hover:border-primary/30 transition-all cursor-pointer group"
         >
@@ -97,8 +96,7 @@ export function SettingsPage() {
           </p>
         </div>
 
-        {/* Card: Structure de l'établissement (Placeholder) */}
-        <div className="bg-card border border-border/50 rounded-[2rem] p-6 opacity-60 grayscale cursor-not-allowed">
+                <div className="bg-card border border-border/50 rounded-[2rem] p-6 opacity-60 grayscale cursor-not-allowed">
           <div className="p-3 bg-secondary/10 text-secondary rounded-xl w-fit mb-4">
             <Building className="size-6" />
           </div>
@@ -108,8 +106,7 @@ export function SettingsPage() {
           </p>
         </div>
 
-        {/* Card: Types de contrats (Placeholder) */}
-        <div className="bg-card border border-border/50 rounded-[2rem] p-6 opacity-60 grayscale cursor-not-allowed">
+                <div className="bg-card border border-border/50 rounded-[2rem] p-6 opacity-60 grayscale cursor-not-allowed">
           <div className="p-3 bg-blue-500/10 text-blue-500 rounded-xl w-fit mb-4">
             <Clock className="size-6" />
           </div>

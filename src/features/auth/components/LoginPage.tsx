@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { ShieldCheck, Copy, Check } from "lucide-react";
 import sooatelLogo from "@/assets/Sooatel.jpeg";
-import { LoginForm } from "./LoginForm";
-import { ForgotPasswordForm } from "./ForgotPasswordForm";
-import { ResetPasswordForm } from "./ResetPasswordForm";
-import { AuthService } from "../../services/auth.service";
+import { LoginForm } from "./LoginPage/LoginForm";
+import { ForgotPasswordForm } from "./LoginPage/ForgotPasswordForm";
+import { ResetPasswordForm } from "./LoginPage/ResetPasswordForm";
+import { AuthService } from "../services/auth.service";
 import { useAppStore } from "@/store/app.store";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
@@ -108,8 +108,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     if (urlKey && urlUsername) {
       setResetContext({ key: urlKey, username: urlUsername });
       setView("resetPassword");
-
-      // Clean up the URL to prevent the state from sticking
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
@@ -226,20 +224,15 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   return (
     <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-slate-50">
 
-      {/* Dynamic Background Elements */}
-      <div className="absolute inset-0 w-full h-full">
-        {/* Blob 1 */}
-        <div className={`absolute top-0 left-1/4 w-96 h-96 rounded-full blur-[120px] mix-blend-multiply opacity-20 animate-in fade-in duration-1000 bg-[#223c56]`} />
-        {/* Blob 2 */}
-        <div className={`absolute bottom-0 right-1/4 w-[30rem] h-[30rem] rounded-full blur-[140px] mix-blend-multiply opacity-25 animate-in fade-in duration-1000 delay-300 bg-[#e4a192]`} />
-        {/* Subtle grid pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] bg-[size:24px_24px]" />
+            <div className="absolute inset-0 w-full h-full">
+                <div className={`absolute top-0 left-1/4 w-96 h-96 rounded-full blur-[120px] mix-blend-multiply opacity-20 animate-in fade-in duration-1000 bg-[#223c56]`} />
+                <div className={`absolute bottom-0 right-1/4 w-[30rem] h-[30rem] rounded-full blur-[140px] mix-blend-multiply opacity-25 animate-in fade-in duration-1000 delay-300 bg-[#e4a192]`} />
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] bg-[size:24px_24px]" />
       </div>
 
       <div className="relative z-10 w-full max-w-[1000px] mx-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-white border border-slate-200 rounded-[2.5rem] p-4 md:p-6 shadow-2xl shadow-[#223c56]/10">
 
-        {/* Left Side: Branding / Intro */}
-        <div className="hidden md:flex flex-col justify-center items-start space-y-8 p-8 h-full rounded-[2rem] bg-[#223c56] relative overflow-hidden shadow-inner">
+                <div className="hidden md:flex flex-col justify-center items-start space-y-8 p-8 h-full rounded-[2rem] bg-[#223c56] relative overflow-hidden shadow-inner">
           <div className={`absolute top-0 right-0 w-64 h-64 blur-[80px] bg-white/10 rounded-full`} />
 
           <div className="space-y-4 relative z-10">
@@ -261,8 +254,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         </div>
 
         <div className="p-6 md:p-8 flex flex-col justify-center relative min-h-[400px]">
-          {/* Top Right Logo */}
-          <div className="absolute top-2 right-2 md:top-2 md:right-2 z-20 group opacity-90 hover:opacity-100 transition-opacity">
+                    <div className="absolute top-2 right-2 md:top-2 md:right-2 z-20 group opacity-90 hover:opacity-100 transition-opacity">
             <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white p-1 shadow-sm border border-slate-100 transition-transform duration-300 hover:-translate-y-0.5">
               <div className="w-full h-full rounded-full overflow-hidden bg-[#223c56]">
                 <img src={sooatelLogo} alt="Sooatel Logo" className="w-full h-full object-cover" />
@@ -283,7 +275,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 onUseKey={(key) => {
                   setManualKey(null);
                   setView("forgotPassword");
-                  // Pre-fill handled by user switching to key tab
                   void key;
                 }}
                 onBack={() => {

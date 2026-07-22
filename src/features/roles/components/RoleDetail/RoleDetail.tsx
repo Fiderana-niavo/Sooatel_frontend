@@ -25,8 +25,6 @@ export function RoleDetail({
   const [description, setDescription] = useState("");
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
-
-  // Sync state when role changes
   useEffect(() => {
     if (isCreating) {
       setLabel("");

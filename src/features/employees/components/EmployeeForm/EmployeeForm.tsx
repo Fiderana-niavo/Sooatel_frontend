@@ -107,8 +107,6 @@ export function EmployeeForm({
 
   const handleSaveJobChange = (jobData: any) => {
     setFormData(prev => ({ ...prev, ...jobData }));
-    // Si besoin, on pourrait aussi déclencher une sauvegarde API directe ici 
-    // ou attendre le onSave principal. Pour l'instant on met à jour le form local.
   };
 
   const handleInternshipChange = (field: string, value: string) => {

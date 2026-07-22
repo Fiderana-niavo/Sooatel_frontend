@@ -1,10 +1,10 @@
 export interface MenuCategory {
   idCategory: string;
-  label: string; description?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  label: string;
+  description?: string;
 }
 
 export interface CreateMenuCategoryDto {
-  label: string; description?: string;
+  label: string;
+  description?: string;
 }
