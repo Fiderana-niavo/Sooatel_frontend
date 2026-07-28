@@ -91,7 +91,7 @@ export function UnitOfMeasuresModal({ isOpen, onClose, data, onAdd, onEdit, onDe
           </DialogHeader>
         </div>
 
-        <div className="p-6 md:p-8 space-y-6">
+        <div className="p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar max-h-[calc(95vh-150px)]">
           <div className="bg-muted/10 p-5 rounded-2xl border border-border/50">
             <h4 className="text-sm font-semibold mb-4 text-foreground">Nouvelle unité</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">

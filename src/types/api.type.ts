@@ -12,3 +12,8 @@ export interface PaginatedResponse<T> {
   limit: number;
   totalPages: number;
 }
+
+export interface SelectOptionDto {
+  value: string | number;
+  label: string;
+}

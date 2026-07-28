@@ -42,7 +42,7 @@ function AccordionMenuItem({ group, activeTab, setActiveTab }: { group: typeof N
   const isCollapsed = state === "collapsed";
   const hasPermission = useAppStore((s) => s.hasPermission);
 
-  const visibleItems = group.items.filter((item) => hasPermission(item.permission));
+  const visibleItems = group.items.filter((item) => !item.permission || hasPermission(item.permission));
   if (visibleItems.length === 0) return null;
 
   return (
@@ -216,7 +216,13 @@ export function AppSidebar({ appMode, setAppMode, activeTab, setActiveTab }: App
           <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"
-              onClick={() => canSwitchMode && setAppMode(appMode === "utopia" ? "sooatel" : "utopia")}
+              onClick={() => {
+                if (canSwitchMode) {
+                  const nextMode = appMode === "utopia" ? "sooatel" : "utopia";
+                  setAppMode(nextMode);
+                  setActiveTab(nextMode === "utopia" ? "Tableau de bord" : "Chambres & Évènements");
+                }
+              }}
               className={`bg-primary/10 text-primary transition-colors ${canSwitchMode ? "hover:bg-primary/20 cursor-pointer" : "cursor-default"}`}
               tooltip={canSwitchMode ? `Basculer vers ${appMode === "utopia" ? "Hôtel Sooatel" : "Restaurant Utopia"}` : undefined}
             >

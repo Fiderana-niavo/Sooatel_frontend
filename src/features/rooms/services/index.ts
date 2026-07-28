@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { ApiResponse } from "@/types/api.type";
+import type { ApiResponse, SelectOptionDto } from "@/types/api.type";
 import type { Room, CreateRoomDto } from "../types";
 
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
@@ -12,6 +12,12 @@ export class RoomService {
       return res.data.payload;
     }
     return (res.data.payload as { records: Room[] }).records || [];
+  }
+
+  static async getSelectOptions(): Promise<SelectOptionDto[]> {
+    const res = await axios.get<ApiResponse<SelectOptionDto[]>>(`${BASE}/rooms/select`);
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    return res.data.payload;
   }
 
   static async getById(id: string): Promise<Room> {

@@ -21,14 +21,12 @@ interface MenuItemsModalProps {
 }
 
 export function MenuItemsModal({ isOpen, onClose, data, items, categories, selectedCategory, onCategoryChange, onAdd, onEdit, onDelete }: MenuItemsModalProps) {
-  const [newRef, setNewRef] = useState("");
   const [newIdItem, setNewIdItem] = useState("");
   const [newSalePrice, setNewSalePrice] = useState("");
   const [newRecipeCost, setNewRecipeCost] = useState("");
   const [newIdCategory, setNewIdCategory] = useState("");
 
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editRef, setEditRef] = useState("");
   const [editIdItem, setEditIdItem] = useState("");
   const [editSalePrice, setEditSalePrice] = useState("");
   const [editRecipeCost, setEditRecipeCost] = useState("");
@@ -37,15 +35,13 @@ export function MenuItemsModal({ isOpen, onClose, data, items, categories, selec
   const [search, setSearch] = useState("");
 
   const handleAdd = () => {
-    if (newRef.trim() && newIdItem && newSalePrice && newIdCategory) {
+    if (newIdItem && newSalePrice && newIdCategory) {
       onAdd({
-        ref: newRef.trim(),
         idItem: newIdItem,
         salePrice: parseFloat(newSalePrice),
         recipeCost: newRecipeCost ? parseFloat(newRecipeCost) : undefined,
         idCategory: newIdCategory,
       } as any);
-      setNewRef("");
       setNewIdItem("");
       setNewSalePrice("");
       setNewRecipeCost("");
@@ -55,7 +51,6 @@ export function MenuItemsModal({ isOpen, onClose, data, items, categories, selec
 
   const startEdit = (item: any) => {
     setEditingId(item.idMenu);
-    setEditRef(item.ref || "");
     setEditIdItem(item.idItem || "");
     setEditSalePrice(item.salePrice?.toString() || "");
     setEditRecipeCost(item.recipeCost?.toString() || "");
@@ -67,9 +62,8 @@ export function MenuItemsModal({ isOpen, onClose, data, items, categories, selec
   };
 
   const saveEdit = () => {
-    if (editRef.trim() && editIdItem && editSalePrice && editIdCategory && editingId) {
+    if (editIdItem && editSalePrice && editIdCategory && editingId) {
       onEdit(editingId, {
-        ref: editRef.trim(),
         idItem: editIdItem,
         salePrice: parseFloat(editSalePrice),
         recipeCost: editRecipeCost ? parseFloat(editRecipeCost) : undefined,
@@ -107,14 +101,14 @@ export function MenuItemsModal({ isOpen, onClose, data, items, categories, selec
               <div className="flex items-center gap-3">
                 <div className="relative hidden md:block">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                  <Input placeholder="Rechercher..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 w-64 bg-background" />
+                  <Input placeholder="Rechercher par référence..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 w-64 bg-background" />
                 </div>
               </div>
             </div>
           </DialogHeader>
         </div>
 
-        <div className="p-6 md:p-8 space-y-6">
+        <div className="p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar max-h-[calc(95vh-150px)]">
           <div className="flex flex-col md:flex-row items-start md:items-end gap-3 bg-muted/10 p-4 rounded-2xl border border-border/50">
             <div className="p-2 bg-primary/10 text-primary rounded-lg shrink-0 hidden md:block">
               <Filter className="size-4" />
@@ -136,11 +130,7 @@ export function MenuItemsModal({ isOpen, onClose, data, items, categories, selec
 
           <div className="bg-muted/10 p-5 rounded-2xl border border-border/50">
             <h4 className="text-sm font-semibold mb-4 text-foreground">Nouveau Plat</h4>
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase">Réf / Nom</label>
-                <Input placeholder="Ex: Burger..." value={newRef} onChange={(e) => setNewRef(e.target.value)} className="bg-background" />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
               <div className="space-y-1.5 md:col-span-2">
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Article (Stock lié)</label>
                 <select value={newIdItem} onChange={(e) => setNewIdItem(e.target.value)} className="w-full bg-background border border-input rounded-xl px-3 h-10 text-sm">
@@ -159,7 +149,7 @@ export function MenuItemsModal({ isOpen, onClose, data, items, categories, selec
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Prix (Ar)</label>
                 <Input type="number" placeholder="0" value={newSalePrice} onChange={(e) => setNewSalePrice(e.target.value)} className="bg-background" />
               </div>
-              <Button onClick={handleAdd} disabled={!newRef.trim() || !newIdItem || !newSalePrice || !newIdCategory} className="gap-2 rounded-xl h-10 w-full">
+              <Button onClick={handleAdd} disabled={!newIdItem || !newSalePrice || !newIdCategory} className="gap-2 rounded-xl h-10 w-full">
                 <Plus className="size-4" /> Ajouter
               </Button>
             </div>
@@ -174,8 +164,7 @@ export function MenuItemsModal({ isOpen, onClose, data, items, categories, selec
               filteredData.map((item: any) => (
                 <div key={item.idMenu} className="p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors group">
                   {editingId === item.idMenu ? (
-                    <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-center">
-                      <Input value={editRef} onChange={(e) => setEditRef(e.target.value)} className="h-9" placeholder="Réf" />
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
                       <select value={editIdItem} onChange={(e) => setEditIdItem(e.target.value)} className="md:col-span-2 w-full bg-background border border-input rounded-md px-3 h-9 text-sm">
                         <option value="">Article...</option>
                         {items.map((i) => <option key={i.idItem} value={i.idItem}>{i.label}</option>)}

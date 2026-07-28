@@ -32,7 +32,7 @@ export function ProtectedRoute({ permission, children }: ProtectedRouteProps) {
           </p>
         </div>
         <span className="text-xs font-mono text-muted-foreground/60 bg-muted px-3 py-1 rounded-full">
-          403 — Forbidden · <code>{permission}</code>
+          403 — Accès non autorisé
         </span>
       </div>
     );

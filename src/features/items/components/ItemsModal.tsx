@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
-import { Box, Edit, Trash2, Plus, X, Check, Search, Eye, MoreVertical, PowerOff, Power } from "lucide-react";
+import { Package, Edit, Trash2, Plus, X, Check, Search, Eye, MoreVertical, PowerOff, Power } from "lucide-react";
 import type { Item } from "../types";
 import type { ItemType } from "../../item-types/types";
 import type { UnitOfMeasure } from "../../unit-of-measures/types";
@@ -19,7 +19,6 @@ interface ItemsModalProps {
 }
 
 export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, onAdd, onEdit, onDelete }: ItemsModalProps) {
-  const [newRef, setNewRef] = useState("");
   const [newLabel, setNewLabel] = useState("");
   const [newIdProductType, setNewIdProductType] = useState("");
   const [newIdUnit, setNewIdUnit] = useState("");
@@ -33,7 +32,6 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
-  const [editRef, setEditRef] = useState("");
   const [editLabel, setEditLabel] = useState("");
   const [editIdProductType, setEditIdProductType] = useState("");
   const [editIdUnit, setEditIdUnit] = useState("");
@@ -46,20 +44,18 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
   const [search, setSearch] = useState("");
 
   const handleAdd = () => {
-    if (newRef.trim() && newLabel.trim() && newIdProductType && newIdUnit && newMinStock) {
+    if (newLabel.trim() && newIdProductType && newIdUnit) {
       onAdd({
-        ref: newRef.trim(),
         label: newLabel.trim(),
         idProductType: newIdProductType,
         idUnit: newIdUnit,
-        minimumStockLevel: parseFloat(newMinStock),
+        minimumStockLevel: newMinStock ? parseFloat(newMinStock) : 0,
         reorderQuantity: newReorderQuantity ? parseFloat(newReorderQuantity) : null,
         isPerishable: newIsPerishable,
         isProduced: newIsProduced,
         status: 0,
         description: newDescription.trim() || null,
       } as any);
-      setNewRef("");
       setNewLabel("");
       setNewIdProductType("");
       setNewIdUnit("");
@@ -73,7 +69,6 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
 
   const startEdit = (item: any) => {
     setEditingId(item.idItem);
-    setEditRef(item.ref || "");
     setEditLabel(item.label || "");
     setEditIdProductType(item.idProductType || "");
     setEditIdUnit(item.idUnit || "");
@@ -89,13 +84,12 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
   };
 
   const saveEdit = () => {
-    if (editRef.trim() && editLabel.trim() && editingId && editMinStock) {
+    if (editLabel.trim() && editingId) {
       onEdit(editingId, {
-        ref: editRef.trim(),
         label: editLabel.trim(),
         idProductType: editIdProductType,
         idUnit: editIdUnit,
-        minimumStockLevel: parseFloat(editMinStock),
+        minimumStockLevel: editMinStock ? parseFloat(editMinStock) : 0,
         reorderQuantity: editReorderQuantity ? parseFloat(editReorderQuantity) : null,
         isPerishable: editIsPerishable,
         isProduced: editIsProduced,
@@ -111,37 +105,30 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
     } as any);
   };
 
-  const filteredData = data.filter((r) =>
-    r.label?.toLowerCase().includes(search.toLowerCase()) || r.ref?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredData = data.filter((r) => r.label?.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
-      <DialogContent className="max-w-5xl rounded-[2rem] p-0 overflow-hidden bg-card border shadow-2xl max-h-[95vh]">
-        <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b shrink-0">
+      <DialogContent className="max-w-5xl rounded-[2rem] p-0 overflow-hidden bg-card border shadow-2xl">
+        <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-primary/20 text-primary rounded-xl">
-                  <Box className="size-6" />
+                  <Package className="size-6" />
                 </div>
                 <div>
                   <DialogTitle className="text-2xl font-bold tracking-tight text-secondary">
-                    Articles & Stock
+                    Articles & Inventaire
                   </DialogTitle>
                   <DialogDescription className="text-muted-foreground mt-1 text-sm">
-                    Gérez vos articles, ingrédients et produits.
+                    Gérez tous vos articles de stock (ingrédients, boissons...).
                   </DialogDescription>
                 </div>
               </div>
               <div className="relative hidden md:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <Input
-                  placeholder="Rechercher (Réf / Nom)..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 w-64 bg-background"
-                />
+                <Input placeholder="Rechercher par référence..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 w-64 bg-background" />
               </div>
             </div>
           </DialogHeader>
@@ -151,10 +138,6 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
           <div className="bg-muted/10 p-5 rounded-2xl border border-border/50 shrink-0">
             <h4 className="text-sm font-semibold mb-4 text-foreground">Ajouter un Article</h4>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase">Réf</label>
-                <Input placeholder="Réf..." value={newRef} onChange={(e) => setNewRef(e.target.value)} className="bg-background" />
-              </div>
               <div className="space-y-1.5 md:col-span-2">
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Nom (Label)</label>
                 <Input placeholder="Ex: Farine de blé..." value={newLabel} onChange={(e) => setNewLabel(e.target.value)} className="bg-background" />
@@ -166,7 +149,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
                   {itemTypes.map(it => <option key={it.idProductType} value={it.idProductType}>{it.label}</option>)}
                 </select>
               </div>
-              
+
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Unité de Mesure</label>
                 <select value={newIdUnit} onChange={(e) => setNewIdUnit(e.target.value)} className="w-full bg-background border border-input rounded-xl px-3 h-10 text-sm">
@@ -176,7 +159,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Stock Min.</label>
-                <Input type="number" placeholder="0" value={newMinStock} onChange={(e) => setNewMinStock(e.target.value)} className="bg-background" />
+                <Input type="number" placeholder="ex : 5" value={newMinStock} onChange={(e) => setNewMinStock(e.target.value)} className="bg-background" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Re-commande</label>
@@ -200,7 +183,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
                 </div>
               </div>
 
-              <Button onClick={handleAdd} disabled={!newRef.trim() || !newLabel.trim() || !newIdProductType || !newIdUnit || !newMinStock} className="gap-2 rounded-xl h-10 w-full md:col-span-3">
+              <Button onClick={handleAdd} disabled={!newLabel.trim() || !newIdProductType || !newIdUnit} className="gap-2 rounded-xl h-10 w-full md:col-span-3">
                 <Plus className="size-4" /> Ajouter
               </Button>
             </div>
@@ -216,8 +199,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
                 <div key={item.idItem} className="p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors group">
                   {editingId === item.idItem ? (
                     <div className="space-y-3">
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
-                        <Input value={editRef} onChange={(e) => setEditRef(e.target.value)} className="h-9" placeholder="Réf" />
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
                         <Input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} className="h-9" placeholder="Nom" />
                         <select value={editIdProductType} onChange={(e) => setEditIdProductType(e.target.value)} className="w-full bg-background border border-input rounded-md px-3 h-9 text-sm">
                           <option value="">Type...</option>
@@ -265,30 +247,30 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
                           <Button size="icon" variant="ghost" onClick={() => setMenuOpenId(menuOpenId === item.idItem ? null : item.idItem)}>
                             <MoreVertical className="size-4" />
                           </Button>
-                          
+
                           {menuOpenId === item.idItem && (
                             <>
                               <div className="fixed inset-0 z-40" onClick={() => setMenuOpenId(null)}></div>
                               <div className="absolute right-0 bottom-full mb-1 w-48 bg-card border border-border/50 shadow-xl rounded-xl p-1 z-50 animate-in zoom-in-95 origin-bottom-right">
                                 <button onClick={() => { setViewingId(viewingId === item.idItem ? null : item.idItem); setMenuOpenId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 rounded-lg text-left">
-                                  <Eye className="size-4 text-muted-foreground"/> {viewingId === item.idItem ? "Masquer détails" : "Détails"}
+                                  <Eye className="size-4 text-muted-foreground" /> {viewingId === item.idItem ? "Masquer détails" : "Détails"}
                                 </button>
                                 <button onClick={() => { startEdit(item); setMenuOpenId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 rounded-lg text-left">
-                                  <Edit className="size-4 text-blue-500"/> Modifier
+                                  <Edit className="size-4 text-blue-500" /> Modifier
                                 </button>
                                 <button onClick={() => { handleToggleStatus(item); setMenuOpenId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 rounded-lg text-left">
-                                  {item.status === 0 ? <><PowerOff className="size-4 text-orange-500"/> Rendre inactif</> : <><Power className="size-4 text-emerald-500"/> Rendre actif</>}
+                                  {item.status === 0 ? <><PowerOff className="size-4 text-orange-500" /> Rendre inactif</> : <><Power className="size-4 text-emerald-500" /> Rendre actif</>}
                                 </button>
                                 <div className="h-px bg-border/50 my-1"></div>
                                 <button onClick={() => { onDelete(item.idItem); setMenuOpenId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-destructive/10 text-destructive rounded-lg text-left">
-                                  <Trash2 className="size-4"/> Supprimer
+                                  <Trash2 className="size-4" /> Supprimer
                                 </button>
                               </div>
                             </>
                           )}
                         </div>
                       </div>
-                      
+
                       {viewingId === item.idItem && (
                         <div className="mt-3 pt-3 border-t border-border/50 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-muted/5 p-4 rounded-xl animate-in fade-in zoom-in-95 duration-200">
                           <div><span className="text-muted-foreground block text-xs uppercase mb-1">Stock Actuel</span> <span className="font-semibold text-base">{item.quantity ?? 0}</span></div>
