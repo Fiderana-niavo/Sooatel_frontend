@@ -14,6 +14,7 @@ import { useAppStore } from "@/store/app.store";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog/dialog";
 
 import type { SaleRecord } from "./types";
 
@@ -33,7 +34,9 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
     chargeToRoom: false,
     idRoom: "",
     items: [{ idMenu: "", quantity: 1, unitPrice: 0 }],
-    payment: undefined
+    payment: undefined,
+    comment: "",
+    deliveryDate: ""
   });
 
   useEffect(() => {
@@ -51,6 +54,7 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
   const [error, setError] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({ message: "", type: "info", isOpen: false });
   const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; title: string; desc: string; onConfirm: () => void }>({ isOpen: false, title: "", desc: "", onConfirm: () => { } });
+  const [overpaymentDialog, setOverpaymentDialog] = useState<{ isOpen: boolean; balanceDue: number }>({ isOpen: false, balanceDue: 0 });
 
   const [recloseDialog, setRecloseDialog] = useState<{ isOpen: boolean; saleId: string }>({ isOpen: false, saleId: "" });
   const [locationType, setLocationType] = useState<"restaurant" | "room">("restaurant");
@@ -125,6 +129,11 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
       return;
     }
 
+    if (saleToEdit && balanceDue < 0) {
+      setOverpaymentDialog({ isOpen: true, balanceDue: Math.abs(balanceDue) });
+      return;
+    }
+
     if (balanceDue > 0 && !formData.chargeToRoom) {
       setConfirmDialog({
         isOpen: true,
@@ -143,12 +152,13 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
 
 
 
-  const executeSubmit = async () => {
+  const executeSubmit = async (overpaymentAction?: "REFUND" | "ADJUST") => {
     setLoading(true);
     try {
       if (saleToEdit) {
         const payload = {
           ...formData,
+          overpaymentAction
         };
         await SaleService.updateSale(saleToEdit.idSale, payload);
         showSnackbar("Vente modifiée avec succès !", "success");
@@ -171,7 +181,9 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
         chargeToRoom: false,
         idRoom: "",
         items: [{ idMenu: "", quantity: 1, unitPrice: 0 }],
-        payment: undefined
+        payment: undefined,
+        comment: "",
+        deliveryDate: ""
       });
     } catch (err: any) {
       const msg = err.response?.data?.error || err.response?.data?.message || "Une erreur est survenue lors de l'enregistrement de la vente.";
@@ -224,6 +236,8 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
             salers={salers}
             rooms={rooms}
             locationType={locationType}
+            comment={formData.comment || ""}
+            deliveryDate={formData.deliveryDate || ""}
             onLocationChange={setLocationType}
             onChange={handleDetailsChange}
           />
@@ -264,6 +278,27 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
         description={confirmDialog.desc}
         onConfirm={confirmDialog.onConfirm}
       />
+
+      <Dialog open={overpaymentDialog.isOpen} onOpenChange={(open) => !open && setOverpaymentDialog(p => ({ ...p, isOpen: false }))}>
+        <DialogContent className="max-w-md rounded-xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-orange-600">Paiement excédentaire détecté</DialogTitle>
+          </DialogHeader>
+          <div className="py-2 text-sm text-muted-foreground">
+            Le nouveau total de la vente est inférieur au montant que le client a déjà payé (Différence : <strong className="text-foreground">{overpaymentDialog.balanceDue.toLocaleString("fr-FR")} Ar</strong>). Que souhaitez-vous faire ?
+          </div>
+          <div className="flex flex-col gap-3 mt-4">
+            <Button variant="outline" className="h-auto justify-start p-4 flex flex-col items-start gap-1 text-left" onClick={() => { setOverpaymentDialog(p => ({ ...p, isOpen: false })); executeSubmit("REFUND"); }}>
+              <span className="font-bold text-base text-foreground">Rembourser le client</span>
+              <span className="font-normal text-muted-foreground text-xs whitespace-normal">Le client a réellement payé l'ancien montant. Enregistrer un paiement négatif pour lui rendre la différence et équilibrer la caisse.</span>
+            </Button>
+            <Button variant="outline" className="h-auto justify-start p-4 flex flex-col items-start gap-1 text-left" onClick={() => { setOverpaymentDialog(p => ({ ...p, isOpen: false })); executeSubmit("ADJUST"); }}>
+              <span className="font-bold text-base text-foreground">Ajuster (Erreur de frappe)</span>
+              <span className="font-normal text-muted-foreground text-xs whitespace-normal">Le paiement précédent était une erreur. Réduire simplement le montant des paiements existants dans la base de données.</span>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={recloseDialog.isOpen}

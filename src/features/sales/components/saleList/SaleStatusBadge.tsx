@@ -24,12 +24,31 @@ export const SaleStatusBadge: React.FC<SaleStatusBadgeProps> = ({ status }) => {
   );
 };
 
+const PAYMENT_STATUS_MAP: Record<number, { label: string; className: string }> = {
+  0: { label: "Payé", className: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30" },
+  3: { label: "Partiellement Payé", className: "bg-amber-500/15 text-amber-700 border-amber-500/30" },
+  5: { label: "Impayé", className: "bg-rose-500/15 text-rose-700 border-rose-500/30" },
+};
+
 interface PaymentStatusBadgeProps {
-  totalAmount: number | null;
-  balanceDue: number | null;
+  status?: number | null;
+  totalAmount?: number | null;
+  balanceDue?: number | null;
 }
 
-export const PaymentStatusBadge: React.FC<PaymentStatusBadgeProps> = ({ totalAmount, balanceDue }) => {
+export const PaymentStatusBadge: React.FC<PaymentStatusBadgeProps> = ({ status, totalAmount, balanceDue }) => {
+  if (status !== undefined && status !== null) {
+    const config = PAYMENT_STATUS_MAP[status];
+    if (config) {
+      return (
+        <Badge variant="outline" className={cn("text-xs font-semibold whitespace-nowrap", config.className)}>
+          {config.label}
+        </Badge>
+      );
+    }
+  }
+
+  // Fallback to calculation if status is not provided
   const total = Number(totalAmount || 0);
   const balance = balanceDue !== null && balanceDue !== undefined ? Number(balanceDue) : total;
 

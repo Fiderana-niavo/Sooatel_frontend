@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { SaleService } from "../../services/sale.service";
+import { PaymentService } from "../../../payments/services/payment.service";
 import { calcTotal } from "../../utils/saleMappers";
 import { fetchSalesListDependencies } from "../../utils/saleFetchers";
 import { SaleDetailSheet } from "./SaleDetailSheet";
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/Button/button";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
 import { Input } from "@/components/ui/Inputs/input";
 import { InputDialog } from "@/components/ui/InputDialog/InputDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
 
 
 
@@ -32,7 +34,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
   const [menuFilter, setMenuFilter] = useState<string | number>("");
   const [menuOptions, setMenuOptions] = useState<{ value: string; label: string }[]>([{ value: "", label: "Tous les produits" }]);
   const [paymentMethods, setPaymentMethods] = useState<{ idPaymentMethod: string; methodName: string }[]>([]);
-  const [payModal, setPayModal] = useState<{ isOpen: boolean; saleId: string; balanceDue: number; methodId: string; amount: string; paymentDate: string; isPartial: boolean }>({ isOpen: false, saleId: "", balanceDue: 0, methodId: "", amount: "", paymentDate: new Date().toISOString().split('T')[0], isPartial: false });
+  const [payModal, setPayModal] = useState<{ isOpen: boolean; saleId: string; balanceDue: number; methodId: string; paymentCode: string; amount: string; paymentDate: string; isPartial: boolean; saleDate: string }>({ isOpen: false, saleId: "", balanceDue: 0, methodId: "", paymentCode: "", amount: "", paymentDate: new Date().toISOString().split('T')[0], isPartial: false, saleDate: "" });
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedSale, setSelectedSale] = useState<SaleRecord | null>(null);
@@ -156,6 +158,25 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
     }
   };
 
+  const handleOpenPayModal = (sale: SaleRecord) => {
+    if (!sale.invoice || !sale.invoice.idInvoice) {
+      showSnackbar("Cette vente n'a pas de facture associée (ancienne vente). Veuillez contacter l'administrateur.", "error");
+      return;
+    }
+    const balanceDue = (sale.invoice.balanceDue ?? sale.totalAmount) != null ? Number((sale.invoice.balanceDue ?? sale.totalAmount)) : Number(sale.totalAmount);
+    setPayModal({
+      isOpen: true,
+      saleId: sale.invoice.idInvoice,
+      balanceDue,
+      methodId: paymentMethods[0]?.idPaymentMethod || "",
+      paymentCode: "",
+      amount: String(balanceDue),
+      paymentDate: new Date().toISOString().split('T')[0],
+      isPartial: false,
+      saleDate: sale.saleDate ? new Date(sale.saleDate).toISOString().split('T')[0] : ""
+    });
+  };
+
   const handlePay = async () => {
     if (!payModal.methodId) {
       showSnackbar("Veuillez sélectionner un mode de paiement.", "error");
@@ -163,13 +184,14 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
     }
     setActionLoading(true);
     try {
-      await SaleService.paySale(payModal.saleId, {
+      await PaymentService.addPayment(payModal.saleId, {
         amount: payModal.isPartial && payModal.amount ? Number(payModal.amount) : payModal.balanceDue,
         idPaymentMethod: payModal.methodId,
-        paymentDate: payModal.paymentDate
+        paymentDate: payModal.paymentDate,
+        paymentCode: payModal.paymentCode || undefined
       });
       showSnackbar("Paiement enregistré avec succès.", "success");
-      setPayModal({ isOpen: false, saleId: "", balanceDue: 0, methodId: "", amount: "", paymentDate: new Date().toISOString().split('T')[0], isPartial: false });
+      setPayModal({ isOpen: false, saleId: "", balanceDue: 0, methodId: "", paymentCode: "", amount: "", paymentDate: new Date().toISOString().split('T')[0], isPartial: false, saleDate: "" });
       setSheetOpen(false);
       fetchSales();
     } catch (err: any) {
@@ -270,7 +292,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
                       <td className="px-4 py-3 whitespace-nowrap">
                         {new Date(sale.saleDate).toLocaleDateString("fr-FR")}
                       </td>
-                      <td className="px-4 py-3 font-mono font-medium">{sale.invoiceNumber}</td>
+                      <td className="px-4 py-3 font-mono font-medium">{(sale.invoice?.invoiceNumber ?? "")}</td>
                       <td className="px-4 py-3">{salerName}</td>
                       <td className="px-4 py-3 text-right">
                         <span className={mismatch ? "text-orange-500 font-semibold inline-flex items-center gap-1" : "font-semibold"}>
@@ -282,7 +304,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
                         <SaleStatusBadge status={sale.status} />
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <PaymentStatusBadge totalAmount={sale.totalAmount} balanceDue={sale.balanceDue} />
+                        <PaymentStatusBadge status={sale.invoice?.status} totalAmount={sale.totalAmount} balanceDue={(sale.invoice?.balanceDue ?? sale.totalAmount)} />
                       </td>
                       <td className="px-4 py-3 text-center">
                         <ActionDropdown
@@ -334,14 +356,17 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         onClose={handleClose}
         onDelete={handleDelete}
         onEdit={handleEdit}
-        onPay={(sale) => setPayModal({ isOpen: true, saleId: sale.idSale, balanceDue: sale.balanceDue != null ? Number(sale.balanceDue) : Number(sale.totalAmount), methodId: paymentMethods[0]?.idPaymentMethod || "", amount: String(sale.balanceDue != null ? Number(sale.balanceDue) : Number(sale.totalAmount)), paymentDate: new Date().toISOString().split('T')[0], isPartial: false })}
+        onPay={handleOpenPayModal}
         loading={actionLoading}
       />
 
-      {payModal.isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-background w-full max-w-sm rounded-xl shadow-2xl border p-6 animate-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold mb-4">Encaisser la vente</h3>
+      <Dialog open={payModal.isOpen} onOpenChange={(open) => !open && setPayModal(p => ({ ...p, isOpen: false }))}>
+        <DialogContent className="max-w-sm rounded-xl p-6 max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Encaisser la vente</DialogTitle>
+          </DialogHeader>
+
+          <div className="py-2">
             <div className="mb-4">
               <label className="text-sm font-medium mb-1 block">Reste à payer</label>
               <div className="text-2xl font-bold text-primary">{payModal.balanceDue.toLocaleString("fr-FR")} Ar</div>
@@ -352,6 +377,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
               <Input
                 type="date"
                 max={new Date().toISOString().split("T")[0]}
+                min={payModal.saleDate}
                 value={payModal.paymentDate}
                 onChange={(e) => setPayModal(p => ({ ...p, paymentDate: e.target.value }))}
                 className="w-full"
@@ -385,7 +411,18 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
               )}
             </div>
 
-            <div className="mb-6">
+            <div className="mb-4">
+              <label className="text-sm font-medium mb-1 block">Code de Paiement (Optionnel)</label>
+              <Input
+                type="text"
+                placeholder="Ex: Ref chèque, Mvola..."
+                value={payModal.paymentCode}
+                onChange={(e) => setPayModal(p => ({ ...p, paymentCode: e.target.value }))}
+                className="w-full"
+              />
+            </div>
+
+            <div className="mb-2">
               <label className="text-sm font-medium mb-2 block">Mode de paiement</label>
               <div className="flex flex-col gap-2">
                 {paymentMethods.map(m => (
@@ -403,17 +440,18 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
                 ))}
               </div>
             </div>
-            <div className="flex justify-end gap-3">
-              <Button variant="outline" disabled={actionLoading} onClick={() => setPayModal(p => ({ ...p, isOpen: false }))}>
-                Annuler
-              </Button>
-              <Button disabled={actionLoading || !payModal.methodId} onClick={handlePay}>
-                {actionLoading ? "Enregistrement..." : "Confirmer le paiement"}
-              </Button>
-            </div>
           </div>
-        </div>
-      )}
+
+          <DialogFooter className="mt-2 flex justify-end gap-3">
+            <Button variant="outline" disabled={actionLoading} onClick={() => setPayModal(p => ({ ...p, isOpen: false }))}>
+              Annuler
+            </Button>
+            <Button disabled={actionLoading || !payModal.methodId} onClick={handlePay}>
+              {actionLoading ? "Enregistrement..." : "Confirmer le paiement"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <InputDialog
         open={reopenDialog.isOpen}

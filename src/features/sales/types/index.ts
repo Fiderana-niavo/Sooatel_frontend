@@ -1,3 +1,5 @@
+import type { InvoiceRecord } from "../../payments/types";
+
 export interface SaleItem {
   idSaleItem?: string;
   idMenu: string;
@@ -12,10 +14,12 @@ export interface SaleFilters {
   paymentStatus?: "UNPAID" | "PARTIAL" | "PAID";
 }
 
+
 export interface SalePayment {
   paymentDate: string;
   amount: number;
   idPaymentMethod: string;
+  paymentCode?: string;
 }
 
 export interface SaleRefund {
@@ -33,6 +37,8 @@ export interface SalePayload {
   invoiceNumber: string;
   items: SaleItem[];
   payment?: SalePayment;
+  comment?: string;
+  deliveryDate?: string;
 }
 
 export interface MenuItemRef {
@@ -45,6 +51,7 @@ export interface PaymentMethodRef {
   idPaymentMethod: string;
   methodName: string;
 }
+
 
 export interface SaleItemRecord {
   idSaleItem: string;
@@ -59,28 +66,20 @@ export interface SaleItemRecord {
   };
 }
 
-export interface SalePaymentRecord {
-  idSalePayment: string;
-  amount: number;
-  type: "PAYMENT" | "REFUND" | "ADJUSTMENT";
-  paymentDate: string;
-  paymentMethod?: { methodName: string };
-}
-
 export interface SaleRecord {
   idSale: string;
   ref: string;
   saleDate: string;
-  invoiceNumber: string;
   totalAmount: number;
-  balanceDue: number;
   status: number;
   tableNumber: number | null;
   chargeToRoom: boolean | null;
   idRoom: string | null;
   saler: { idEmployee: string; name: string; lastname: string } | null;
   room: { idRoom: string; roomNumber: string } | null;
+  comment: string | null;
+  deliveryDate: string | null;
   saleItems: SaleItemRecord[];
-  payments?: SalePaymentRecord[];
+  invoice?: InvoiceRecord;
   createdAt: string;
 }

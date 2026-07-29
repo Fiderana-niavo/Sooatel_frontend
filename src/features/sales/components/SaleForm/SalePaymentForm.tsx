@@ -44,11 +44,11 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
   }
 
   return (
-    <div className="bg-card p-6 rounded-xl border border-border/50 shadow-sm space-y-4 flex flex-col h-full relative overflow-hidden">
+    <div className="bg-card p-6 rounded-xl border border-border/50 shadow-sm space-y-4 flex flex-col h-full relative overflow-y-auto overflow-x-hidden">
       <div className="absolute top-0 right-0 -mr-10 -mt-10 w-32 h-32 rounded-full bg-emerald-500/5 blur-2xl pointer-events-none"></div>
-      
+
       <div className="flex justify-between items-center mb-2">
-        <h3 className="text-lg font-semibold text-primary">Paiement</h3>
+        <h3 className="text-lg font-zsemibold text-primary">Paiement</h3>
         <Button variant="ghost" size="sm" onClick={onClear} className="text-muted-foreground hover:text-red-500 h-8 text-xs">
           Annuler
         </Button>
@@ -62,7 +62,7 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
       <div className="space-y-4 flex-1">
         <div>
           <label className="block text-sm font-medium mb-1">Montant Payé <span className="text-red-500">*</span></label>
-          <Input 
+          <Input
             type="number"
             min="0"
             value={payment.amount === 0 ? "" : payment.amount}
@@ -76,7 +76,7 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
 
         <div>
           <label className="block text-sm font-medium mb-1">Mode de Paiement <span className="text-red-500">*</span></label>
-          <select 
+          <select
             className="w-full h-10 px-3 rounded-md border border-input bg-background"
             value={payment.idPaymentMethod}
             onChange={(e) => onChange("idPaymentMethod", e.target.value)}
@@ -89,9 +89,21 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
         </div>
 
         <div>
+          <label className="block text-sm font-medium mb-1">Code de Paiement (Optionnel)</label>
+          <Input
+            type="text"
+            placeholder="Ex: Ref chèque, ticket, Mvola..."
+            value={payment.paymentCode || ""}
+            onChange={(e) => onChange("paymentCode", e.target.value)}
+          />
+        </div>
+
+        <div>
           <label className="block text-sm font-medium mb-1">Date de Paiement</label>
-          <Input 
+          <Input
             type="date"
+            max={new Date().toISOString().split("T")[0]}
+            min={saleDate}
             value={payment.paymentDate}
             onChange={(e) => onChange("paymentDate", e.target.value)}
             onBlur={handleDateBlur}
@@ -115,12 +127,21 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
       </div>
 
       <div className="mt-auto pt-4 border-t border-border/30">
-        <div className="flex justify-between items-center">
-          <span className="text-sm font-medium text-muted-foreground">Reste à payer</span>
-          <span className={`text-xl font-bold ${balanceDue > 0 ? "text-orange-500" : "text-emerald-500"}`}>
-            {balanceDue} Ar
-          </span>
-        </div>
+        {balanceDue < 0 ? (
+          <div className="flex justify-between items-center bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/20">
+            <span className="text-sm font-bold text-emerald-700">Monnaie à rendre</span>
+            <span className="text-xl font-extrabold text-emerald-600">
+              {Math.abs(balanceDue).toLocaleString("fr-FR")} Ar
+            </span>
+          </div>
+        ) : (
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium text-muted-foreground">Reste à payer</span>
+            <span className={`text-xl font-bold ${balanceDue > 0 ? "text-orange-500" : "text-emerald-500"}`}>
+              {balanceDue.toLocaleString("fr-FR")} Ar
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

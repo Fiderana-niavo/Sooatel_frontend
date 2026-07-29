@@ -63,11 +63,11 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <SheetTitle className="text-xl font-bold">
-                  Vente #{sale.invoiceNumber}
+                  Vente #{(sale.invoice?.invoiceNumber ?? "")}
                 </SheetTitle>
                 <SheetDescription className="mt-1 flex items-center gap-2">
                   <SaleStatusBadge status={sale.status} />
-                  <PaymentStatusBadge totalAmount={sale.totalAmount} balanceDue={sale.balanceDue} />
+                  <PaymentStatusBadge status={sale.invoice?.status} totalAmount={sale.totalAmount} balanceDue={(sale.invoice?.balanceDue ?? sale.totalAmount)} />
                   <span className="text-muted-foreground text-xs">Réf: {sale.ref}</span>
                 </SheetDescription>
               </div>
@@ -96,9 +96,28 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
               </div>
               <div>
                 <p className="text-muted-foreground text-xs mb-0.5">Reste à payer</p>
-                <p className="font-medium">{Number(sale.balanceDue).toLocaleString("fr-FR")} Ar</p>
+                <p className="font-medium">{Number((sale.invoice?.balanceDue ?? sale.totalAmount)).toLocaleString("fr-FR")} Ar</p>
               </div>
             </div>
+
+            {(sale.comment || sale.deliveryDate) && (
+              <div className="p-4 rounded-xl border border-border/50 bg-secondary/5 space-y-3">
+                {sale.deliveryDate && (
+                  <div>
+                    <p className="text-muted-foreground text-xs mb-0.5">Livraison prévue le</p>
+                    <p className="font-medium text-primary">
+                      {new Date(sale.deliveryDate).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" })}
+                    </p>
+                  </div>
+                )}
+                {sale.comment && (
+                  <div>
+                    <p className="text-muted-foreground text-xs mb-0.5">Commentaire additionnel</p>
+                    <p className="font-medium text-sm whitespace-pre-wrap">{sale.comment}</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div>
               <h4 className="text-sm font-semibold mb-3 text-primary">Plats commandés</h4>
@@ -180,7 +199,7 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
                     <Lock size={14} /> Fermer
                   </Button>
                 )}
-                {sale.status !== -3 && onPay && (sale.balanceDue != null ? Number(sale.balanceDue) : Number(sale.totalAmount)) > 0 && (
+                {sale.status !== -3 && onPay && ((sale.invoice?.balanceDue ?? sale.totalAmount) != null ? Number((sale.invoice?.balanceDue ?? sale.totalAmount)) : Number(sale.totalAmount)) > 0 && (
                   <Button
                     variant="default"
                     size="sm"

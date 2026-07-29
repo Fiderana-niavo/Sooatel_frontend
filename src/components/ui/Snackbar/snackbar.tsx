@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { CheckCircle, AlertCircle, Info, X } from "lucide-react";
 
 export type SnackbarType = "success" | "error" | "info";
@@ -34,7 +34,7 @@ export function Snackbar({ message, type, onClose }: SnackbarUIProps) {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-8 fade-in duration-300">
+    <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-bottom-8 fade-in duration-300">
       <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl ${getColors()} min-w-[300px] max-w-[400px]`}>
         <div className="flex-shrink-0">
           {getIcon()}
@@ -42,7 +42,7 @@ export function Snackbar({ message, type, onClose }: SnackbarUIProps) {
         <div className="flex-1 text-sm font-semibold">
           {message}
         </div>
-        <button 
+        <button
           onClick={onClose}
           className="flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity p-1.5 rounded-md hover:bg-black/5"
         >

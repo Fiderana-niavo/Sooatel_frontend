@@ -9,7 +9,7 @@ export const mapSaleRecordToFormData = (
       ? new Date(saleToEdit.saleDate).toISOString().split("T")[0]
       : new Date().toISOString().split("T")[0],
     idSaler: saleToEdit.saler?.idEmployee || connectedUserId || "",
-    invoiceNumber: saleToEdit.invoiceNumber || "",
+    invoiceNumber: saleToEdit.invoice?.invoiceNumber || "",
     tableNumber: saleToEdit.tableNumber || undefined,
     chargeToRoom: saleToEdit.chargeToRoom || false,
     idRoom: saleToEdit.idRoom || "",
@@ -19,15 +19,15 @@ export const mapSaleRecordToFormData = (
       quantity: Number(item.quantity),
       unitPrice: Number(item.unitPrice)
     })) || [],
+    comment: saleToEdit.comment || "",
+    deliveryDate: saleToEdit.deliveryDate ? new Date(saleToEdit.deliveryDate).toISOString().slice(0, 16) : "",
     payment: undefined
   };
 };
 
 export const calculateAlreadyPaid = (saleToEdit?: SaleRecord | null): number => {
-  if (!saleToEdit || !saleToEdit.payments) return 0;
-  return saleToEdit.payments.reduce((s, p) => 
-    p.type === "REFUND" ? s - Number(p.amount) : s + Number(p.amount)
-  , 0);
+  if (!saleToEdit || !saleToEdit.invoice || !saleToEdit.invoice.payments) return 0;
+  return saleToEdit.invoice.payments.reduce((s, p) => s + Number(p.amount), 0);
 };
 
 export const calcTotal = (sale: SaleRecord) =>

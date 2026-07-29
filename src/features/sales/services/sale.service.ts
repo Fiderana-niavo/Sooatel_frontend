@@ -44,10 +44,7 @@ export const SaleService = {
     return response.data;
   },
 
-  paySale: async (id: string, payload: { amount: number; idPaymentMethod: string; paymentDate?: string }) => {
-    const response = await axios.patch(`${BASE}/sales/${id}/pay`, payload, { headers: authHeader() });
-    return response.data;
-  },
+
 
   closeSale: async (id: string) => {
     const response = await axios.patch(`${BASE}/sales/${id}/close`, {}, { headers: authHeader() });

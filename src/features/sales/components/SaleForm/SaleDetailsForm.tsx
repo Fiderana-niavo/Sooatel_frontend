@@ -15,11 +15,13 @@ interface SaleDetailsProps {
   rooms: SelectOptionDto[];
   locationType: "restaurant" | "room";
   onLocationChange: (type: "restaurant" | "room") => void;
+  comment: string;
+  deliveryDate: string;
   onChange: (field: string, value: any) => void;
 }
 
 export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
-  saleDate, invoiceNumber, tableNumber, chargeToRoom, idRoom, idSaler, salers, rooms, onChange, locationType, onLocationChange
+  saleDate, invoiceNumber, tableNumber, chargeToRoom, idRoom, idSaler, salers, rooms, comment, deliveryDate, onChange, locationType, onLocationChange
 }) => {
   const handleLocationChange = (type: "restaurant" | "room") => {
     onLocationChange(type);
@@ -112,6 +114,25 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
             />
           </div>
         )}
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Commentaire additionnel (Optionnel)</label>
+          <textarea
+            className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Ex: Pas de salade, sans oignon..."
+            value={comment}
+            onChange={(e) => onChange("comment", e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Date et heure de livraison (Optionnel)</label>
+          <Input 
+            type="datetime-local"
+            value={deliveryDate} 
+            onChange={(e) => onChange("deliveryDate", e.target.value)} 
+          />
+        </div>
 
         <div className="md:col-span-2 flex flex-col justify-end mt-2">
           <label className="flex items-center space-x-2 cursor-pointer p-2 bg-secondary/10 rounded-md border border-border/50 w-max">
