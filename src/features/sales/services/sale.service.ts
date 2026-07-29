@@ -24,6 +24,14 @@ export const SaleService = {
     return response.data.payload;
   },
 
+  getRevenue: async (page: number = 1, limit: number = 20, filters: { date?: string; idMenu?: string; idSupplier?: string } = {}) => {
+    const response = await axios.get(`${BASE}/sales/revenue`, {
+      params: { page, limit, ...filters },
+      headers: authHeader()
+    });
+    return response.data;
+  },
+
   getSaleById: async (id: string): Promise<SaleRecord> => {
     const response = await axios.get(`${BASE}/sales/${id}`, { headers: authHeader() });
     return response.data.payload;
