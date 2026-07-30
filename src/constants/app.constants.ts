@@ -16,7 +16,7 @@ export const NAVIGATION_GROUPS = [
     permission: "restaurant.access",
     scopes: ["utopia"], // Visible uniquement dans le Restaurant
     items: [
-      { title: "Tableau de bord", url: "/resto/dashboard", icon: LayoutDashboard, permission: "restaurant.access" },
+      { title: "Tableau de bord", url: "/resto/dashboard", icon: LayoutDashboard, permission: "sale.manage" },
       { title: "Caisse & PDV", url: "/resto/pos", icon: CreditCard, permission: "sales.pos" },
       { title: "Historique des Ventes", url: "/resto/sales", icon: List, permission: "sales.pos" },
       { title: "Recettes", url: "/resto/revenue", icon: TrendingUp, permission: "sales.pos" },

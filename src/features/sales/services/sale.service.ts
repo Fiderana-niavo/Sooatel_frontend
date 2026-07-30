@@ -42,8 +42,8 @@ export const SaleService = {
     return response.data;
   },
 
-  cancelSale: async (id: string) => {
-    const response = await axios.patch(`${BASE}/sales/${id}/cancel`, {}, { headers: authHeader() });
+  cancelSale: async (id: string, overpaymentAction?: "REFUND" | "ADJUST") => {
+    const response = await axios.patch(`${BASE}/sales/${id}/cancel`, { overpaymentAction }, { headers: authHeader() });
     return response.data;
   },
 

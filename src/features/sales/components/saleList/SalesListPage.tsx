@@ -44,6 +44,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
   });
   const [reopenDialog, setReopenDialog] = useState<{ isOpen: boolean; saleId: string }>({ isOpen: false, saleId: "" });
   const [showCancelled, setShowCancelled] = useState(false);
+  const [cancelOverpaymentDialog, setCancelOverpaymentDialog] = useState<{ isOpen: boolean; saleId: string; totalPaid: number }>({ isOpen: false, saleId: "", totalPaid: 0 });
 
   const showSnackbar = (message: string, type: SnackbarType = "info") =>
     setSnackbar({ isOpen: true, message, type });
@@ -86,10 +87,20 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
     return err.response?.data?.error || err.response?.data?.message || err.message || fallback;
   };
 
-  const handleCancel = async (id: string) => {
+  const handleCancel = async (id: string, overpaymentAction?: "REFUND" | "ADJUST") => {
+    if (!overpaymentAction) {
+      if (selectedSale?.idSale === id && selectedSale.invoice) {
+        const totalPaid = Number(selectedSale.invoice.totalAmount) - Number(selectedSale.invoice.balanceDue);
+        if (totalPaid > 0) {
+          setCancelOverpaymentDialog({ isOpen: true, saleId: id, totalPaid });
+          return;
+        }
+      }
+    }
+
     setActionLoading(true);
     try {
-      await SaleService.cancelSale(id);
+      await SaleService.cancelSale(id, overpaymentAction);
       showSnackbar("Vente annulée avec succès.", "success");
       setSheetOpen(false);
       fetchSales();
@@ -463,6 +474,27 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         onConfirm={handleReopenConfirm}
         loading={actionLoading}
       />
+
+      <Dialog open={cancelOverpaymentDialog.isOpen} onOpenChange={(open) => !open && setCancelOverpaymentDialog(p => ({ ...p, isOpen: false }))}>
+        <DialogContent className="max-w-md rounded-xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-orange-600">Paiement existant détecté</DialogTitle>
+          </DialogHeader>
+          <div className="py-2 text-sm text-muted-foreground">
+            Vous annulez une vente qui a déjà été payée (Total payé : <strong className="text-foreground">{cancelOverpaymentDialog.totalPaid.toLocaleString("fr-FR")} Ar</strong>). Que souhaitez-vous faire des paiements existants ?
+          </div>
+          <div className="flex flex-col gap-3 mt-4">
+            <Button variant="outline" className="h-auto justify-start p-4 flex flex-col items-start gap-1 text-left" onClick={() => { setCancelOverpaymentDialog(p => ({ ...p, isOpen: false })); handleCancel(cancelOverpaymentDialog.saleId, "REFUND"); }}>
+              <span className="font-bold text-base text-foreground">Rembourser le client</span>
+              <span className="font-normal text-muted-foreground text-xs whitespace-normal">Enregistrer un paiement négatif pour équilibrer la caisse.</span>
+            </Button>
+            <Button variant="outline" className="h-auto justify-start p-4 flex flex-col items-start gap-1 text-left" onClick={() => { setCancelOverpaymentDialog(p => ({ ...p, isOpen: false })); handleCancel(cancelOverpaymentDialog.saleId, "ADJUST"); }}>
+              <span className="font-bold text-base text-foreground">Ajuster (Annuler le paiement)</span>
+              <span className="font-normal text-muted-foreground text-xs whitespace-normal">Supprimer/Réduire les paiements existants dans la base de données.</span>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {snackbar.isOpen && (
         <Snackbar
