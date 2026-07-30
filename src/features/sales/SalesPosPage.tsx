@@ -27,7 +27,7 @@ interface SalesPosPageProps {
 export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }: SalesPosPageProps) {
   const connectedUser = useAppStore(state => state.connectedUser);
   const [formData, setFormData] = useState<SalePayload>({
-    saleDate: new Date().toISOString().split("T")[0],
+    saleDate: new Date().toISOString().slice(0, 16),
     idSaler: connectedUser?.idEmployee || "",
     invoiceNumber: "",
     tableNumber: undefined,
@@ -174,7 +174,7 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
 
       // Reset form on success
       setFormData({
-        saleDate: new Date().toISOString().split("T")[0],
+        saleDate: new Date().toISOString().slice(0, 16),
         idSaler: connectedUser?.idEmployee || "",
         invoiceNumber: "",
         tableNumber: undefined,

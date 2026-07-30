@@ -34,7 +34,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
   const [menuFilter, setMenuFilter] = useState<string | number>("");
   const [menuOptions, setMenuOptions] = useState<{ value: string; label: string }[]>([{ value: "", label: "Tous les produits" }]);
   const [paymentMethods, setPaymentMethods] = useState<{ idPaymentMethod: string; methodName: string }[]>([]);
-  const [payModal, setPayModal] = useState<{ isOpen: boolean; saleId: string; balanceDue: number; methodId: string; paymentCode: string; amount: string; paymentDate: string; isPartial: boolean; saleDate: string }>({ isOpen: false, saleId: "", balanceDue: 0, methodId: "", paymentCode: "", amount: "", paymentDate: new Date().toISOString().split('T')[0], isPartial: false, saleDate: "" });
+  const [payModal, setPayModal] = useState<{ isOpen: boolean; saleId: string; balanceDue: number; methodId: string; paymentCode: string; amount: string; paymentDate: string; isPartial: boolean; saleDate: string }>({ isOpen: false, saleId: "", balanceDue: 0, methodId: "", paymentCode: "", amount: "", paymentDate: new Date().toISOString().slice(0, 16), isPartial: false, saleDate: "" });
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedSale, setSelectedSale] = useState<SaleRecord | null>(null);
@@ -184,7 +184,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
       amount: String(balanceDue),
       paymentDate: new Date().toISOString().split('T')[0],
       isPartial: false,
-      saleDate: sale.saleDate ? new Date(sale.saleDate).toISOString().split('T')[0] : ""
+      saleDate: sale.saleDate ? new Date(sale.saleDate).toISOString().slice(0, 16) : ""
     });
   };
 
@@ -202,7 +202,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         paymentCode: payModal.paymentCode || undefined
       });
       showSnackbar("Paiement enregistré avec succès.", "success");
-      setPayModal({ isOpen: false, saleId: "", balanceDue: 0, methodId: "", paymentCode: "", amount: "", paymentDate: new Date().toISOString().split('T')[0], isPartial: false, saleDate: "" });
+      setPayModal({ isOpen: false, saleId: "", balanceDue: 0, methodId: "", paymentCode: "", amount: "", paymentDate: new Date().toISOString().slice(0, 16), isPartial: false, saleDate: "" });
       setSheetOpen(false);
       fetchSales();
     } catch (err: any) {
@@ -386,7 +386,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
             <div className="mb-4">
               <label className="text-sm font-medium mb-1 block">Date du paiement</label>
               <Input
-                type="date"
+                type="datetime-local"
                 max={new Date().toISOString().split("T")[0]}
                 min={payModal.saleDate}
                 value={payModal.paymentDate}

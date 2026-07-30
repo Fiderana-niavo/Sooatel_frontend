@@ -76,7 +76,7 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
         <div>
           <label className="block text-sm font-medium mb-1">Date de Vente <span className="text-red-500">*</span></label>
           <Input 
-            type="date"
+            type="datetime-local"
             value={saleDate} 
             onChange={(e) => onChange("saleDate", e.target.value)} 
           />

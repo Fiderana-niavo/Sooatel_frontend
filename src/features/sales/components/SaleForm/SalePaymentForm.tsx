@@ -100,11 +100,9 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
 
         <div>
           <label className="block text-sm font-medium mb-1">Date de Paiement</label>
-          <Input
-            type="date"
-            max={new Date().toISOString().split("T")[0]}
-            min={saleDate}
-            value={payment.paymentDate}
+          <Input 
+            type="datetime-local"
+            value={payment.paymentDate || ""}
             onChange={(e) => onChange("paymentDate", e.target.value)}
             onBlur={handleDateBlur}
           />

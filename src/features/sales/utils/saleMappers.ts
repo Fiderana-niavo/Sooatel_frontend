@@ -6,7 +6,7 @@ export const mapSaleRecordToFormData = (
 ): SalePayload => {
   return {
     saleDate: saleToEdit.saleDate
-      ? new Date(saleToEdit.saleDate).toISOString().split("T")[0]
+      ? new Date(saleToEdit.saleDate).toISOString().slice(0, 16)
       : new Date().toISOString().split("T")[0],
     idSaler: saleToEdit.saler?.idEmployee || connectedUserId || "",
     invoiceNumber: saleToEdit.invoice?.invoiceNumber || "",
