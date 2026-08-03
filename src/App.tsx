@@ -16,7 +16,7 @@ import { HotelConfigPage } from "@/features/hotel-config";
 import { RestaurantCatalogPage } from "@/features/restaurant-catalog";
 import { SalesPosPage, SalesListPage, RevenuePage } from "@/features/sales";
 import { DashboardPage } from "@/features/dashboard";
-import { PurchasesPage } from "@/features/outflows";
+import { CashMovementPage } from "@/features/cash_movement/components/CashMovementPage";
 import type { SaleRecord } from "@/features/sales";
 import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { useAppStore } from "@/store/app.store";
@@ -38,6 +38,11 @@ function App() {
     }
     return "sooatel";
   });
+
+  useEffect(() => {
+    document.body.classList.remove("theme-utopia", "theme-sooatel");
+    document.body.classList.add(`theme-${appMode}`);
+  }, [appMode]);
 
   const [editingSale, setEditingSale] = useState<SaleRecord | null>(() => {
     const saved = sessionStorage.getItem("editingSale");
@@ -63,7 +68,16 @@ function App() {
     const savedTab = localStorage.getItem("activeTab");
     return savedTab || "Tableau de bord";
   });
+  
   const [employeesPageTitle, setEmployeesPageTitle] = useState("Gestion des Employés");
+  
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (tab === "Caisse & PDV") {
+      setEditingSale(null);
+    }
+  };
+
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return !!localStorage.getItem("authToken");
   });
@@ -152,7 +166,7 @@ function App() {
               appMode={appMode}
               setAppMode={setAppMode}
               activeTab={activeTab}
-              setActiveTab={setActiveTab}
+              setActiveTab={handleTabChange}
             />
             <SidebarInset className="bg-secondary/5">
               <main className="w-full flex flex-col min-h-svh transition-colors duration-300 p-4 md:px-8 md:pb-8 md:pt-[14px]">
@@ -182,7 +196,7 @@ function App() {
                 <section className="bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[2rem] p-8 md:p-12 border border-border/50 flex-1 w-full max-w-5xl mx-auto space-y-10 relative overflow-hidden">
                   <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
 
-                  {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Plannings" && activeTab !== "Paramètres Globaux" && activeTab !== "Chambres & Évènements" && activeTab !== "Catalogue & Menus" && activeTab !== "Caisse & PDV" && activeTab !== "Historique des Ventes" && activeTab !== "Recettes" && activeTab !== "Tableau de bord" && activeTab !== "Achats & Dépenses" && (
+                  {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Plannings" && activeTab !== "Paramètres Globaux" && activeTab !== "Chambres & Évènements" && activeTab !== "Catalogue & Menus" && activeTab !== "Caisse & PDV" && activeTab !== "Historique des Ventes" && activeTab !== "Recettes" && activeTab !== "Tableau de bord" && activeTab !== "Mouvements de Caisse" && (
                     <div>
                       <h2 className="text-2xl font-bold mb-2">Bienvenue sur {appMode === "utopia" ? "Utopia" : "Sooatel"}</h2>
                       <p className="text-muted-foreground m-0 text-lg">
@@ -262,10 +276,10 @@ function App() {
                         <DashboardPage />
                       </ProtectedRoute>
                     </div>
-                  ) : activeTab === "Achats & Dépenses" ? (
+                  ) : activeTab === "Mouvements de Caisse" ? (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
                       <ProtectedRoute permission="restaurant.purchases">
-                        <PurchasesPage />
+                        <CashMovementPage />
                       </ProtectedRoute>
                     </div>
                   ) : (

@@ -98,7 +98,7 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
             </label>
             <Input 
               type="number"
-              value={tableNumber} 
+              value={tableNumber !== undefined && tableNumber !== null ? tableNumber : ""} 
               onChange={(e) => onChange("tableNumber", e.target.value ? Number(e.target.value) : "")} 
               placeholder="Ex: 12" 
             />

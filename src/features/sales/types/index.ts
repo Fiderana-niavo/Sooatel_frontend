@@ -37,6 +37,8 @@ export interface SalePayload {
   invoiceNumber: string;
   items: SaleItem[];
   payment?: SalePayment;
+  overpaymentAction?: "REFUND" | "ADJUST";
+  idPaymentMethodRefund?: string;
   comment?: string;
   deliveryDate?: string;
 }

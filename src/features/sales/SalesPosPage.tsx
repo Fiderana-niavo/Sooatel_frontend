@@ -48,6 +48,7 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
 
   const [menuItems, setMenuItems] = useState<MenuItemRef[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodRef[]>([]);
+  const [refundMethodId, setRefundMethodId] = useState("");
   const [rooms, setRooms] = useState<SelectOptionDto[]>([]);
   const [salers, setSalers] = useState<SelectOptionDto[]>([]);
   const [loading, setLoading] = useState(false);
@@ -152,24 +153,27 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
 
 
 
-  const executeSubmit = async (overpaymentAction?: "REFUND" | "ADJUST") => {
+  const executeSubmit = async (overpaymentAction?: "REFUND" | "ADJUST", idPaymentMethodRefund?: string) => {
     setLoading(true);
     try {
       if (saleToEdit) {
         const payload = {
           ...formData,
-          overpaymentAction
+          overpaymentAction,
+          idPaymentMethodRefund
         };
         await SaleService.updateSale(saleToEdit.idSale, payload);
         showSnackbar("Vente modifiée avec succès !", "success");
-        if (saleToEdit.status === 5) {
+        if (saleToEdit.status === 5 && (saleToEdit as any)._wasJustReopened) {
           setRecloseDialog({ isOpen: true, saleId: saleToEdit.idSale });
         } else {
-          if (onClearEdit) onClearEdit();
+          if (onGoToHistory) onGoToHistory();
+          else if (onClearEdit) onClearEdit();
         }
       } else {
         await SaleService.createSale(formData);
         showSnackbar("Vente enregistrée avec succès ! (Status = Ouverte)", "success");
+        if (onGoToHistory) onGoToHistory();
       }
 
       // Reset form on success
@@ -224,8 +228,8 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8 flex flex-col gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+        <div className={saleToEdit ? "lg:col-span-12" : "lg:col-span-8"}>
           <SaleDetailsForm
             saleDate={formData.saleDate}
             invoiceNumber={formData.invoiceNumber}
@@ -251,17 +255,19 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
             onRemove={handleRemoveItem}
           />
         </div>
-        <div className="lg:col-span-4">
-          <SalePaymentForm
-            payment={formData.payment}
-            saleDate={formData.saleDate}
-            paymentMethods={paymentMethods}
-            totalAmount={totalAmount}
-            balanceDue={balanceDue}
-            onChange={handlePaymentChange}
-            onClear={handleClearPayment}
-          />
-        </div>
+        {!saleToEdit && (
+          <div className="lg:col-span-4">
+            <SalePaymentForm
+              payment={formData.payment}
+              saleDate={formData.saleDate}
+              paymentMethods={paymentMethods}
+              totalAmount={totalAmount}
+              balanceDue={balanceDue}
+              onChange={handlePaymentChange}
+              onClear={handleClearPayment}
+            />
+          </div>
+        )}
       </div>
       {snackbar.isOpen && (
         <Snackbar
@@ -285,14 +291,32 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
             <DialogTitle className="text-lg font-bold text-orange-600">Paiement excédentaire détecté</DialogTitle>
           </DialogHeader>
           <div className="py-2 text-sm text-muted-foreground">
-            Le nouveau total de la vente est inférieur au montant que le client a déjà payé (Différence : <strong className="text-foreground">{overpaymentDialog.balanceDue.toLocaleString("fr-FR")} Ar</strong>). Que souhaitez-vous faire ?
+            Le nouveau total de la vente est inférieur au montant que le client a déjà payé (Différence : <strong className="text-foreground">{Math.abs(overpaymentDialog.balanceDue).toLocaleString("fr-FR")} Ar</strong>). Que souhaitez-vous faire ?
           </div>
           <div className="flex flex-col gap-3 mt-4">
-            <Button variant="outline" className="h-auto justify-start p-4 flex flex-col items-start gap-1 text-left" onClick={() => { setOverpaymentDialog(p => ({ ...p, isOpen: false })); executeSubmit("REFUND"); }}>
+            <div className="border border-orange-200 bg-orange-50/50 rounded-xl p-4 flex flex-col gap-2">
               <span className="font-bold text-base text-foreground">Rembourser le client</span>
-              <span className="font-normal text-muted-foreground text-xs whitespace-normal">Le client a réellement payé l'ancien montant. Enregistrer un paiement négatif pour lui rendre la différence et équilibrer la caisse.</span>
-            </Button>
-            <Button variant="outline" className="h-auto justify-start p-4 flex flex-col items-start gap-1 text-left" onClick={() => { setOverpaymentDialog(p => ({ ...p, isOpen: false })); executeSubmit("ADJUST"); }}>
+              <span className="font-normal text-muted-foreground text-xs whitespace-normal">Enregistrer un paiement négatif pour lui rendre la différence et équilibrer la caisse.</span>
+              <select
+                className="w-full mt-2 p-2 rounded-md border border-input bg-background"
+                value={refundMethodId}
+                onChange={e => setRefundMethodId(e.target.value)}
+              >
+                <option value="">-- Choisir le mode de remboursement --</option>
+                {paymentMethods.map(pm => (
+                  <option key={pm.idPaymentMethod} value={pm.idPaymentMethod}>{pm.methodName}</option>
+                ))}
+              </select>
+              <Button
+                variant="default"
+                className="w-full mt-2"
+                disabled={!refundMethodId}
+                onClick={() => { setOverpaymentDialog(p => ({ ...p, isOpen: false })); executeSubmit("REFUND", refundMethodId); setRefundMethodId(""); }}
+              >
+                Confirmer le remboursement
+              </Button>
+            </div>
+            <Button variant="outline" className="h-auto justify-start p-4 flex flex-col items-start gap-1 text-left mt-2 border-orange-200 text-orange-900 hover:bg-orange-50 hover:text-orange-950 transition-colors" onClick={() => { setOverpaymentDialog(p => ({ ...p, isOpen: false })); executeSubmit("ADJUST"); }}>
               <span className="font-bold text-base text-foreground">Ajuster (Erreur de frappe)</span>
               <span className="font-normal text-muted-foreground text-xs whitespace-normal">Le paiement précédent était une erreur. Réduire simplement le montant des paiements existants dans la base de données.</span>
             </Button>
@@ -304,7 +328,10 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
         open={recloseDialog.isOpen}
         onOpenChange={(open) => {
           setRecloseDialog(prev => ({ ...prev, isOpen: open }));
-          if (!open && onClearEdit) onClearEdit();
+          if (!open) {
+            if (onGoToHistory) onGoToHistory();
+            else if (onClearEdit) onClearEdit();
+          }
         }}
         title="Fermer la vente"
         description="Souhaitez-vous fermer manuellement cette vente maintenant que les modifications sont terminées ?"
@@ -314,7 +341,8 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
             await SaleService.closeSale(recloseDialog.saleId);
             showSnackbar("Vente fermée avec succès.", "success");
             setRecloseDialog({ isOpen: false, saleId: "" });
-            if (onClearEdit) onClearEdit();
+            if (onGoToHistory) onGoToHistory();
+            else if (onClearEdit) onClearEdit();
           } catch (err: any) {
             showSnackbar(err.response?.data?.error || "Erreur lors de la fermeture.", "error");
             setLoading(false);

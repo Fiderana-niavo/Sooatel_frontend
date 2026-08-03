@@ -1,6 +1,6 @@
 import {
-  UtensilsCrossed, Package, Users, Building, BedDouble, BookOpen, AlertTriangle, TrendingUp, Contact, CalendarDays, HeartHandshake, Settings, ShieldCheck, LayoutDashboard, CreditCard, ShoppingCart, Boxes, ArrowRightLeft,
-  Box, Layers, MenuSquare, List, Ruler, Bed, Grid2x2
+  UtensilsCrossed, Package, Users, Building, BedDouble, BookOpen, AlertTriangle, TrendingUp, Contact, CalendarDays, HeartHandshake, Settings, ShieldCheck, LayoutDashboard, CreditCard, Boxes, ArrowRightLeft,
+  Box, Layers, MenuSquare, List, Ruler, Bed, Grid2x2, Banknote
 } from "lucide-react";
 
 // ============================================================================
@@ -20,7 +20,7 @@ export const NAVIGATION_GROUPS = [
       { title: "Caisse & PDV", url: "/resto/pos", icon: CreditCard, permission: "sales.pos" },
       { title: "Historique des Ventes", url: "/resto/sales", icon: List, permission: "sales.pos" },
       { title: "Recettes", url: "/resto/revenue", icon: TrendingUp, permission: "sales.pos" },
-      { title: "Achats & Dépenses", url: "/resto/purchases", icon: ShoppingCart, permission: "restaurant.purchases" },
+      { title: "Mouvements de Caisse", url: "/cash-movements", icon: Banknote, permission: "restaurant.purchases" },
       { title: "Catalogue & Menus", url: "/resto/catalog", icon: BookOpen, permission: "restaurant.access" },
     ],
   },

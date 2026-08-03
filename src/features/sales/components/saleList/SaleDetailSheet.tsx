@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
+import { useAppStore } from "@/store/app.store";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/Sheet/sheet";
 import { Button } from "@/components/ui/Button/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
+import { PaymentManagementDialog } from "./PaymentManagementDialog";
 import { SaleStatusBadge, PaymentStatusBadge } from "./SaleStatusBadge";
 import { Can } from "@/components/Can/Can";
 import type { SaleRecord } from "../../types";
@@ -16,6 +18,9 @@ interface SaleDetailSheetProps {
   onClose: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (sale: SaleRecord) => void;
+  onUpdate: () => void;
+  onAdjustPayment: (idSale: string, idPayment: string, newAmount: number) => Promise<void>;
+  onRefundPayment: (idSale: string, amount: number, idPaymentMethod: string) => Promise<void>;
   onPay?: (sale: SaleRecord) => void;
   loading?: boolean;
 }
@@ -29,15 +34,19 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
   onClose,
   onDelete,
   onEdit,
+  onUpdate,
+  onAdjustPayment,
+  onRefundPayment,
   onPay,
   loading = false
 }) => {
-  const [confirmDialog, setConfirmDialog] = React.useState<{
+  const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
     desc: string;
     onConfirm: () => void;
   }>({ isOpen: false, title: "", desc: "", onConfirm: () => { } });
+  const [paymentManagementDialog, setPaymentManagementDialog] = useState<{ isOpen: boolean }>({ isOpen: false });
 
   if (!sale) return null;
 
@@ -210,6 +219,17 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
                     <Banknote size={14} /> Payer
                   </Button>
                 )}
+                {sale.status !== -3 && sale.invoice?.payments && sale.invoice.payments.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={loading}
+                    onClick={() => setPaymentManagementDialog({ isOpen: true })}
+                    className="flex items-center gap-2 border-indigo-500/40 text-indigo-600 hover:bg-indigo-500/10"
+                  >
+                    <Banknote size={14} /> Modifier le paiement
+                  </Button>
+                )}
                 {sale.status !== -3 && (
                   <Button
                     variant="outline"
@@ -246,12 +266,23 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
 
       <ConfirmDialog
         open={confirmDialog.isOpen}
-        onOpenChange={(o) => setConfirmDialog(p => ({ ...p, isOpen: o }))}
+        onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, isOpen: open }))}
         title={confirmDialog.title}
         description={confirmDialog.desc}
         onConfirm={confirmDialog.onConfirm}
         loading={loading}
       />
+      {sale && (
+        <PaymentManagementDialog
+          invoiceNumber={sale.invoice?.invoiceNumber}
+          payments={sale.invoice?.payments || []}
+          isOpen={paymentManagementDialog.isOpen}
+          canManage={useAppStore.getState().hasPermission('sale.manage')}
+          onAdjust={(idPayment, newAmount) => onAdjustPayment(sale.idSale, idPayment, newAmount).then(onUpdate)}
+          onRefund={(amount, idPaymentMethod) => onRefundPayment(sale.idSale, amount, idPaymentMethod).then(onUpdate)}
+          onClose={() => setPaymentManagementDialog({ isOpen: false })}
+        />
+      )}
     </>
   );
 };

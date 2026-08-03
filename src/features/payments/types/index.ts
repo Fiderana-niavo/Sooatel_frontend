@@ -4,7 +4,8 @@ export interface PaymentRecord {
   amount: number;
   paymentDate: string;
   paymentCode?: string;
-  paymentMethod?: { methodName: string, label?: string };
+  paymentMethod?: { methodName: string; label?: string };
+  idCashMovement?: string | null;
 }
 
 export interface InvoiceRecord {

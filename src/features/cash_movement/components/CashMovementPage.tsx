@@ -1,0 +1,54 @@
+import { useState } from "react";
+import { CashMovementCategoryList } from "../category/components/CashMovementCategoryList";
+import { CashMovementList } from "../movement/components/CashMovementList";
+
+export function CashMovementPage() {
+  const [activeSubTab, setActiveSubTab] = useState<"outflows" | "inflows" | "categories">("outflows");
+
+  return (
+    <div className="flex flex-col gap-6 w-full h-full">
+      <div className="flex items-center gap-4 border-b border-border pb-2">
+        <button
+          className={`pb-2 text-sm font-semibold transition-colors relative ${
+            activeSubTab === "outflows"
+              ? "text-primary border-b-2 border-primary"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+          onClick={() => setActiveSubTab("outflows")}
+        >
+          Sorties de Caisse
+        </button>
+        <button
+          className={`pb-2 text-sm font-semibold transition-colors relative ${
+            activeSubTab === "inflows"
+              ? "text-primary border-b-2 border-primary"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+          onClick={() => setActiveSubTab("inflows")}
+        >
+          Entrées d'argent
+        </button>
+        <button
+          className={`pb-2 text-sm font-semibold transition-colors relative ${
+            activeSubTab === "categories"
+              ? "text-primary border-b-2 border-primary"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+          onClick={() => setActiveSubTab("categories")}
+        >
+          Catégories de Mouvements
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-auto">
+        {activeSubTab === "outflows" ? (
+          <CashMovementList direction={-5} />
+        ) : activeSubTab === "inflows" ? (
+          <CashMovementList direction={5} />
+        ) : (
+          <CashMovementCategoryList />
+        )}
+      </div>
+    </div>
+  );
+}

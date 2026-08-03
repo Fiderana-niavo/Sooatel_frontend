@@ -42,17 +42,33 @@ export const SaleService = {
     return response.data;
   },
 
-  cancelSale: async (id: string, overpaymentAction?: "REFUND" | "ADJUST") => {
-    const response = await axios.patch(`${BASE}/sales/${id}/cancel`, { overpaymentAction }, { headers: authHeader() });
+  cancelSale: async (id: string, overpaymentAction?: "REFUND" | "ADJUST", idPaymentMethodRefund?: string) => {
+    const response = await axios.patch(`${BASE}/sales/${id}/cancel`, { overpaymentAction, idPaymentMethodRefund }, { headers: authHeader() });
     return response.data;
   },
 
   reopenSale: async (id: string, reason: string) => {
     const response = await axios.patch(`${BASE}/sales/${id}/reopen`, { reason }, { headers: authHeader() });
-    return response.data;
+    return response.data.data;
   },
 
+  adjustPayment: async (id: string, idPayment: string, newAmount: number) => {
+    const response = await axios.patch(
+      `${BASE}/sales/${id}/payments/${idPayment}/adjust`,
+      { newAmount },
+      { headers: authHeader() }
+    );
+    return response.data.data;
+  },
 
+  refundPayment: async (id: string, amount: number, idPaymentMethod: string) => {
+    const response = await axios.post(
+      `${BASE}/sales/${id}/payments/refund`,
+      { amount, idPaymentMethod },
+      { headers: authHeader() }
+    );
+    return response.data.data;
+  },
 
   closeSale: async (id: string) => {
     const response = await axios.patch(`${BASE}/sales/${id}/close`, {}, { headers: authHeader() });

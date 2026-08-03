@@ -10,7 +10,7 @@ export const mapSaleRecordToFormData = (
       : new Date().toISOString().split("T")[0],
     idSaler: saleToEdit.saler?.idEmployee || connectedUserId || "",
     invoiceNumber: saleToEdit.invoice?.invoiceNumber || "",
-    tableNumber: saleToEdit.tableNumber || undefined,
+    tableNumber: saleToEdit.tableNumber ?? (saleToEdit as any).table_number ?? undefined,
     chargeToRoom: saleToEdit.chargeToRoom || false,
     idRoom: saleToEdit.idRoom || "",
     items: saleToEdit.saleItems?.map(item => ({

@@ -45,6 +45,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
   const [reopenDialog, setReopenDialog] = useState<{ isOpen: boolean; saleId: string }>({ isOpen: false, saleId: "" });
   const [showCancelled, setShowCancelled] = useState(false);
   const [cancelOverpaymentDialog, setCancelOverpaymentDialog] = useState<{ isOpen: boolean; saleId: string; totalPaid: number }>({ isOpen: false, saleId: "", totalPaid: 0 });
+  const [refundActionState, setRefundActionState] = useState<{ action: "REFUND" | "ADJUST" | null; idPaymentMethod: string }>({ action: null, idPaymentMethod: "" });
 
   const showSnackbar = (message: string, type: SnackbarType = "info") =>
     setSnackbar({ isOpen: true, message, type });
@@ -87,7 +88,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
     return err.response?.data?.error || err.response?.data?.message || err.message || fallback;
   };
 
-  const handleCancel = async (id: string, overpaymentAction?: "REFUND" | "ADJUST") => {
+  const handleCancel = async (id: string, overpaymentAction?: "REFUND" | "ADJUST", idPaymentMethodRefund?: string) => {
     if (!overpaymentAction) {
       if (selectedSale?.idSale === id && selectedSale.invoice) {
         const totalPaid = Number(selectedSale.invoice.totalAmount) - Number(selectedSale.invoice.balanceDue);
@@ -100,7 +101,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
 
     setActionLoading(true);
     try {
-      await SaleService.cancelSale(id, overpaymentAction);
+      await SaleService.cancelSale(id, overpaymentAction, idPaymentMethodRefund);
       showSnackbar("Vente annulée avec succès.", "success");
       setSheetOpen(false);
       fetchSales();
@@ -126,7 +127,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
       fetchSales();
       if (onEditSale) {
         const fullSale = await SaleService.getSaleById(saleIdToReopen);
-        if (fullSale) onEditSale(fullSale);
+        if (fullSale) onEditSale({ ...fullSale, _wasJustReopened: true } as any);
       }
     } catch (err: any) {
       showSnackbar(resolveError(err, "Erreur lors de la réouverture."), "error");
@@ -161,6 +162,20 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const handleAdjustPayment = async (idSale: string, idPayment: string, newAmount: number): Promise<void> => {
+    await SaleService.adjustPayment(idSale, idPayment, newAmount);
+    const updated = await SaleService.getSaleById(idSale);
+    if (updated) setSelectedSale(updated);
+    fetchSales();
+  };
+
+  const handleRefundPayment = async (idSale: string, amount: number, idPaymentMethod: string): Promise<void> => {
+    await SaleService.refundPayment(idSale, amount, idPaymentMethod);
+    const updated = await SaleService.getSaleById(idSale);
+    if (updated) setSelectedSale(updated);
+    fetchSales();
   };
 
   const handleEdit = (sale: SaleRecord) => {
@@ -367,6 +382,9 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         onClose={handleClose}
         onDelete={handleDelete}
         onEdit={handleEdit}
+        onUpdate={fetchSales}
+        onAdjustPayment={handleAdjustPayment}
+        onRefundPayment={handleRefundPayment}
         onPay={handleOpenPayModal}
         loading={actionLoading}
       />
@@ -475,7 +493,12 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         loading={actionLoading}
       />
 
-      <Dialog open={cancelOverpaymentDialog.isOpen} onOpenChange={(open) => !open && setCancelOverpaymentDialog(p => ({ ...p, isOpen: false }))}>
+      <Dialog open={cancelOverpaymentDialog.isOpen} onOpenChange={(open) => {
+          if (!open) {
+            setCancelOverpaymentDialog(p => ({ ...p, isOpen: false }));
+            setRefundActionState({ action: null, idPaymentMethod: "" });
+          }
+        }}>
         <DialogContent className="max-w-md rounded-xl p-6">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-orange-600">Paiement existant détecté</DialogTitle>
@@ -484,14 +507,45 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
             Vous annulez une vente qui a déjà été payée (Total payé : <strong className="text-foreground">{cancelOverpaymentDialog.totalPaid.toLocaleString("fr-FR")} Ar</strong>). Que souhaitez-vous faire des paiements existants ?
           </div>
           <div className="flex flex-col gap-3 mt-4">
-            <Button variant="outline" className="h-auto justify-start p-4 flex flex-col items-start gap-1 text-left" onClick={() => { setCancelOverpaymentDialog(p => ({ ...p, isOpen: false })); handleCancel(cancelOverpaymentDialog.saleId, "REFUND"); }}>
-              <span className="font-bold text-base text-foreground">Rembourser le client</span>
-              <span className="font-normal text-muted-foreground text-xs whitespace-normal">Enregistrer un paiement négatif pour équilibrer la caisse.</span>
-            </Button>
-            <Button variant="outline" className="h-auto justify-start p-4 flex flex-col items-start gap-1 text-left" onClick={() => { setCancelOverpaymentDialog(p => ({ ...p, isOpen: false })); handleCancel(cancelOverpaymentDialog.saleId, "ADJUST"); }}>
-              <span className="font-bold text-base text-foreground">Ajuster (Annuler le paiement)</span>
-              <span className="font-normal text-muted-foreground text-xs whitespace-normal">Supprimer/Réduire les paiements existants dans la base de données.</span>
-            </Button>
+            {refundActionState.action !== "REFUND" && (
+              <>
+                <Button variant="outline" className="h-auto justify-start p-4 flex flex-col items-start gap-1 text-left" onClick={() => setRefundActionState({ action: "REFUND", idPaymentMethod: "" })}>
+                  <span className="font-bold text-base text-foreground">Rembourser le client</span>
+                  <span className="font-normal text-muted-foreground text-xs whitespace-normal">Enregistrer un paiement négatif pour équilibrer la caisse.</span>
+                </Button>
+                <Button variant="outline" className="h-auto justify-start p-4 flex flex-col items-start gap-1 text-left" onClick={() => { setCancelOverpaymentDialog(p => ({ ...p, isOpen: false })); setRefundActionState({ action: null, idPaymentMethod: "" }); handleCancel(cancelOverpaymentDialog.saleId, "ADJUST"); }}>
+                  <span className="font-bold text-base text-foreground">Ajuster (Annuler le paiement)</span>
+                  <span className="font-normal text-muted-foreground text-xs whitespace-normal">Supprimer/Réduire les paiements existants dans la base de données.</span>
+                </Button>
+              </>
+            )}
+
+            {refundActionState.action === "REFUND" && (
+              <div className="flex flex-col gap-4 border p-4 rounded-lg bg-muted/30">
+                <h4 className="font-semibold">Remboursement</h4>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">Sélectionnez le mode de paiement utilisé pour le remboursement *</label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={refundActionState.idPaymentMethod}
+                    onChange={e => setRefundActionState(p => ({ ...p, idPaymentMethod: e.target.value }))}
+                  >
+                    <option value="" disabled>Choisir un mode...</option>
+                    {paymentMethods.map(pm => (
+                      <option key={pm.idPaymentMethod} value={pm.idPaymentMethod}>{pm.methodName}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex justify-end gap-2 mt-2">
+                  <Button variant="outline" onClick={() => setRefundActionState({ action: null, idPaymentMethod: "" })}>Annuler</Button>
+                  <Button disabled={!refundActionState.idPaymentMethod} onClick={() => {
+                    setCancelOverpaymentDialog(p => ({ ...p, isOpen: false }));
+                    handleCancel(cancelOverpaymentDialog.saleId, "REFUND", refundActionState.idPaymentMethod);
+                    setRefundActionState({ action: null, idPaymentMethod: "" });
+                  }}>Confirmer le remboursement</Button>
+                </div>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
