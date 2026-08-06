@@ -3,7 +3,7 @@ import { useAppStore } from "@/store/app.store";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/Sheet/sheet";
 import { Button } from "@/components/ui/Button/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
-import { PaymentManagementDialog } from "./PaymentManagementDialog";
+import { PaymentManagementDialog } from "../../../payments/components/PaymentManagementDialog";
 import { SaleStatusBadge, PaymentStatusBadge } from "./SaleStatusBadge";
 import { Can } from "@/components/Can/Can";
 import type { SaleRecord } from "../../types";

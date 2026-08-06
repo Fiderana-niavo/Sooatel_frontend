@@ -4,7 +4,7 @@ import type { SelectOptionDto } from "@/types/api.type";
 import { SaleService } from "./services/sale.service";
 import { SaleDetailsForm } from "./components/SaleForm/SaleDetailsForm";
 import { SaleItemsForm } from "./components/SaleForm/SaleItemsForm";
-import { SalePaymentForm } from "./components/SaleForm/SalePaymentForm";
+import { SalePaymentForm } from "../payments/components/SalePaymentForm";
 import { validateSaleForm } from "./utils/saleValidation";
 import { mapSaleRecordToFormData, calculateAlreadyPaid } from "./utils/saleMappers";
 import { fetchSalesDependencies } from "./utils/saleFetchers";
