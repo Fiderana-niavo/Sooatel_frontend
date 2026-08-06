@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog/dialog";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
-import type { PaymentMethodRef } from "../../types";
-import type { PaymentRecord } from "../../../payments/types";
-import { fetchSalesDependencies } from "../../utils/saleFetchers";
+import type { PaymentMethodRef } from "../../sales/types";
+import type { PaymentRecord } from "../types";
+import { fetchSalesDependencies } from "../../sales/utils/saleFetchers";
 
 import { Edit2, Check, X, AlertCircle, Lock, ArrowDownLeft } from "lucide-react";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
