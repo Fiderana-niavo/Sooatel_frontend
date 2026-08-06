@@ -61,10 +61,10 @@ export const SaleService = {
     return response.data.data;
   },
 
-  refundPayment: async (id: string, amount: number, idPaymentMethod: string) => {
+  refundPayment: async (id: string, amount: number, idPaymentMethod: string, reason?: string) => {
     const response = await axios.post(
       `${BASE}/sales/${id}/payments/refund`,
-      { amount, idPaymentMethod },
+      { amount, idPaymentMethod, reason },
       { headers: authHeader() }
     );
     return response.data.data;

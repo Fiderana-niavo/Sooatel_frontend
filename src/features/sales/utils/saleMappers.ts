@@ -27,7 +27,9 @@ export const mapSaleRecordToFormData = (
 
 export const calculateAlreadyPaid = (saleToEdit?: SaleRecord | null): number => {
   if (!saleToEdit || !saleToEdit.invoice || !saleToEdit.invoice.payments) return 0;
-  return saleToEdit.invoice.payments.reduce((s, p) => s + Number(p.amount), 0);
+  return saleToEdit.invoice.payments
+    .filter(p => p.paymentCode !== "Remboursement manuel")
+    .reduce((s, p) => s + Number(p.amount), 0);
 };
 
 export const calcTotal = (sale: SaleRecord) =>

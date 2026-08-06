@@ -20,7 +20,7 @@ interface SaleDetailSheetProps {
   onEdit: (sale: SaleRecord) => void;
   onUpdate: () => void;
   onAdjustPayment: (idSale: string, idPayment: string, newAmount: number) => Promise<void>;
-  onRefundPayment: (idSale: string, amount: number, idPaymentMethod: string) => Promise<void>;
+  onRefundPayment: (idSale: string, amount: number, idPaymentMethod: string, reason?: string) => Promise<void>;
   onPay?: (sale: SaleRecord) => void;
   loading?: boolean;
 }

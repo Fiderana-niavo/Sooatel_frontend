@@ -6,6 +6,11 @@ export interface PaymentRecord {
   paymentCode?: string;
   paymentMethod?: { methodName: string; label?: string };
   idCashMovement?: string | null;
+  cashMovement?: {
+    idCashMovement: string;
+    reason: string | null;
+    amount: number;
+  } | null;
 }
 
 export interface InvoiceRecord {

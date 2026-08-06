@@ -14,7 +14,7 @@ interface Props {
   isOpen: boolean;
   canManage: boolean;
   onAdjust: (idPayment: string, newAmount: number) => Promise<void>;
-  onRefund: (amount: number, idPaymentMethod: string) => Promise<void>;
+  onRefund: (amount: number, idPaymentMethod: string, reason?: string) => Promise<void>;
   onClose: () => void;
 }
 
@@ -29,6 +29,7 @@ export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, paymen
   const [showRefundForm, setShowRefundForm] = useState(false);
   const [refundAmount, setRefundAmount] = useState<number | "">("");
   const [refundMethodId, setRefundMethodId] = useState("");
+  const [refundReason, setRefundReason] = useState("");
 
   const [snackbar, setSnackbar] = useState<{ message: string; type: "success" | "error"; isOpen: boolean }>({ message: "", type: "success", isOpen: false });
 
@@ -38,6 +39,7 @@ export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, paymen
       setShowRefundForm(false);
       setRefundAmount("");
       setRefundMethodId("");
+      setRefundReason("");
       fetchSalesDependencies().then(deps => setPaymentMethods(deps.paymentMethods));
     }
   }, [isOpen]);
@@ -47,17 +49,20 @@ export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, paymen
   };
 
   const handleStartEdit = (p: PaymentRecord) => {
-    if (p.idCashMovement) {
-      // Journalized — need confirmation if canManage
+    if (p.idCashMovement && Number(p.amount) > 0) {
+      // Journalized positive payment — need confirmation if canManage
       setJournalConfirm({ isOpen: true, payment: p });
     } else {
       setEditingPaymentId(p.idPayment);
-      setEditAmount(Number(p.amount));
+      setEditAmount(Math.abs(Number(p.amount)));
     }
   };
 
   const handleSaveEdit = async (payment: PaymentRecord, newAmountValue: number | "") => {
-    const newAmount = newAmountValue === "" ? 0 : newAmountValue;
+    const isRefundRow = Number(payment.amount) < 0;
+    const absNewAmount = newAmountValue === "" ? 0 : newAmountValue;
+    const newAmount = isRefundRow ? -absNewAmount : absNewAmount;
+    
     if (newAmount === Number(payment.amount)) {
       setEditingPaymentId(null);
       return;
@@ -86,11 +91,12 @@ export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, paymen
     }
     setLoading(true);
     try {
-      await onRefund(Number(amount), refundMethodId);
+      await onRefund(Number(amount), refundMethodId, refundReason);
       showSnackbar("Remboursement effectué avec succès.", "success");
       setShowRefundForm(false);
       setRefundAmount("");
       setRefundMethodId("");
+      setRefundReason("");
     } catch (err: any) {
       showSnackbar(err.response?.data?.error || "Erreur lors du remboursement.", "error");
     } finally {
@@ -102,7 +108,10 @@ export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, paymen
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && !loading && onClose()}>
-        <DialogContent className="max-w-2xl rounded-xl p-6 max-h-[90vh] overflow-y-auto">
+        <DialogContent 
+          className="max-w-2xl rounded-xl p-6 max-h-[90vh] overflow-y-auto"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Modifier le paiement (Facture {invoiceNumber})</DialogTitle>
           </DialogHeader>
@@ -125,9 +134,11 @@ export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, paymen
                     {payments.map(p => {
                       const isEditing = editingPaymentId === p.idPayment;
                       const isJournalized = !!p.idCashMovement;
-                      const isModifying = isEditing && editAmount !== "" && Number(editAmount) !== Number(p.amount);
+                      const isSystemRefund = p.paymentCode?.includes("suite modification") || p.paymentCode?.includes("suite à l'annulation");
+                      const isRefundRow = Number(p.amount) < 0;
+                      const isModifying = isEditing && editAmount !== "" && Number(editAmount) !== Math.abs(Number(p.amount));
                       const isDeleting = isEditing && (editAmount === 0 || editAmount === "");
-                      const isLocked = isJournalized && !canManage;
+                      const isLocked = (isJournalized && !canManage) || isSystemRefund;
 
                       return (
                         <React.Fragment key={p.idPayment}>
@@ -145,8 +156,17 @@ export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, paymen
                                   onChange={e => setEditAmount(e.target.value === "" ? "" : Number(e.target.value))}
                                   placeholder="0"
                                 />
+                              ) : isRefundRow ? (
+                                <div className="flex flex-col items-end gap-1">
+                                  <span className="text-orange-600 font-medium">
+                                    {Math.abs(Number(p.amount)).toLocaleString("fr-FR")} Ar
+                                  </span>
+                                  <span className="text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full" title={p.cashMovement?.reason || p.paymentCode || "Remboursement"}>
+                                    {p.cashMovement?.reason ? p.cashMovement.reason.split(" - ").pop() : (p.paymentCode || "Remboursement")}
+                                  </span>
+                                </div>
                               ) : (
-                                <span className={Number(p.amount) < 0 ? "text-red-500 font-medium" : ""}>
+                                <span>
                                   {Number(p.amount).toLocaleString("fr-FR")} Ar
                                   {isJournalized && <span className="ml-1 text-xs text-muted-foreground">(J)</span>}
                                 </span>
@@ -163,8 +183,8 @@ export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, paymen
                                   </button>
                                 </div>
                               ) : isLocked ? (
-                                <div className="flex items-center justify-center" title="Paiement journalisé — permission sale.manage requise">
-                                  <Lock size={14} className="text-zinc-400" />
+                                <div className="flex items-center justify-center" title="Ligne verrouillée (Générée par le système ou requiert une permission)">
+                                  <Lock size={14} className={isSystemRefund ? "text-orange-400" : "text-zinc-400"} />
                                 </div>
                               ) : (
                                 <div className="flex items-center justify-center gap-2">
@@ -182,8 +202,8 @@ export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, paymen
                                   <AlertCircle size={16} className="text-orange-600 shrink-0" />
                                   <span>
                                     {isDeleting
-                                      ? "Ce paiement sera mis à 0 et supprimé" + (p.idCashMovement ? " (sortie de caisse générée)." : ".")
-                                      : `Écart : ${Math.abs(Number(p.amount) - (Number(editAmount) || 0)).toLocaleString("fr-FR")} Ar` + (p.idCashMovement ? " → Mouvement de caisse généré." : ".")}
+                                      ? (isRefundRow ? "Ce remboursement sera supprimé." : "Ce paiement sera mis à 0 et supprimé" + (p.idCashMovement ? " (sortie de caisse générée)." : "."))
+                                      : `Écart : ${Math.abs(Math.abs(Number(p.amount)) - (Number(editAmount) || 0)).toLocaleString("fr-FR")} Ar` + (isRefundRow ? " → Ajusté directement." : (p.idCashMovement ? " → Mouvement de caisse généré." : "."))}
                                   </span>
                                 </div>
                               </td>
@@ -215,7 +235,7 @@ export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, paymen
                       <label className="text-xs font-medium text-muted-foreground">Montant à rembourser (Ar)</label>
                       <input
                         type="number"
-                        className="p-2 border rounded text-right text-sm"
+                        className="p-2 border rounded text-left text-sm"
                         value={refundAmount}
                         onChange={e => setRefundAmount(e.target.value === "" ? "" : Number(e.target.value))}
                         placeholder="0"
@@ -234,6 +254,16 @@ export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, paymen
                           <option key={pm.idPaymentMethod} value={pm.idPaymentMethod}>{pm.methodName}</option>
                         ))}
                       </select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs font-medium text-muted-foreground">Raison du remboursement (optionnel)</label>
+                      <input
+                        type="text"
+                        className="p-2 border rounded text-sm"
+                        value={refundReason}
+                        onChange={e => setRefundReason(e.target.value)}
+                        placeholder="Ex: Erreur de saisie"
+                      />
                     </div>
                     <div className="flex gap-2 justify-end">
                       <button onClick={() => { setShowRefundForm(false); setRefundAmount(""); setRefundMethodId(""); }} disabled={loading} className="px-3 py-1.5 text-sm rounded border border-zinc-200 text-zinc-600 hover:bg-zinc-50 disabled:opacity-50">
@@ -261,8 +291,8 @@ export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, paymen
           if (journalConfirm.payment) {
             setEditingPaymentId(journalConfirm.payment.idPayment);
             setEditAmount(Number(journalConfirm.payment.amount));
+            setJournalConfirm({ isOpen: false, payment: null });
           }
-          setJournalConfirm({ isOpen: false, payment: null });
         }}
       />
 

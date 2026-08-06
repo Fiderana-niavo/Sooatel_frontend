@@ -103,6 +103,7 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
           <Input 
             type="datetime-local"
             value={payment.paymentDate || ""}
+            max={new Date().toISOString().slice(0, 16)}
             onChange={(e) => onChange("paymentDate", e.target.value)}
             onBlur={handleDateBlur}
           />

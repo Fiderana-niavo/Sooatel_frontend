@@ -58,7 +58,9 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
   const [overpaymentDialog, setOverpaymentDialog] = useState<{ isOpen: boolean; balanceDue: number }>({ isOpen: false, balanceDue: 0 });
 
   const [recloseDialog, setRecloseDialog] = useState<{ isOpen: boolean; saleId: string }>({ isOpen: false, saleId: "" });
+  const [journalConfirm, setJournalConfirm] = useState<{ isOpen: boolean; paymentId: string }>({ isOpen: false, paymentId: "" });
   const [locationType, setLocationType] = useState<"restaurant" | "room">("restaurant");
+  const [idPaymentToAdjust, setIdPaymentToAdjust] = useState<string>("");
 
   const showSnackbar = (message: string, type: SnackbarType = "info") => {
     setSnackbar({ message, type, isOpen: true });
@@ -153,14 +155,15 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
 
 
 
-  const executeSubmit = async (overpaymentAction?: "REFUND" | "ADJUST", idPaymentMethodRefund?: string) => {
+  const executeSubmit = async (overpaymentAction?: "REFUND" | "ADJUST", idPaymentMethodRefund?: string, idPaymentToAdjustParam?: string) => {
     setLoading(true);
     try {
       if (saleToEdit) {
         const payload = {
           ...formData,
           overpaymentAction,
-          idPaymentMethodRefund
+          idPaymentMethodRefund,
+          idPaymentToAdjust: idPaymentToAdjustParam
         };
         await SaleService.updateSale(saleToEdit.idSale, payload);
         showSnackbar("Vente modifiée avec succès !", "success");
@@ -316,13 +319,55 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
                 Confirmer le remboursement
               </Button>
             </div>
-            <Button variant="outline" className="h-auto justify-start p-4 flex flex-col items-start gap-1 text-left mt-2 border-orange-200 text-orange-900 hover:bg-orange-50 hover:text-orange-950 transition-colors" onClick={() => { setOverpaymentDialog(p => ({ ...p, isOpen: false })); executeSubmit("ADJUST"); }}>
+            <div className="border border-orange-200 bg-orange-50/50 rounded-xl p-4 flex flex-col gap-2 mt-2">
               <span className="font-bold text-base text-foreground">Ajuster (Erreur de frappe)</span>
-              <span className="font-normal text-muted-foreground text-xs whitespace-normal">Le paiement précédent était une erreur. Réduire simplement le montant des paiements existants dans la base de données.</span>
-            </Button>
+              <span className="font-normal text-muted-foreground text-xs whitespace-normal">Le paiement précédent était une erreur. Réduire simplement le montant d'un paiement existant.</span>
+              <select
+                className="w-full mt-2 p-2 rounded-md border border-input bg-background"
+                value={idPaymentToAdjust}
+                onChange={e => setIdPaymentToAdjust(e.target.value)}
+              >
+                <option value="">-- Choisir le paiement à réduire --</option>
+                {saleToEdit?.invoice?.payments?.filter(p => Number(p.amount) > 0 && p.paymentCode !== "Remboursement manuel").map(p => (
+                  <option key={p.idPayment} value={p.idPayment}>
+                    {new Date(p.paymentDate).toLocaleString('fr-FR')} - {Number(p.amount).toLocaleString('fr-FR')} Ar ({p.paymentMethod?.methodName})
+                  </option>
+                ))}
+              </select>
+              <Button
+                variant="outline"
+                className="w-full mt-2 border-orange-200 text-orange-900 hover:bg-orange-100 transition-colors"
+                disabled={!idPaymentToAdjust}
+                onClick={() => { 
+                  const payment = saleToEdit?.invoice?.payments?.find((p: any) => p.idPayment === idPaymentToAdjust);
+                  if ((payment as any)?.idCashMovement || (payment as any)?.cashMovement) {
+                    setOverpaymentDialog(p => ({ ...p, isOpen: false }));
+                    setJournalConfirm({ isOpen: true, paymentId: idPaymentToAdjust });
+                  } else {
+                    setOverpaymentDialog(p => ({ ...p, isOpen: false }));
+                    executeSubmit("ADJUST", undefined, idPaymentToAdjust);
+                    setIdPaymentToAdjust("");
+                  }
+                }}
+              >
+                Confirmer l'ajustement
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={journalConfirm.isOpen}
+        onOpenChange={(open) => !open && setJournalConfirm({ isOpen: false, paymentId: "" })}
+        title="Paiement journalisé"
+        description="Ce paiement est déjà journalisé en caisse. Souhaitez-vous quand même le réduire ? Un mouvement de caisse compensatoire sera créé."
+        onConfirm={() => {
+          executeSubmit("ADJUST", undefined, journalConfirm.paymentId);
+          setJournalConfirm({ isOpen: false, paymentId: "" });
+          setIdPaymentToAdjust("");
+        }}
+      />
 
       <ConfirmDialog
         open={recloseDialog.isOpen}

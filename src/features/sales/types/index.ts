@@ -39,6 +39,7 @@ export interface SalePayload {
   payment?: SalePayment;
   overpaymentAction?: "REFUND" | "ADJUST";
   idPaymentMethodRefund?: string;
+  idPaymentToAdjust?: string;
   comment?: string;
   deliveryDate?: string;
 }
