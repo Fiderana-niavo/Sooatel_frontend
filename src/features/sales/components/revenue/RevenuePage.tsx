@@ -56,8 +56,15 @@ export const RevenuePage: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<RevenueItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const [isNotJournalised, setIsNotJournalised] = useState(false);
+  const [isJournalizing, setIsJournalizing] = useState(false);
+
+  const [salerOptions, setSalerOptions] = useState<{ value: string; label: string }[]>([]);
+  const [selectedProcessedBy, setSelectedProcessedBy] = useState<string>("");
+
   useEffect(() => {
     fetchMenus();
+    fetchSalers();
   }, []);
 
   // Initial fetch or filter change
@@ -78,6 +85,20 @@ export const RevenuePage: React.FC = () => {
     }
   };
 
+  const fetchSalers = async () => {
+    try {
+      const res = await SaleService.getSalers();
+      const salers = res.payload ?? res;
+      const opts = (Array.isArray(salers) ? salers : []).map((s: any) => ({
+        value: s.idEmployee ?? s.value,
+        label: `${s.name ?? ""} ${s.lastname ?? ""}`.trim() || s.label
+      }));
+      setSalerOptions(opts);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const fetchPage = async (pageNum: number) => {
     const filters: any = {};
     if (filterDate) filters.date = filterDate;
@@ -85,6 +106,11 @@ export const RevenuePage: React.FC = () => {
     
     const res = await SaleService.getRevenue(pageNum, limit, filters);
     console.log(`[Revenus] Données récupérées pour la page ${pageNum}:`, res.payload.data);
+    
+    if (pageNum === 1) {
+      setIsNotJournalised(res.payload.isNotJournalised);
+    }
+    
     return {
       data: res.payload.data as RevenueGroup[],
       totalPages: res.payload.totalPages || 1
@@ -175,6 +201,20 @@ export const RevenuePage: React.FC = () => {
     setDialogOpen(true);
   };
 
+  const handleJournalize = async () => {
+    try {
+      setIsJournalizing(true);
+      await SaleService.journalizeSales(selectedProcessedBy || undefined);
+      setIsNotJournalised(false);
+      setPagesData({});
+      fetchInitial();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsJournalizing(false);
+    }
+  };
+
   // Fusionner toutes les pages présentes dans pagesData pour affichage
   const data = useMemo(() => {
     const map = new Map<string, RevenueGroup>();
@@ -257,6 +297,23 @@ export const RevenuePage: React.FC = () => {
             Effacer
           </Button>
         </div>
+        {isNotJournalised && (
+          <div className="flex items-end gap-2">
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Traité par</label>
+              <SearchableSelect
+                options={salerOptions}
+                value={selectedProcessedBy}
+                onChange={(val) => setSelectedProcessedBy(String(val))}
+                placeholder="Utilisateur courant"
+              />
+            </div>
+            <Button onClick={handleJournalize} disabled={isJournalizing}>
+              {isJournalizing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Journaliser les ventes
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto min-h-0 bg-transparent rounded-xl">

@@ -13,9 +13,9 @@ export const SaleService = {
 
   getAllSales: async (page: number = 1, limit: number = 10, filters: { idMenu?: string; date?: string; status?: number[]; paymentStatus?: "UNPAID" | "PARTIAL" | "PAID" } = {}): Promise<{ records: SaleRecord[]; total: number; totalPages: number }> => {
     const response = await axios.get(`${BASE}/sales`, {
-      params: { 
-        page, 
-        limit, 
+      params: {
+        page,
+        limit,
         ...filters,
         status: filters.status ? filters.status.join(',') : undefined
       },
@@ -31,6 +31,12 @@ export const SaleService = {
     });
     return response.data;
   },
+
+  journalizeSales: async (idProcessedBy?: string) => {
+    const response = await axios.post(`${BASE}/sales/revenue/journalize`, { idProcessedBy }, { headers: authHeader() });
+    return response.data;
+  },
+
 
   getSaleById: async (id: string): Promise<SaleRecord> => {
     const response = await axios.get(`${BASE}/sales/${id}`, { headers: authHeader() });

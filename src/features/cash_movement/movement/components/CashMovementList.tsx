@@ -24,6 +24,10 @@ export function CashMovementList({ direction }: { direction: number }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 20;
+  
   const [selectedMovement, setSelectedMovement] = useState<CashMovement | null>(null);
   
   const emptyForm: CashMovementDto = {
@@ -51,13 +55,15 @@ export function CashMovementList({ direction }: { direction: number }) {
     setIsLoading(true);
     try {
       const [cashMovementsData, categoriesData, journalsData, paymentMethodsRes] = await Promise.all([
-        CashMovementService.getAll({ search, limit: 100 }),
+        CashMovementService.getAll({ search, limit, page, direction }),
         CashMovementCategoryService.getAll({ limit: 100 }),
         CashJournalService.getAll({ limit: 50 }),
         axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:3000/api"}/payment-methods/select`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } })
       ]);
       
-      setCashMovements(cashMovementsData.records.filter(m => m.direction === direction));
+      setCashMovements(cashMovementsData.records);
+      setTotal(cashMovementsData.total);
+      
       setCategories(categoriesData.records.filter(c => c.allowedDirection === direction || c.allowedDirection === 0));
       setJournals(journalsData.records);
       setPaymentMethods(paymentMethodsRes.data.payload || paymentMethodsRes.data);
@@ -71,7 +77,7 @@ export function CashMovementList({ direction }: { direction: number }) {
   useEffect(() => {
     const delay = setTimeout(() => loadData(), 300);
     return () => clearTimeout(delay);
-  }, [search, direction]);
+  }, [search, direction, page]);
 
   const handleOpenDialog = (movement?: CashMovement) => {
     if (movement) {
@@ -154,7 +160,7 @@ export function CashMovementList({ direction }: { direction: number }) {
             placeholder="Rechercher par référence facture..."
             className="pl-8"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
         <Button onClick={() => handleOpenDialog()} className={isOutflow ? "bg-red-500 hover:bg-red-600 text-white" : "bg-green-500 hover:bg-green-600 text-white"}>
@@ -194,25 +200,57 @@ export function CashMovementList({ direction }: { direction: number }) {
                     {movement.cashMovementCategory ? movement.cashMovementCategory.label : "-"}
                   </td>
                   <td className="px-4 py-3">
-                    {movement.paymentMethod ? movement.paymentMethod.methodName : "-"}
+                    {movement.paymentMethod ? movement.paymentMethod.label : "-"}
                   </td>
                   <td className="px-4 py-3 max-w-[200px] truncate">{movement.reason || "-"}</td>
                   <td className={`px-4 py-3 text-right font-medium ${isOutflow ? 'text-red-500' : 'text-green-500'}`}>
                     {Number(movement.amount).toLocaleString()} Ar
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(movement)}>
-                      <Edit2 className="w-4 h-4 text-blue-500" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => confirmDelete(movement)}>
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
+                    {!(
+                      movement.reason === "Journalisation des ventes" ||
+                      movement.reason?.toLowerCase().includes("remboursement") ||
+                      movement.reason?.toLowerCase().includes("ajustement")
+                    ) && (
+                      <>
+                        <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(movement)}>
+                          <Edit2 className="w-4 h-4 text-blue-500" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => confirmDelete(movement)}>
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex items-center justify-between mt-2">
+        <span className="text-sm text-muted-foreground">
+          Affichage {Math.min((page - 1) * limit + 1, total)} à {Math.min(page * limit, total)} sur {total} entrées
+        </span>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page === 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            Précédent
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page * limit >= total}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Suivant
+          </Button>
+        </div>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

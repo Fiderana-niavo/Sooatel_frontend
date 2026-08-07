@@ -9,6 +9,19 @@ export interface CashMovementCategoryDto {
   allowedDirection: number;
 }
 
+export interface PaymentMethod {
+  idPaymentMethod: string;
+  label: string;
+}
+
+export interface PaymentMethodBalance {
+  idPaymentMethodBalance: string;
+  idJournal: string;
+  idPaymentMethod: string;
+  amount: number;
+  paymentMethod?: PaymentMethod;
+}
+
 export interface CashMovement {
   idCashMovement: string;
   ref: string;
@@ -23,10 +36,7 @@ export interface CashMovement {
   idCashMovementCategory?: string | null;
   cashMovementCategory?: CashMovementCategory;
   idPaymentMethod: string;
-  paymentMethod?: {
-    idPaymentMethod: string;
-    methodName: string;
-  };
+  paymentMethod?: PaymentMethod;
 }
 
 export interface CashMovementDto {
@@ -42,4 +52,16 @@ export interface CashMovementDto {
   idCashMovementCategory?: string | null;
   idPaymentMethod: string;
 }
-export interface CashJournal { idJournal: string; ref: string; journalOpening: string; journalClosing?: string | null; expectedClosingBalance: number; actualClosingBalance?: number | null; cashDiscrepancy?: number | null; idCashier: string; }
+
+export interface CashJournal {
+  idJournal: string;
+  ref: string;
+  journalOpening: string;
+  journalClosing?: string | null;
+  expectedClosingBalance: number;
+  actualClosingBalance?: number | null;
+  cashDiscrepancy?: number | null;
+  idCashier: string;
+  cashier?: { idEmployee: string; firstName: string; lastName: string };
+  paymentMethodBalances?: PaymentMethodBalance[];
+}

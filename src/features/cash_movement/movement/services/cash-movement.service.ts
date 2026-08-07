@@ -6,7 +6,7 @@ const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 const authHeader = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
 
 export const CashMovementService = {
-  getAll: async (params?: { page?: number; limit?: number; search?: string }): Promise<{ records: CashMovement[], total: number }> => {
+  getAll: async (params?: { page?: number; limit?: number; search?: string; direction?: number }): Promise<{ records: CashMovement[], total: number }> => {
     const res = await axios.get<ApiResponse<PaginatedResponse<CashMovement>>>(`${BASE}/cash-movements`, { params, headers: authHeader() });
     if (!res.data.ok) throw new Error(res.data.error);
     return res.data.payload;
