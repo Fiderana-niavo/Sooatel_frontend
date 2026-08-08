@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Search } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, Loader2 } from "lucide-react";
 import { CashMovementService } from "../services/cash-movement.service";
 import { CashMovementCategoryService } from "../../category/services/cash-movement-category.service";
 import { CashJournalService } from "../../services/cash-journal.service";
@@ -15,21 +15,23 @@ import { useAppStore } from "@/store/app.store";
 
 export function CashMovementList({ direction }: { direction: number }) {
   const user = useAppStore(state => state.connectedUser);
-  
+
   const [cashMovements, setCashMovements] = useState<CashMovement[]>([]);
   const [categories, setCategories] = useState<CashMovementCategory[]>([]);
   const [journals, setJournals] = useState<CashJournal[]>([]);
-  const [paymentMethods, setPaymentMethods] = useState<{ idPaymentMethod: string; methodName: string }[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<{ value: string; label: string }[]>([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
+  const [openJournalPrompt, setOpenJournalPrompt] = useState(false);
+  const [isOpeningJournal, setIsOpeningJournal] = useState(false);
+
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const limit = 20;
-  
+
   const [selectedMovement, setSelectedMovement] = useState<CashMovement | null>(null);
-  
+
   const emptyForm: CashMovementDto = {
     ref: "",
     amount: "" as unknown as number,
@@ -40,11 +42,12 @@ export function CashMovementList({ direction }: { direction: number }) {
     idProcessedBy: user?.idEmployee || "",
     idJournal: "",
     idCashMovementCategory: "",
-    idPaymentMethod: ""
+    idPaymentMethod: "",
+    status: 0
   };
-  
+
   const [formData, setFormData] = useState<CashMovementDto>(emptyForm);
-  
+
   const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({ message: "", type: "info", isOpen: false });
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [movementToDelete, setMovementToDelete] = useState<CashMovement | null>(null);
@@ -60,10 +63,10 @@ export function CashMovementList({ direction }: { direction: number }) {
         CashJournalService.getAll({ limit: 50 }),
         axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:3000/api"}/payment-methods/select`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } })
       ]);
-      
+
       setCashMovements(cashMovementsData.records);
       setTotal(cashMovementsData.total);
-      
+
       setCategories(categoriesData.records.filter(c => c.allowedDirection === direction || c.allowedDirection === 0));
       setJournals(journalsData.records);
       setPaymentMethods(paymentMethodsRes.data.payload || paymentMethodsRes.data);
@@ -80,6 +83,14 @@ export function CashMovementList({ direction }: { direction: number }) {
   }, [search, direction, page]);
 
   const handleOpenDialog = (movement?: CashMovement) => {
+    if (!movement) {
+      const activeJournal = journals.find(j => !j.journalClosing);
+      if (!activeJournal) {
+        setOpenJournalPrompt(true);
+        return;
+      }
+    }
+
     if (movement) {
       setSelectedMovement(movement);
       setFormData({
@@ -97,10 +108,10 @@ export function CashMovementList({ direction }: { direction: number }) {
     } else {
       const openJournal = journals.find(j => !j.journalClosing) || journals[0];
       setSelectedMovement(null);
-      setFormData({ 
-        ...emptyForm, 
+      setFormData({
+        ...emptyForm,
         idProcessedBy: user?.idEmployee || emptyForm.idProcessedBy,
-        idJournal: openJournal ? openJournal.idJournal : "" 
+        idJournal: openJournal ? openJournal.idJournal : ""
       });
     }
     setIsDialogOpen(true);
@@ -111,10 +122,10 @@ export function CashMovementList({ direction }: { direction: number }) {
       showSnackbar("Le montant, la catégorie et le mode de paiement sont requis", "error");
       return;
     }
-    
+
     try {
       const dataToSave = { ...formData, idCashMovementCategory: formData.idCashMovementCategory || null, reason: formData.reason || null };
-      
+
       if (selectedMovement) {
         await CashMovementService.update(selectedMovement.idCashMovement, dataToSave);
         showSnackbar("Mouvement modifié", "success");
@@ -203,7 +214,7 @@ export function CashMovementList({ direction }: { direction: number }) {
                     {movement.paymentMethod ? movement.paymentMethod.label : "-"}
                   </td>
                   <td className="px-4 py-3 max-w-[200px] truncate">{movement.reason || "-"}</td>
-                  <td className={`px-4 py-3 text-right font-medium ${isOutflow ? 'text-red-500' : 'text-green-500'}`}>
+                  <td className={`px-4 py-3 text-right font-medium whitespace-nowrap ${isOutflow ? 'text-red-500' : 'text-green-500'}`}>
                     {Number(movement.amount).toLocaleString()} Ar
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -212,15 +223,15 @@ export function CashMovementList({ direction }: { direction: number }) {
                       movement.reason?.toLowerCase().includes("remboursement") ||
                       movement.reason?.toLowerCase().includes("ajustement")
                     ) && (
-                      <>
-                        <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(movement)}>
-                          <Edit2 className="w-4 h-4 text-blue-500" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => confirmDelete(movement)}>
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </Button>
-                      </>
-                    )}
+                        <>
+                          <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(movement)}>
+                            <Edit2 className="w-4 h-4 text-blue-500" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => confirmDelete(movement)}>
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                        </>
+                      )}
                   </td>
                 </tr>
               ))
@@ -308,8 +319,8 @@ export function CashMovementList({ direction }: { direction: number }) {
               >
                 <option value="" disabled>Sélectionner un mode</option>
                 {paymentMethods.map((pm) => (
-                  <option key={pm.idPaymentMethod} value={pm.idPaymentMethod}>
-                    {pm.methodName}
+                  <option key={pm.value} value={pm.value}>
+                    {pm.label}
                   </option>
                 ))}
               </select>
@@ -353,6 +364,52 @@ export function CashMovementList({ direction }: { direction: number }) {
         description="Voulez-vous vraiment supprimer ce mouvement de caisse ?"
         onConfirm={executeDelete}
       />
+
+      <Dialog open={openJournalPrompt} onOpenChange={setOpenJournalPrompt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Aucun journal ouvert</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
+              Vous devez avoir un journal de caisse actif pour ajouter un mouvement. Voulez-vous ouvrir un nouveau journal maintenant ?
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenJournalPrompt(false)}>Annuler</Button>
+            <Button 
+              onClick={async () => {
+                try {
+                  setIsOpeningJournal(true);
+                  const newJournal = await CashJournalService.openJournal("");
+                  setOpenJournalPrompt(false);
+                  
+                  // Reload list to have the new journal in journals array
+                  await loadData();
+                  
+                  // Open the movement dialog directly using the newly created journal
+                  setSelectedMovement(null);
+                  setFormData({ 
+                    ...emptyForm, 
+                    idProcessedBy: user?.idEmployee || emptyForm.idProcessedBy,
+                    idJournal: newJournal.idJournal 
+                  });
+                  setIsDialogOpen(true);
+                  
+                } catch(err: any) {
+                  showSnackbar(err.message || "Erreur lors de l'ouverture du journal", "error");
+                } finally {
+                  setIsOpeningJournal(false);
+                }
+              }}
+              disabled={isOpeningJournal}
+            >
+              {isOpeningJournal ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Oui, ouvrir un journal
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {snackbar.isOpen && (
         <Snackbar message={snackbar.message} type={snackbar.type} onClose={() => setSnackbar({ ...snackbar, isOpen: false })} />

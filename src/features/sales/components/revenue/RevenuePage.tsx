@@ -4,8 +4,11 @@ import { Button } from "@/components/ui/Button/button";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
 import { SaleService } from "../../services/sale.service";
 import { Loader2, TrendingUp, Calendar as CalendarIcon, Search } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { InfiniteScroll } from "@/components/ui/Pagination/InfiniteScroll";
+import { CashJournalService } from "../../../cash_movement/services/cash-journal.service";
+import { Snackbar } from "@/components/ui/Snackbar/snackbar";
+import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
 interface RevenueItem {
   idSale: string;
@@ -61,6 +64,10 @@ export const RevenuePage: React.FC = () => {
 
   const [salerOptions, setSalerOptions] = useState<{ value: string; label: string }[]>([]);
   const [selectedProcessedBy, setSelectedProcessedBy] = useState<string>("");
+
+  const [openJournalPrompt, setOpenJournalPrompt] = useState(false);
+  const [isOpeningJournal, setIsOpeningJournal] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({ message: "", type: "info", isOpen: false });
 
   useEffect(() => {
     fetchMenus();
@@ -208,8 +215,12 @@ export const RevenuePage: React.FC = () => {
       setIsNotJournalised(false);
       setPagesData({});
       fetchInitial();
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      if (e.message?.includes("Aucun journal") || e.response?.data?.error?.includes("Aucun journal")) {
+         setOpenJournalPrompt(true);
+      } else {
+         setSnackbar({ message: e.response?.data?.error || e.message || "Erreur", type: "error", isOpen: true });
+      }
     } finally {
       setIsJournalizing(false);
     }
@@ -380,7 +391,7 @@ export const RevenuePage: React.FC = () => {
                           </td>
                           <td className="px-6 py-4 font-mono text-xs">{item.paymentCode || "—"}</td>
                           <td className="px-6 py-4">{item.paymentMethod || "—"}</td>
-                          <td className="px-6 py-4 text-right font-semibold">{item.amount.toLocaleString("fr-FR")} Ar</td>
+                          <td className="px-6 py-4 text-right font-semibold whitespace-nowrap">{item.amount.toLocaleString("fr-FR")} Ar</td>
                           <td className="px-6 py-4 text-right">
                             <Button variant="ghost" size="sm" onClick={() => loadPaymentDetails(item)}>
                               <Search className="w-4 h-4 mr-1" /> Détails
@@ -440,6 +451,45 @@ export const RevenuePage: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={openJournalPrompt} onOpenChange={setOpenJournalPrompt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Aucun journal ouvert</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
+              Vous devez avoir un journal de caisse actif pour journaliser les ventes. Voulez-vous ouvrir un nouveau journal maintenant ?
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenJournalPrompt(false)}>Annuler</Button>
+            <Button 
+              onClick={async () => {
+                try {
+                  setIsOpeningJournal(true);
+                  await CashJournalService.openJournal("");
+                  setOpenJournalPrompt(false);
+                  setSnackbar({ message: "Journal ouvert avec succès. Reprise de la journalisation...", type: "success", isOpen: true });
+                  await handleJournalize();
+                } catch(err: any) {
+                  setSnackbar({ message: err.message || "Erreur lors de l'ouverture du journal", type: "error", isOpen: true });
+                } finally {
+                  setIsOpeningJournal(false);
+                }
+              }}
+              disabled={isOpeningJournal}
+            >
+              {isOpeningJournal ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Oui, ouvrir un journal
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {snackbar.isOpen && (
+        <Snackbar message={snackbar.message} type={snackbar.type} onClose={() => setSnackbar({ ...snackbar, isOpen: false })} />
+      )}
     </div>
   );
 };

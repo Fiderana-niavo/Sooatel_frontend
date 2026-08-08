@@ -26,7 +26,7 @@ function MovementRow({ mv }: { mv: CashMovement }) {
         {isIn ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground truncate">{mv.reason || mv.ref}</p>
+        <p className="text-sm font-medium text-foreground truncate">{mv.reason || mv.cashMovementCategory?.label || mv.ref}</p>
         <p className="text-xs text-muted-foreground">
           {mv.paymentMethod?.label || "—"} · {mv.movementDate ? fmtDate(String(mv.movementDate)) : "—"}
         </p>
@@ -130,10 +130,12 @@ function JournalCard({
             {journal.journalClosing && ` · Fermé le ${fmtDate(journal.journalClosing)}`}
           </p>
         </div>
-        <div className="text-right hidden sm:block">
-          <p className="text-xs text-muted-foreground">Solde</p>
-          <p className="text-sm font-bold text-foreground">{fmt(journal.expectedClosingBalance)}</p>
-        </div>
+        {!isOpen && (
+          <div className="text-right hidden sm:block">
+            <p className="text-xs text-muted-foreground">Solde</p>
+            <p className="text-sm font-bold text-foreground">{fmt(journal.expectedClosingBalance)}</p>
+          </div>
+        )}
         {!isOpen && discrepancy !== null && discrepancy !== 0 && (
           <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full
             ${discrepancy > 0 ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600"}`}>
@@ -189,7 +191,6 @@ export function CashJournalPage() {
   const [closeDialogOpen, setCloseDialogOpen] = useState(false);
   const [journalToClose, setJournalToClose] = useState<CashJournal | null>(null);
 
-  const [newRef, setNewRef] = useState("");
   const [actualBalance, setActualBalance] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -243,12 +244,10 @@ export function CashJournalPage() {
   };
 
   const handleOpenJournal = async () => {
-    if (!newRef.trim()) { showSnack("La référence est requise.", "error"); return; }
     setSubmitting(true);
     try {
-      await CashJournalService.openJournal(newRef.trim());
+      await CashJournalService.openJournal(""); // empty ref to trigger auto-generation
       setOpenDialogOpen(false);
-      setNewRef("");
       showSnack("Journal ouvert avec succès.", "success");
       setPage(1);
       await loadPage(1);
@@ -332,15 +331,11 @@ export function CashJournalPage() {
           <DialogHeader>
             <DialogTitle>Ouvrir un nouveau journal de caisse</DialogTitle>
           </DialogHeader>
-          <div className="flex flex-col gap-4 py-2">
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-foreground">Référence du journal</label>
-              <Input
-                placeholder="Ex : JNL-2026-001"
-                value={newRef}
-                onChange={e => setNewRef(e.target.value)}
-              />
-            </div>
+          <div className="flex flex-col gap-4 py-4">
+            <p className="text-sm text-muted-foreground text-center">
+              La référence du journal sera générée automatiquement.
+              Êtes-vous sûr de vouloir ouvrir un nouveau journal de caisse ?
+            </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpenDialogOpen(false)}>Annuler</Button>
