@@ -3,8 +3,8 @@ import {
   BookOpen, ChevronDown, ChevronRight, Lock, Unlock, Plus,
   TrendingUp, TrendingDown, AlertTriangle, ArrowUpCircle, ArrowDownCircle, Loader2
 } from "lucide-react";
-import { CashJournalService } from "../services/cash-journal.service";
-import type { CashJournal, CashMovement } from "../types";
+import { CashJournalService } from "../../services/cash-journal.service";
+import type { CashJournal, CashMovement } from "../../types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";

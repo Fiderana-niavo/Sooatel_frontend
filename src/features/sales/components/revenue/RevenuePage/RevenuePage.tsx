@@ -2,11 +2,12 @@ import React, { useState, useEffect, useCallback, useMemo, useLayoutEffect, useR
 import { Input } from "@/components/ui/Inputs/input";
 import { Button } from "@/components/ui/Button/button";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
-import { SaleService } from "../../services/sale.service";
+import { SaleService } from "../../../services/sale.service";
+
 import { Loader2, TrendingUp, Calendar as CalendarIcon, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { InfiniteScroll } from "@/components/ui/Pagination/InfiniteScroll";
-import { CashJournalService } from "../../../cash_movement/services/cash-journal.service";
+import { CashJournalService } from "../../../../cash_movement/services/cash-journal.service";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 

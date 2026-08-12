@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Search } from "lucide-react";
-import { CashMovementCategoryService } from "../services/cash-movement-category.service";
-import type { CashMovementCategory, CashMovementCategoryDto } from "../../types";
+import { CashMovementCategoryService } from "../../services/cash-movement-category.service";
+import type { CashMovementCategory, CashMovementCategoryDto } from "../../../types";
 import { Button } from "@/components/ui/Button/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { Input } from "@/components/ui/Inputs/input";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
-import { getDirectionLabel } from "../../utils/cash-movement.utils";
+import { getDirectionLabel } from "../../../utils/cash-movement.utils";
 
 export function CashMovementCategoryList() {
   const [categories, setCategories] = useState<CashMovementCategory[]>([]);

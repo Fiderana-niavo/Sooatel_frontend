@@ -14,9 +14,11 @@ import { PlanningPage } from "@/features/planning";
 import { SettingsPage } from "@/features/settings";
 import { HotelConfigPage } from "@/features/hotel-config";
 import { RestaurantCatalogPage } from "@/features/restaurant-catalog";
+import { InventoryCatalogPage } from "@/features/inventory-catalog";
 import { SalesPosPage, SalesListPage, RevenuePage } from "@/features/sales";
 import { DashboardPage } from "@/features/dashboard";
-import { CashMovementPage } from "@/features/cash_movement/components/CashMovementPage";
+import { CashMovementPage } from "@/features/cash_movement";
+import { SuppliersPage } from "@/features/suppliers";
 import type { SaleRecord } from "@/features/sales";
 import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { useAppStore } from "@/store/app.store";
@@ -68,9 +70,9 @@ function App() {
     const savedTab = localStorage.getItem("activeTab");
     return savedTab || "Tableau de bord";
   });
-  
+
   const [employeesPageTitle, setEmployeesPageTitle] = useState("Gestion des Employés");
-  
+
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     if (tab === "Caisse & PDV") {
@@ -196,7 +198,7 @@ function App() {
                 <section className="bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[2rem] p-8 md:p-12 border border-border/50 flex-1 w-full max-w-5xl mx-auto space-y-10 relative overflow-hidden">
                   <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
 
-                  {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Plannings" && activeTab !== "Paramètres Globaux" && activeTab !== "Chambres & Évènements" && activeTab !== "Catalogue & Menus" && activeTab !== "Caisse & PDV" && activeTab !== "Historique des Ventes" && activeTab !== "Recettes" && activeTab !== "Tableau de bord" && activeTab !== "Mouvements de Caisse" && (
+                  {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Plannings" && activeTab !== "Paramètres Globaux" && activeTab !== "Chambres & Évènements" && activeTab !== "Catalogue & Menus" && activeTab !== "Caisse & PDV" && activeTab !== "Historique des Ventes" && activeTab !== "Recettes" && activeTab !== "Tableau de bord" && activeTab !== "Mouvements de Caisse" && activeTab !== "Fournisseurs & Achats" && (
                     <div>
                       <h2 className="text-2xl font-bold mb-2">Bienvenue sur {appMode === "utopia" ? "Utopia" : "Sooatel"}</h2>
                       <p className="text-muted-foreground m-0 text-lg">
@@ -244,8 +246,8 @@ function App() {
                   ) : activeTab === "Caisse & PDV" ? (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
                       <ProtectedRoute permission="sales.pos">
-                        <SalesPosPage 
-                          onGoToHistory={() => setActiveTab("Historique des Ventes")} 
+                        <SalesPosPage
+                          onGoToHistory={() => setActiveTab("Historique des Ventes")}
                           saleToEdit={editingSale}
                           onClearEdit={() => {
                             setEditingSale(null);
@@ -256,7 +258,7 @@ function App() {
                   ) : activeTab === "Historique des Ventes" ? (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
                       <ProtectedRoute permission="sales.pos">
-                        <SalesListPage 
+                        <SalesListPage
                           onEditSale={(sale) => {
                             setEditingSale(sale);
                             setActiveTab("Caisse & PDV");
@@ -280,6 +282,18 @@ function App() {
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
                       <ProtectedRoute permission="restaurant.purchases">
                         <CashMovementPage />
+                      </ProtectedRoute>
+                    </div>
+                  ) : activeTab === "Fournisseurs & Achats" ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                      <ProtectedRoute permission="supplier.manage">
+                        <SuppliersPage />
+                      </ProtectedRoute>
+                    </div>
+                  ) : activeTab === "Gestion des Produits & Inventaire" ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                      <ProtectedRoute permission="stock.manage">
+                        <InventoryCatalogPage />
                       </ProtectedRoute>
                     </div>
                   ) : (

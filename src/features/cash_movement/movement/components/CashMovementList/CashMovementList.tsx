@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Search, Loader2 } from "lucide-react";
-import { CashMovementService } from "../services/cash-movement.service";
-import { CashMovementCategoryService } from "../../category/services/cash-movement-category.service";
-import { CashJournalService } from "../../services/cash-journal.service";
-import type { CashMovement, CashMovementDto, CashMovementCategory, CashJournal } from "../../types";
+import { CashMovementService } from "../../services/cash-movement.service";
+import { CashMovementCategoryService } from "../../../category/services/cash-movement-category.service";
+import { CashJournalService } from "../../../services/cash-journal.service";
+import type { CashMovement, CashMovementDto, CashMovementCategory, CashJournal } from "../../../types";
 import axios from "axios";
 import { Button } from "@/components/ui/Button/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";

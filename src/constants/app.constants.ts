@@ -39,7 +39,9 @@ export const NAVIGATION_GROUPS = [
     permission: "stock.access",
     scopes: ["utopia", "sooatel"], // Visible des deux côtés
     items: [
+      { title: "Gestion des Produits & Inventaire", url: "/inventory/catalog", icon: Box, permission: "stock.manage" },
       { title: "Niveaux de Stock", url: "/inventory/stock", icon: Boxes, permission: "stock.read" },
+      { title: "Fournisseurs & Achats", url: "/inventory/suppliers", icon: Package, permission: "supplier.manage" },
       { title: "Mouvements", url: "/inventory/movements", icon: ArrowRightLeft, permission: "stock.read" },
       { title: "Audits & Alertes", url: "/inventory/audits", icon: AlertTriangle, permission: "stock.audit" },
       { title: "Prévisions IA", url: "/inventory/ai", icon: TrendingUp, permission: "stock.forecast" },
@@ -75,14 +77,6 @@ export const NAVIGATION_GROUPS = [
 
 export const RESTAURANT_MODULES = [
   {
-    title: "Gestion des Produits & Inventaire",
-    items: [
-      { id: "items", title: "Articles", description: "Gérez la liste de vos produits et ingrédients.", icon: Box, colorClass: "text-primary bg-primary/10", hoverClass: "group-hover:bg-primary" },
-      { id: "itemTypes", title: "Types d'Articles", description: "Catégorisez vos articles (ex: Boisson, Viande...).", icon: Layers, colorClass: "text-secondary bg-secondary/10", hoverClass: "group-hover:bg-secondary" },
-      { id: "units", title: "Unités de Mesure", description: "Configurez les unités (Kg, Litre, Pièce...).", icon: Ruler, colorClass: "text-emerald-500 bg-emerald-500/10", hoverClass: "group-hover:bg-emerald-500" },
-    ]
-  },
-  {
     title: "Gestion de la Carte (Menus)",
     items: [
       { id: "menuItems", title: "Plats du Menu", description: "Gérez les plats proposés aux clients.", icon: MenuSquare, colorClass: "text-orange-500 bg-orange-500/10", hoverClass: "group-hover:bg-orange-500" },
@@ -98,6 +92,17 @@ export const HOTEL_MODULES = [
       { id: "rooms", title: "Chambres", description: "Gérez la liste des chambres et salles de l'hôtel.", icon: Bed, colorClass: "text-primary bg-primary/10", hoverClass: "group-hover:bg-primary" },
       { id: "roomTypes", title: "Types de Chambres", description: "Définissez les types (Standard, Suite, VIP...).", icon: Grid2x2, colorClass: "text-secondary bg-secondary/10", hoverClass: "group-hover:bg-secondary" },
       { id: "events", title: "Évènements", description: "Configurez les évènements pour la réservation.", icon: CalendarDays, colorClass: "text-blue-500 bg-blue-500/10", hoverClass: "group-hover:bg-blue-500" },
+    ]
+  }
+];
+
+export const INVENTORY_MODULES = [
+  {
+    title: "Gestion des Produits & Inventaire",
+    items: [
+      { id: "items", title: "Articles", description: "Gérez la liste de vos produits et ingrédients.", icon: Box, colorClass: "text-primary bg-primary/10", hoverClass: "group-hover:bg-primary" },
+      { id: "itemTypes", title: "Types d'Articles", description: "Catégorisez vos articles (ex: Boisson, Viande...).", icon: Layers, colorClass: "text-secondary bg-secondary/10", hoverClass: "group-hover:bg-secondary" },
+      { id: "units", title: "Unités de Mesure", description: "Configurez les unités (Kg, Litre, Pièce...).", icon: Ruler, colorClass: "text-emerald-500 bg-emerald-500/10", hoverClass: "group-hover:bg-emerald-500" },
     ]
   }
 ];

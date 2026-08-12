@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import type { SalePayload, SaleItem, MenuItemRef, PaymentMethodRef } from "./types";
+import type { SalePayload, SaleItem, MenuItemRef, PaymentMethodRef } from "../../types";
 import type { SelectOptionDto } from "@/types/api.type";
-import { SaleService } from "./services/sale.service";
-import { SaleDetailsForm } from "./components/SaleForm/SaleDetailsForm";
-import { SaleItemsForm } from "./components/SaleForm/SaleItemsForm";
-import { SalePaymentForm } from "../payments/components/SalePaymentForm";
-import { validateSaleForm } from "./utils/saleValidation";
-import { mapSaleRecordToFormData, calculateAlreadyPaid } from "./utils/saleMappers";
-import { fetchSalesDependencies } from "./utils/saleFetchers";
+import { SaleService } from "../../services/sale.service";
+import { SaleDetailsForm } from "./SaleForm/SaleDetailsForm";
+import { SaleItemsForm } from "./SaleForm/SaleItemsForm";
+import { SalePaymentForm } from "../../../payments/components/SalePaymentForm";
+import { validateSaleForm } from "../../utils/saleValidation";
+import { mapSaleRecordToFormData, calculateAlreadyPaid } from "../../utils/saleMappers";
+import { fetchSalesDependencies } from "../../utils/saleFetchers";
 import { Button } from "@/components/ui/Button/button";
 import { Save, AlertCircle, List } from "lucide-react";
 import { useAppStore } from "@/store/app.store";
@@ -16,7 +16,7 @@ import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog/dialog";
 
-import type { SaleRecord } from "./types";
+import type { SaleRecord } from "../../types";
 
 interface SalesPosPageProps {
   onGoToHistory?: () => void;

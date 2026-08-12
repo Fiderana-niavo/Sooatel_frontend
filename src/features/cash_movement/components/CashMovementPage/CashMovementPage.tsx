@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { CashMovementCategoryList } from "../category/components/CashMovementCategoryList";
-import { CashMovementList } from "../movement/components/CashMovementList";
-import { CashJournalPage } from "./CashJournalPage";
+import { CashMovementCategoryList } from "../../category/components/CashMovementCategoryList/CashMovementCategoryList";
+import { CashMovementList } from "../../movement/components/CashMovementList/CashMovementList";
+import { CashJournalPage } from "../CashJournalPage/CashJournalPage";
 
 export function CashMovementPage() {
   const [activeSubTab, setActiveSubTab] = useState<"journals" | "outflows" | "inflows" | "categories">("journals");
