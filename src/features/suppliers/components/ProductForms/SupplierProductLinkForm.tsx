@@ -1,14 +1,17 @@
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Trash2 } from "lucide-react";
+import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
 import type { SupplierProduct, SuppliedItem } from "../../types/supplier.type";
+import type { Item } from "@/features/items/types";
 
 interface SupplierProductLinkFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   linkProduct: SupplierProduct | null;
   linkedItems: SuppliedItem[];
-  allItems: any[];
+  allItems: Item[];
   onAddLink: (e: React.FormEvent<HTMLFormElement>) => void;
   onDeleteLink: (id: string) => void;
 }
@@ -22,6 +25,18 @@ export function SupplierProductLinkForm({
   onAddLink,
   onDeleteLink
 }: SupplierProductLinkFormProps) {
+  const [selectedItemId, setSelectedItemId] = useState("");
+
+  useEffect(() => {
+    if (!open) setSelectedItemId("");
+  }, [open]);
+
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    onAddLink(e);
+    // Clear selection so user can immediately link another item
+    setSelectedItemId("");
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
@@ -48,18 +63,27 @@ export function SupplierProductLinkForm({
             )}
           </div>
 
-          <form onSubmit={onAddLink} className="space-y-3 pt-2 border-t border-border/50">
-            <h4 className="font-medium text-sm">Ajouter une liaison</h4>
-            <div className="flex gap-2">
-              <select name="idItem" className="flex-1 h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required>
-                <option value="">Sélectionner un article interne...</option>
-                {allItems.map(item => (
-                  <option key={item.idItem} value={item.idItem}>{item.label}</option>
-                ))}
-              </select>
-              <Button type="submit">Lier</Button>
+          {linkedItems.length === 0 ? (
+            <form onSubmit={handleFormSubmit} className="space-y-3 pt-2 border-t border-border/50">
+              <h4 className="font-medium text-sm">Ajouter une liaison</h4>
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <input type="hidden" name="idItem" value={selectedItemId} />
+                  <SearchableSelect
+                    options={allItems.map(item => ({ value: item.idItem, label: item.label }))}
+                    value={selectedItemId}
+                    onChange={(val) => setSelectedItemId(val as string)}
+                    placeholder="Sélectionner un article interne..."
+                  />
+                </div>
+                <Button type="submit" disabled={!selectedItemId}>Lier</Button>
+              </div>
+            </form>
+          ) : (
+            <div className="pt-2 border-t border-border/50 text-sm text-amber-600 bg-amber-50 p-3 rounded-md">
+              <p>Ce produit fournisseur est déjà lié à un article interne. Vous devez supprimer la liaison actuelle pour pouvoir en ajouter une nouvelle.</p>
             </div>
-          </form>
+          )}
         </div>
         
         <DialogFooter>

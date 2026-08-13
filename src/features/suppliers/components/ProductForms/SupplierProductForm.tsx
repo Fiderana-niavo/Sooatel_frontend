@@ -45,6 +45,10 @@ export function SupplierProductForm({
               <Input name="minPurchaseNumber" type="number" defaultValue={editingProduct?.minPurchaseNumber || 1} />
             </div>
           </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Notes / Remarques</label>
+            <Input name="notes" defaultValue={editingProduct?.notes || ""} placeholder="Informations supplémentaires (ex: délai, condition...)" />
+          </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
             <Button type="submit">Enregistrer</Button>

@@ -25,7 +25,7 @@ export const deleteSupplier = async (id: string): Promise<void> => {
 };
 
 // --- SUPPLIER PRODUCTS ---
-export const getSupplierProducts = async (params?: { page?: number; limit?: number; search?: string; idSupplier?: string }): Promise<PaginatedResponse<SupplierProduct>> => {
+export const getSupplierProducts = async (params?: { page?: number; limit?: number; search?: string; idSupplier?: string; unlinkedOnly?: boolean }): Promise<PaginatedResponse<SupplierProduct>> => {
   const { data } = await axios.get<ApiResponse<PaginatedResponse<SupplierProduct>>>(`${BASE}/supplier-products/list`, { params });
   return data.payload;
 };

@@ -41,7 +41,7 @@ export function SuppliersPage() {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkProduct, setLinkProduct] = useState<SupplierProduct | null>(null);
   const [linkedItems, setLinkedItems] = useState<SuppliedItem[]>([]);
-  const [allItems, setAllItems] = useState<any[]>([]);
+  const [allItems, setAllItems] = useState<import("@/features/items/types").Item[]>([]);
   
   useEffect(() => {
     fetchSuppliers();
@@ -59,8 +59,8 @@ export function SuppliersPage() {
       const res = await api.getSuppliers({ page: supplierPage, limit: 10, search: supplierSearch });
       setSuppliers(res.records || []);
       setTotalSuppliers(res.total || 0);
-    } catch (err: any) {
-      addSnackbar(err.response?.data?.message || "Erreur lors du chargement des fournisseurs", "error");
+    } catch (err: unknown) {
+      addSnackbar((err as any).response?.data?.message || "Erreur lors du chargement des fournisseurs", "error");
     } finally {
       setLoadingSuppliers(false);
     }
@@ -71,8 +71,8 @@ export function SuppliersPage() {
     try {
       const res = await api.getSupplierProducts({ idSupplier, limit: 100 });
       setProducts(res.records || []);
-    } catch (err: any) {
-      addSnackbar(err.response?.data?.message || "Erreur lors du chargement des produits", "error");
+    } catch (err: unknown) {
+      addSnackbar((err as any).response?.data?.message || "Erreur lors du chargement des produits", "error");
     } finally {
       setLoadingProducts(false);
     }
@@ -84,7 +84,7 @@ export function SuppliersPage() {
     try {
       const [linksRes, itemsRes] = await Promise.all([
         api.getSuppliedItems({ idSupplierProduct: product.idSupplierProduct, limit: 100 }),
-        ItemService.getAll()
+        ItemService.getAll({ isProduced: false, limit: 1000 })
       ]);
       setLinkedItems(linksRes.records || []);
       setAllItems(itemsRes);
@@ -105,8 +105,8 @@ export function SuppliersPage() {
       // Refresh
       const linksRes = await api.getSuppliedItems({ idSupplierProduct: linkProduct.idSupplierProduct, limit: 100 });
       setLinkedItems(linksRes.records || []);
-    } catch (err: any) {
-      addSnackbar(err.response?.data?.message || "Erreur de liaison", "error");
+    } catch (err: unknown) {
+      addSnackbar((err as any).response?.data?.message || "Erreur lors de l'enregistrement", "error");
     }
   };
 
@@ -115,8 +115,8 @@ export function SuppliersPage() {
       await api.deleteSuppliedItem(idSuppliedItem);
       addSnackbar("Liaison supprimée", "success");
       setLinkedItems(prev => prev.filter(l => l.idSuppliedItem !== idSuppliedItem));
-    } catch (err) {
-      addSnackbar("Erreur de suppression", "error");
+    } catch (err: unknown) {
+      addSnackbar((err as any).response?.data?.message || "Erreur lors de la suppression de l'article lié", "error");
     }
   };
 
@@ -144,8 +144,8 @@ export function SuppliersPage() {
       }
       setSupplierDialogOpen(false);
       fetchSuppliers();
-    } catch (err: any) {
-      addSnackbar(err.response?.data?.message || "Erreur de sauvegarde", "error");
+    } catch (err: unknown) {
+      addSnackbar((err as any).response?.data?.message || "Erreur de sauvegarde", "error");
     }
   };
 
@@ -173,8 +173,8 @@ export function SuppliersPage() {
       }
       setProductDialogOpen(false);
       fetchProducts(selectedSupplier.idSupplier);
-    } catch (err: any) {
-      addSnackbar(err.response?.data?.message || "Erreur de sauvegarde", "error");
+    } catch (err: unknown) {
+      addSnackbar((err as any).response?.data?.message || "Erreur de sauvegarde", "error");
     }
   };
 
@@ -197,8 +197,8 @@ export function SuppliersPage() {
       }
       setPriceDialogOpen(false);
       fetchProducts(selectedSupplier.idSupplier);
-    } catch (err: any) {
-      addSnackbar(err.response?.data?.message || "Erreur de modification du prix", "error");
+    } catch (err: unknown) {
+      addSnackbar((err as any).response?.data?.message || "Erreur de modification du prix", "error");
     }
   };
 
