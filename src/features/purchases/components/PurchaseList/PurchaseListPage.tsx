@@ -3,13 +3,17 @@ import { useQuery } from "@tanstack/react-query";
 import { purchaseService } from "../../services/purchase.service";
 import { Button } from "@/components/ui/Button/button";
 import { formatCurrency } from "../../../../utils/formatters";
-import { Eye, Plus } from "lucide-react";
+import { Eye, Plus, PackageCheck } from "lucide-react";
 import { PurchaseDetailSheet } from "./PurchaseDetailSheet";
 import { PurchaseStatusBadge } from "./PurchaseStatusBadge";
+import { DeliverySheet } from "../../../delivery/components/DeliverySheet/DeliverySheet";
+import { ActionDropdown } from "@/components/ui/ActionDropdown/ActionDropdown";
+import type { Purchase } from "../../types/purchase.type";
 
 export function PurchaseListPage({ onGoToCreate }: { onGoToCreate?: () => void }) {
   const [page] = useState(1);
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<string | null>(null);
+  const [receptionPurchase, setReceptionPurchase] = useState<Purchase | null>(null);
 
   const result = useQuery({
     queryKey: ["purchases", page],
@@ -52,23 +56,40 @@ export function PurchaseListPage({ onGoToCreate }: { onGoToCreate?: () => void }
                     <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">Aucune commande trouvée.</td>
                   </tr>
                 ) : (
-                  data?.records.map((purchase) => (
-                    <tr key={purchase.idPurchase} className="hover:bg-muted/50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-foreground">{purchase.ref}</td>
-                      <td className="px-6 py-4">{new Date(purchase.purchaseDate).toLocaleDateString()}</td>
-                      <td className="px-6 py-4">{purchase.supplier?.name}</td>
-                      <td className="px-6 py-4 text-right font-medium">{formatCurrency(purchase.totalAmount)}</td>
-                      <td className="px-6 py-4 text-center">
-                        <PurchaseStatusBadge status={purchase.status} />
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <Button variant="ghost" size="sm" onClick={() => setSelectedPurchaseId(purchase.idPurchase)}>
-                          <Eye className="h-4 w-4 mr-1" />
-                          Détails
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
+                  data?.records.map((purchase) => {
+                    const isDeliverable = purchase.status === "Créé" || purchase.status === "Partiellement Livré";
+                    return (
+                      <tr key={purchase.idPurchase} className="hover:bg-muted/50 transition-colors">
+                        <td className="px-6 py-4 font-medium text-foreground">{purchase.ref}</td>
+                        <td className="px-6 py-4">{new Date(purchase.purchaseDate).toLocaleDateString()}</td>
+                        <td className="px-6 py-4">{purchase.supplier?.name}</td>
+                        <td className="px-6 py-4 text-right font-medium">{formatCurrency(purchase.totalAmount)}</td>
+                        <td className="px-6 py-4 text-center">
+                          <PurchaseStatusBadge status={purchase.status} />
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <div className="flex justify-center">
+                            <ActionDropdown
+                              items={[
+                                {
+                                  label: "Détails",
+                                  icon: <Eye className="h-4 w-4" />,
+                                  onClick: () => setSelectedPurchaseId(purchase.idPurchase),
+                                },
+                                {
+                                  label: "Réception",
+                                  icon: <PackageCheck className="h-4 w-4" />,
+                                  onClick: () => setReceptionPurchase(purchase),
+                                  hidden: !isDeliverable,
+                                  className: "text-emerald-600 dark:text-emerald-400 hover:text-emerald-700",
+                                },
+                              ]}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -80,6 +101,12 @@ export function PurchaseListPage({ onGoToCreate }: { onGoToCreate?: () => void }
         idPurchase={selectedPurchaseId}
         onClose={() => setSelectedPurchaseId(null)}
       />
+
+      <DeliverySheet
+        purchase={receptionPurchase}
+        onClose={() => setReceptionPurchase(null)}
+      />
     </div>
   );
 }
+

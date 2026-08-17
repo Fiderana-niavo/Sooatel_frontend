@@ -4,6 +4,7 @@ import { purchaseService } from "../../services/purchase.service";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/Sheet/sheet";
 import { formatCurrency } from "../../../../utils/formatters";
 import { PurchaseStatusBadge } from "./PurchaseStatusBadge";
+import type { PurchaseDeliveryHistory } from "../../../delivery/types/delivery.type";
 
 interface PurchaseDetailSheetProps {
   idPurchase: string | null;
@@ -23,7 +24,13 @@ export const PurchaseDetailSheet: React.FC<PurchaseDetailSheetProps> = ({ idPurc
     enabled: !!idPurchase,
   });
 
-  const isLoading = isLoadingPurchase || isLoadingDetails;
+  const { data: deliveries, isLoading: isLoadingDeliveries } = useQuery({
+    queryKey: ["purchaseDeliveries", idPurchase],
+    queryFn: () => purchaseService.getDeliveries(idPurchase!),
+    enabled: !!idPurchase,
+  });
+
+  const isLoading = isLoadingPurchase || isLoadingDetails || isLoadingDeliveries;
 
   return (
     <Sheet open={!!idPurchase} onOpenChange={(open) => !open && onClose()}>
@@ -99,6 +106,50 @@ export const PurchaseDetailSheet: React.FC<PurchaseDetailSheetProps> = ({ idPurc
                 </table>
               </div>
             </div>
+
+            {deliveries && deliveries.length > 0 && (
+              <div className="pt-6 mt-6 border-t border-border/50">
+                <h3 className="text-lg font-semibold mb-4">Historique des Livraisons</h3>
+                <div className="space-y-4">
+                  {deliveries.map((delivery: PurchaseDeliveryHistory) => (
+                    <div key={delivery.idDelivery} className="rounded-lg border border-border/50 overflow-hidden">
+                      <div className="bg-muted/30 px-4 py-3 flex justify-between items-center border-b border-border/50">
+                        <div>
+                          <p className="font-semibold">{delivery.ref}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(delivery.deliveryDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs font-medium text-muted-foreground mb-0.5">{delivery.status}</p>
+                          <p className="font-semibold text-primary">{formatCurrency(delivery.totalAmount)}</p>
+                        </div>
+                      </div>
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted/10 text-muted-foreground text-xs uppercase">
+                          <tr>
+                            <th className="px-4 py-2 text-left font-medium">Produit</th>
+                            <th className="px-4 py-2 text-right font-medium">Qté Livrée</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/30">
+                          {delivery.details.map((detail) => (
+                            <tr key={detail.idDeliveryDetail} className="hover:bg-muted/20">
+                              <td className="px-4 py-2 text-muted-foreground">
+                                {detail.itemLabel || "Produit inconnu"}
+                              </td>
+                              <td className="px-4 py-2 text-right font-semibold text-emerald-600 dark:text-emerald-400">
+                                +{detail.quantity}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="py-8 text-center text-red-500">Erreur lors du chargement de la commande.</div>

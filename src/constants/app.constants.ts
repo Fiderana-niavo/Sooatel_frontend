@@ -1,6 +1,6 @@
 import {
   UtensilsCrossed, Package, Users, Building, BedDouble, BookOpen, AlertTriangle, TrendingUp, Contact, CalendarDays, HeartHandshake, Settings, ShieldCheck, LayoutDashboard, CreditCard, Boxes, ArrowRightLeft,
-  Box, Layers, MenuSquare, List, Ruler, Bed, Grid2x2, Banknote
+  Box, Layers, MenuSquare, List, Ruler, Bed, Grid2x2, Banknote, PackageCheck
 } from "lucide-react";
 
 // ============================================================================
@@ -43,6 +43,7 @@ export const NAVIGATION_GROUPS = [
       { title: "Niveaux de Stock", url: "/inventory/stock", icon: Boxes, permission: "stock.read" },
       { title: "Fournisseurs & Achats", url: "/inventory/suppliers", icon: Package, permission: "supplier.manage" },
       { title: "Commandes Fournisseurs", url: "/inventory/purchases", icon: Package, permission: "supplier.manage" },
+      { title: "Livraisons Fournisseurs", url: "/inventory/deliveries", icon: PackageCheck, permission: "supplier.manage" },
       { title: "Mouvements", url: "/inventory/movements", icon: ArrowRightLeft, permission: "stock.read" },
       { title: "Audits & Alertes", url: "/inventory/audits", icon: AlertTriangle, permission: "stock.audit" },
       { title: "Prévisions IA", url: "/inventory/ai", icon: TrendingUp, permission: "stock.forecast" },

@@ -29,5 +29,10 @@ export const purchaseService = {
   getSuppliedItemsBySupplier: async (idSupplier: string): Promise<SuppliedItem[]> => {
     const { data: response } = await axios.get<ApiResponse<SuppliedItem[]>>(`${BASE}/supplied-items/supplier/${idSupplier}`);
     return response.payload;
-  }
+  },
+
+  getDeliveries: async (id: string): Promise<any> => {
+    const { data: response } = await axios.get<ApiResponse<any>>(`${BASE}/purchases/${id}/deliveries`);
+    return response.payload;
+  },
 };
