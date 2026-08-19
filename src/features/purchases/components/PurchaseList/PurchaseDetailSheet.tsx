@@ -2,6 +2,8 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { purchaseService } from "../../services/purchase.service";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/Sheet/sheet";
+import { Button } from "@/components/ui/Button/button";
+import { CheckCircle2, PackageCheck, Edit, Ban } from "lucide-react";
 import { formatCurrency } from "../../../../utils/formatters";
 import { PurchaseStatusBadge } from "./PurchaseStatusBadge";
 import type { PurchaseDeliveryHistory } from "../../../delivery/types/delivery.type";
@@ -9,9 +11,14 @@ import type { PurchaseDeliveryHistory } from "../../../delivery/types/delivery.t
 interface PurchaseDetailSheetProps {
   idPurchase: string | null;
   onClose: () => void;
+  onGoToDelivery?: (idDelivery: string) => void;
+  onConfirm?: (purchase: any) => void;
+  onReceive?: (purchase: any) => void;
+  onEdit?: (purchase: any) => void;
+  onCancel?: (purchase: any) => void;
 }
 
-export const PurchaseDetailSheet: React.FC<PurchaseDetailSheetProps> = ({ idPurchase, onClose }) => {
+export const PurchaseDetailSheet: React.FC<PurchaseDetailSheetProps> = ({ idPurchase, onClose, onGoToDelivery, onConfirm, onReceive, onEdit, onCancel }) => {
   const { data: purchase, isLoading: isLoadingPurchase } = useQuery({
     queryKey: ["purchase", idPurchase],
     queryFn: () => purchaseService.getById(idPurchase!),
@@ -36,9 +43,39 @@ export const PurchaseDetailSheet: React.FC<PurchaseDetailSheetProps> = ({ idPurc
     <Sheet open={!!idPurchase} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader className="mb-6">
-          <SheetTitle className="text-2xl font-bold flex justify-between items-center pr-8">
-            Détails de la Commande
-            {purchase && <PurchaseStatusBadge status={purchase.status} />}
+          <SheetTitle className="flex flex-col gap-4 pr-8">
+            <div className="flex justify-between items-center w-full">
+              <span className="text-2xl font-bold">Détails de la commande</span>
+              {purchase && <PurchaseStatusBadge status={purchase.status} />}
+            </div>
+            {purchase && (
+              <div className="flex flex-wrap items-center gap-3">
+                {(purchase.status === "Créé" || purchase.status === "Brouillon") && onConfirm && (
+                  <Button variant="outline" size="sm" onClick={() => onConfirm(purchase)} className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Confirmer
+                  </Button>
+                )}
+                {purchase.status !== "Annulé" && purchase.status !== "Livré" && onReceive && (
+                  <Button variant="outline" size="sm" onClick={() => onReceive(purchase)} className="text-emerald-600 border-emerald-200 hover:bg-emerald-50">
+                    <PackageCheck className="h-4 w-4 mr-2" />
+                    Réception
+                  </Button>
+                )}
+                {purchase.status !== "Annulé" && purchase.status !== "Livré" && onEdit && (
+                  <Button variant="outline" size="sm" onClick={() => onEdit(purchase)} className="text-amber-600 border-amber-200 hover:bg-amber-50">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Modifier
+                  </Button>
+                )}
+                {purchase.status !== "Annulé" && purchase.status !== "Livré" && onCancel && (
+                  <Button variant="outline" size="sm" onClick={() => onCancel(purchase)} className="text-red-600 border-red-200 hover:bg-red-50">
+                    <Ban className="h-4 w-4 mr-2" />
+                    Annuler
+                  </Button>
+                )}
+              </div>
+            )}
           </SheetTitle>
         </SheetHeader>
 
@@ -115,7 +152,16 @@ export const PurchaseDetailSheet: React.FC<PurchaseDetailSheetProps> = ({ idPurc
                     <div key={delivery.idDelivery} className="rounded-lg border border-border/50 overflow-hidden">
                       <div className="bg-muted/30 px-4 py-3 flex justify-between items-center border-b border-border/50">
                         <div>
-                          <p className="font-semibold">{delivery.ref}</p>
+                          {onGoToDelivery ? (
+                            <button
+                              onClick={() => onGoToDelivery(delivery.idDelivery)}
+                              className="font-semibold text-primary hover:underline"
+                            >
+                              {delivery.ref}
+                            </button>
+                          ) : (
+                            <p className="font-semibold">{delivery.ref}</p>
+                          )}
                           <p className="text-xs text-muted-foreground">
                             {new Date(delivery.deliveryDate).toLocaleDateString()}
                           </p>

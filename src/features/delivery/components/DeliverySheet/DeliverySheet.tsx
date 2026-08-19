@@ -14,9 +14,10 @@ interface DeliverySheetProps {
   deliveryIdToEdit?: string | null;
   supplierIdForEdit?: string | null;
   onClose: () => void;
+  onGoToDeliveries?: (idPurchase: string) => void;
 }
 
-export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, deliveryIdToEdit, supplierIdForEdit, onClose }) => {
+export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, deliveryIdToEdit, supplierIdForEdit, onClose, onGoToDeliveries }) => {
   const queryClient = useQueryClient();
 
   // Purchases for which input is active (the clicked purchase is active by default)
@@ -47,6 +48,24 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
   // Initialize for Creation mode
   React.useEffect(() => {
     if (!isEditMode && pendingResult.data && purchase) {
+      const savedStr = sessionStorage.getItem("deliverySheetSavedState");
+      if (savedStr) {
+        try {
+          const parsed = JSON.parse(savedStr);
+          if (parsed && parsed.purchase?.idPurchase === purchase.idPurchase) {
+            setActivePurchaseIds(new Set(parsed.activePurchaseIds || []));
+            setExpandedIds(new Set(parsed.expandedIds || []));
+            setQtyMap(new Map(parsed.qtyMap || []));
+            sessionStorage.removeItem("deliverySheetSavedState"); // Clean up
+            setSubmitError(null);
+            setSubmitSuccess(null);
+            return;
+          }
+        } catch (e) {
+          console.error("Failed to parse saved delivery sheet state", e);
+        }
+      }
+
       setActivePurchaseIds(new Set([purchase.idPurchase]));
       setExpandedIds(new Set([purchase.idPurchase]));
       setQtyMap(new Map());
@@ -64,7 +83,7 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
       for (const p of pendingResult.data) {
         for (const detail of p.details) {
           const editDetail = deliveryDetails.details?.find((d: any) => d.idSuppliedItem === detail.idSuppliedItem);
-          
+
           if (editDetail && Number(editDetail.quantity) > 0) {
             activeIds.add(p.idPurchase);
             qtyMapInit.set(detail.idPurchaseDetail, Number(editDetail.quantity));
@@ -89,8 +108,10 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
       queryClient.invalidateQueries({ queryKey: ["deliveries"] });
       setTimeout(onClose, 2000);
     },
-    onError: () => {
-      setSubmitError("Erreur lors de l'enregistrement. Veuillez réessayer.");
+    onError: (error: any) => {
+      setSubmitError(
+        error?.response?.data?.error || error?.response?.data?.message || "Erreur lors de l'enregistrement. Veuillez réessayer."
+      );
     },
   });
 
@@ -104,8 +125,10 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
       queryClient.invalidateQueries({ queryKey: ["deliveryDetails", deliveryIdToEdit] });
       setTimeout(onClose, 2000);
     },
-    onError: () => {
-      setSubmitError("Erreur lors de la modification. Veuillez réessayer.");
+    onError: (error: any) => {
+      setSubmitError(
+        error?.response?.data?.error || error?.response?.data?.message || "Erreur lors de la modification. Veuillez réessayer."
+      );
     },
   });
 
@@ -151,13 +174,10 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
 
     setSubmitError(null);
 
-    const mainPurchaseId = purchase?.idPurchase || deliveryDetails?.purchases?.[0]?.idPurchase || "";
-
     const payload = buildDeliveryPayload(
       pendingResult.data,
       activePurchaseIds,
-      qtyMap,
-      mainPurchaseId
+      qtyMap
     );
 
     if (payload.lines.length === 0) {
@@ -187,9 +207,9 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
   // Sort: clicked purchase first, then others
   const sorted: PendingPurchase[] = pendingResult.data
     ? [
-        ...pendingResult.data.filter((p) => p.idPurchase === purchase?.idPurchase),
-        ...pendingResult.data.filter((p) => p.idPurchase !== purchase?.idPurchase),
-      ]
+      ...pendingResult.data.filter((p) => p.idPurchase === purchase?.idPurchase),
+      ...pendingResult.data.filter((p) => p.idPurchase !== purchase?.idPurchase),
+    ]
     : [];
 
   return (
@@ -201,8 +221,8 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
             {isEditMode ? "Modification de la livraison" : "Réception de marchandises"}
           </SheetTitle>
           <p className="text-sm text-muted-foreground">
-            {isEditMode 
-              ? "Modifiez les quantités reçues pour cette livraison. Cochez ou décochez les commandes pour les inclure ou les exclure." 
+            {isEditMode
+              ? "Modifiez les quantités reçues pour cette livraison. Cochez ou décochez les commandes pour les inclure ou les exclure."
               : "Saisissez les quantités reçues par article. Les autres commandes du même fournisseur sont affichées — elles ont peut-être été livrées en même temps."}
           </p>
         </SheetHeader>
@@ -238,11 +258,10 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
             return (
               <div
                 key={p.idPurchase}
-                className={`rounded-lg border transition-all ${
-                  isActive
+                className={`rounded-lg border transition-all ${isActive
                     ? "border-primary/50 bg-card"
                     : "border-border/40 bg-muted/20 opacity-60"
-                }`}
+                  }`}
               >
                 {/* Purchase header */}
                 <div className="flex items-center justify-between px-4 py-3">
@@ -383,9 +402,32 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
           </div>
 
           {submitError && (
-            <div className="flex items-center gap-2 text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-md">
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
-              {submitError}
+            <div className="flex flex-col gap-2 bg-red-500/10 px-3 py-2 rounded-md">
+              <div className="flex items-center gap-2 text-sm text-red-500">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                {submitError}
+              </div>
+              {submitError.includes("existe déjà pour la commande") && onGoToDeliveries && purchase && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs text-red-600 border-red-200 hover:bg-red-500/20"
+                  onClick={() => {
+                    const savedState = {
+                      purchase,
+                      qtyMap: Array.from(qtyMap.entries()),
+                      activePurchaseIds: Array.from(activePurchaseIds),
+                      expandedIds: Array.from(expandedIds)
+                    };
+                    sessionStorage.setItem("deliverySheetSavedState", JSON.stringify(savedState));
+
+                    onGoToDeliveries(purchase.idPurchase);
+                    // onClose(); // Removed to prevent any race condition with unmounting
+                  }}
+                >
+                  Voir les livraisons en cours
+                </Button>
+              )}
             </div>
           )}
           {submitSuccess && (

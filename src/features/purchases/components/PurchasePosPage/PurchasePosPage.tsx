@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import React, { useState, useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { purchaseService } from "../../services/purchase.service";
 import { getSuppliers } from "@/features/suppliers/services/supplier.service";
 import { EmployeeService } from "@/features/employees/services/employee.service";
@@ -7,12 +7,12 @@ import type { CreatePurchaseDto } from "../../types/purchase.type";
 import { PurchaseInfoForm } from "./PurchaseInfoForm";
 import { PurchaseItemsForm } from "./PurchaseItemsForm";
 import { Button } from "@/components/ui/Button/button";
-import { Save, ArrowLeft } from "lucide-react";
+import { Save, ArrowLeft, AlertCircle } from "lucide-react";
 import { Snackbar, type SnackbarType } from "@/components/ui/Snackbar/snackbar";
 import { AddSuppliedItemModal } from "./AddSuppliedItemModal";
 import { formatCurrency } from "../../../../utils/formatters";
 
-export function PurchasePosPage({ onGoToList }: { onGoToList?: () => void }) {
+export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries }: { onGoToList?: () => void, idPurchaseToEdit?: string, onGoToDeliveries?: (idPurchase: string) => void }) {
   const [purchaseData, setPurchaseData] = useState<CreatePurchaseDto>({
     purchaseDate: new Date().toISOString().slice(0, 16),
     idSupplier: "",
@@ -22,6 +22,61 @@ export function PurchasePosPage({ onGoToList }: { onGoToList?: () => void }) {
 
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({ message: "", type: "info", isOpen: false });
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const initializedForId = useRef<string | undefined | null>(null);
+
+  useEffect(() => {
+    if (initializedForId.current === idPurchaseToEdit) return;
+
+    const savedStr = sessionStorage.getItem("purchasePosSavedState");
+    if (savedStr) {
+      try {
+        const parsed = JSON.parse(savedStr);
+        if (parsed && parsed.idPurchaseToEdit === idPurchaseToEdit) {
+          setPurchaseData(parsed.purchaseData);
+          sessionStorage.removeItem("purchasePosSavedState");
+          initializedForId.current = idPurchaseToEdit;
+          return;
+        }
+      } catch (e) {
+        console.error("Failed to parse saved pos state", e);
+      }
+    }
+  }, [idPurchaseToEdit]);
+
+  // If in edit mode, fetch the purchase details
+  const { data: editPurchase } = useQuery({
+    queryKey: ["purchase", idPurchaseToEdit],
+    queryFn: () => purchaseService.getById(idPurchaseToEdit!),
+    enabled: !!idPurchaseToEdit
+  });
+
+  const { data: editDetails } = useQuery({
+    queryKey: ["purchaseDetails", idPurchaseToEdit],
+    queryFn: () => purchaseService.getDetails(idPurchaseToEdit!),
+    enabled: !!idPurchaseToEdit
+  });
+
+  useEffect(() => {
+    if (initializedForId.current === idPurchaseToEdit) return;
+
+    if (editPurchase && editDetails) {
+      setPurchaseData({
+        purchaseDate: editPurchase.purchaseDate
+          ? new Date(editPurchase.purchaseDate).toISOString().slice(0, 16)
+          : new Date().toISOString().slice(0, 16),
+        idSupplier: editPurchase.idSupplier,
+        idPurchaser: editPurchase.idPurchaser,
+        details: editDetails.map((d) => ({
+          idSuppliedItem: d.idSuppliedItem,
+          quantity: d.quantity,
+          unitPrice: d.unitPrice,
+        })),
+      });
+      initializedForId.current = idPurchaseToEdit;
+    }
+  }, [editPurchase, editDetails, idPurchaseToEdit]);
 
   const showSnackbar = (message: string, type: SnackbarType = "info") => {
     setSnackbar({ message, type, isOpen: true });
@@ -46,11 +101,31 @@ export function PurchasePosPage({ onGoToList }: { onGoToList?: () => void }) {
   const createMutation = useMutation({
     mutationFn: (data: CreatePurchaseDto) => purchaseService.create(data),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchases"] });
       showSnackbar("Commande créée avec succès", "success");
       if (onGoToList) onGoToList();
     },
     onError: (error: any) => {
-      showSnackbar(error.response?.data?.message || "Erreur lors de la création de la commande", "error");
+      showSnackbar(error.response?.data?.error || error.response?.data?.message || "Erreur lors de la création de la commande", "error");
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: CreatePurchaseDto) => purchaseService.update(idPurchaseToEdit!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchases"] });
+      queryClient.invalidateQueries({ queryKey: ["purchase", idPurchaseToEdit] });
+      queryClient.invalidateQueries({ queryKey: ["purchaseDetails", idPurchaseToEdit] });
+      showSnackbar("Commande modifiée avec succès", "success");
+      if (onGoToList) onGoToList();
+    },
+    onError: (error: any) => {
+      const msg = error.response?.data?.error || error.response?.data?.message || "Erreur lors de la modification de la commande";
+      if (msg.includes("livraison en cours")) {
+        setSubmitError(msg);
+      } else {
+        showSnackbar(msg, "error");
+      }
     }
   });
 
@@ -97,7 +172,11 @@ export function PurchasePosPage({ onGoToList }: { onGoToList?: () => void }) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isFormValid) {
-      createMutation.mutate(purchaseData);
+      if (idPurchaseToEdit) {
+        updateMutation.mutate(purchaseData);
+      } else {
+        createMutation.mutate(purchaseData);
+      }
     } else {
       showSnackbar("Veuillez remplir correctement tous les champs obligatoires.", "error");
     }
@@ -114,7 +193,9 @@ export function PurchasePosPage({ onGoToList }: { onGoToList?: () => void }) {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour
           </Button>
-          <h1 className="text-3xl font-bold text-foreground">Nouvelle Commande</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            {idPurchaseToEdit ? `Modifier la commande` : `Nouvelle Commande`}
+          </h1>
         </div>
       </div>
 
@@ -138,6 +219,27 @@ export function PurchasePosPage({ onGoToList }: { onGoToList?: () => void }) {
           />
         )}
 
+        {submitError && (
+          <div className="flex flex-col gap-2 bg-red-500/10 px-4 py-3 rounded-md mb-6">
+            <div className="flex items-center gap-2 text-sm text-red-500 font-medium">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              {submitError}
+            </div>
+            {submitError.includes("livraison en cours") && onGoToDeliveries && idPurchaseToEdit && (
+              <Button 
+                variant="outline" 
+                className="w-full mt-1 text-sm text-red-600 border-red-200 hover:bg-red-500/20"
+                onClick={() => {
+                  sessionStorage.setItem("purchasePosSavedState", JSON.stringify({ idPurchaseToEdit, purchaseData }));
+                  onGoToDeliveries(idPurchaseToEdit);
+                }}
+              >
+                Voir les livraisons en cours
+              </Button>
+            )}
+          </div>
+        )}
+
         <div className="flex justify-end gap-4 border-t border-border/30 pt-6">
           <Button type="button" variant="outline" onClick={onGoToList}>
             Annuler
@@ -145,9 +247,9 @@ export function PurchasePosPage({ onGoToList }: { onGoToList?: () => void }) {
           <Button 
             type="submit" 
             className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8"
-            disabled={!isFormValid || createMutation.isPending}
+            disabled={!isFormValid || createMutation.isPending || updateMutation.isPending}
           >
-            {createMutation.isPending ? "Enregistrement..." : (
+            {createMutation.isPending || updateMutation.isPending ? "Enregistrement..." : (
               <>
                 <Save className="mr-2 h-4 w-4" />
                 Valider la commande ({formatCurrency(totalAmount)})

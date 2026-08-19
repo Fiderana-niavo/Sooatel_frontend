@@ -11,7 +11,12 @@ export const purchaseService = {
     return response.payload;
   },
 
-  getAll: async (params?: { page?: number; limit?: number }): Promise<PaginatedResponse<Purchase>> => {
+  update: async (id: string, data: CreatePurchaseDto): Promise<Purchase> => {
+    const { data: response } = await axios.put<ApiResponse<Purchase>>(`${BASE}/purchases/${id}`, data);
+    return response.payload;
+  },
+
+  getAll: async (params?: { page?: number; limit?: number; status?: number; lifecycleStatus?: number; idSupplier?: string; startDate?: string; endDate?: string }): Promise<PaginatedResponse<Purchase>> => {
     const { data: response } = await axios.get<ApiResponse<PaginatedResponse<Purchase>>>(`${BASE}/purchases`, { params });
     return response.payload;
   },
@@ -33,6 +38,16 @@ export const purchaseService = {
 
   getDeliveries: async (id: string): Promise<any> => {
     const { data: response } = await axios.get<ApiResponse<any>>(`${BASE}/purchases/${id}/deliveries`);
+    return response.payload;
+  },
+
+  confirm: async (id: string): Promise<Purchase> => {
+    const { data: response } = await axios.post<ApiResponse<Purchase>>(`${BASE}/purchases/${id}/confirm`);
+    return response.payload;
+  },
+
+  cancel: async (id: string, options?: { forceDeleteOpenDelivery?: boolean }): Promise<Purchase> => {
+    const { data: response } = await axios.post<ApiResponse<Purchase>>(`${BASE}/purchases/${id}/cancel`, options);
     return response.payload;
   },
 };

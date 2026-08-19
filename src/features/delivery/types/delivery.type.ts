@@ -71,6 +71,7 @@ export interface PendingPurchase {
   purchaseDate: string;
   totalAmount: number;
   status: string;
+  lifecycleStatus: string | number;
   purchaser?: EmployeeRef;
   details: PendingDetail[];
 }
@@ -81,7 +82,6 @@ export interface DeliveryLineDto {
 }
 
 export interface CreateDeliveryDto {
-  idPurchaseClicked: string;
   idPurchases: string[];
   lines: DeliveryLineDto[];
 }

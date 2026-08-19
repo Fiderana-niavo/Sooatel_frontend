@@ -35,6 +35,7 @@ export interface Purchase {
   totalAmount: number;
   balanceDue: number;
   status: string | number;
+  lifecycleStatus?: string | number;
   idSupplier: string;
   idPurchaser: string;
   supplier?: Supplier;

@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { deliveryService } from "../../services/delivery.service";
 import { formatCurrency } from "../../../../utils/formatters";
-import { Eye, CheckCircle2, Edit2, Trash2 } from "lucide-react";
+import { Eye, CheckCircle2, Edit2, Trash2, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/Button/button";
 import { ActionDropdown } from "@/components/ui/ActionDropdown/ActionDropdown";
 import { DeliveryStatusBadge } from "./DeliveryStatusBadge";
 import { DeliveryDetailSheet } from "./DeliveryDetailSheet";
@@ -11,9 +12,16 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
-export function DeliveryListPage() {
+export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => void }) {
   const [page] = useState(1);
-  const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(null);
+  const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(() => {
+    const saved = sessionStorage.getItem("viewDeliveryDetailId");
+    if (saved) {
+      sessionStorage.removeItem("viewDeliveryDetailId");
+      return saved;
+    }
+    return null;
+  });
   
   // States for Edit Mode
   const [editingDeliveryId, setEditingDeliveryId] = useState<string | null>(null);
@@ -26,9 +34,23 @@ export function DeliveryListPage() {
     setSnackbar({ message, type, isOpen: true });
   };
 
+  const [filters, setFilters] = useState<{ idPurchase?: string, status?: number, returnToPurchases?: boolean }>(() => {
+    const saved = sessionStorage.getItem("deliveryFilter");
+    if (saved) {
+      sessionStorage.removeItem("deliveryFilter");
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {};
+  });
+
   const result = useQuery({
-    queryKey: ["deliveries", page],
-    queryFn: () => deliveryService.getAllDeliveries({ page, limit: 10 })
+    queryKey: ["deliveries", page, filters],
+    queryFn: () => deliveryService.getAllDeliveries({ 
+      page, 
+      limit: 10,
+      idPurchase: filters.idPurchase,
+      status: filters.status
+    })
   });
 
   const { data, isLoading, refetch } = result;
@@ -58,7 +80,34 @@ export function DeliveryListPage() {
     <div className="p-6 space-y-6 bg-background min-h-screen">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-foreground">Livraisons Fournisseurs</h1>
+        <div className="flex gap-2">
+          {filters.returnToPurchases && onGoToPurchases && (
+            <Button
+              variant="outline"
+              onClick={onGoToPurchases}
+              className="text-primary border-primary hover:bg-primary/10"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Retour à la commande
+            </Button>
+          )}
+          {(filters.idPurchase || filters.status !== undefined) && (
+            <Button 
+              variant="outline" 
+              onClick={() => setFilters({})}
+              className="text-muted-foreground"
+            >
+              Afficher toutes les livraisons
+            </Button>
+          )}
+        </div>
       </div>
+
+      {(filters.idPurchase || filters.status !== undefined) && (
+        <div className="bg-primary/10 text-primary px-4 py-2 rounded-md text-sm">
+          <strong>Filtre actif :</strong> Affichage des livraisons en cours pour une commande spécifique.
+        </div>
+      )}
 
       <div className="border border-border/50 shadow-sm rounded-lg bg-card text-card-foreground">
         <div className="p-0">
@@ -141,6 +190,15 @@ export function DeliveryListPage() {
       <DeliveryDetailSheet
         idDelivery={selectedDeliveryId}
         onClose={() => setSelectedDeliveryId(null)}
+        onEdit={(id, supplierId) => {
+          setSelectedDeliveryId(null);
+          setEditingDeliveryId(id);
+          setEditingSupplierId(supplierId || null);
+        }}
+        onDelete={(id) => {
+          setSelectedDeliveryId(null);
+          setConfirmAction({ type: "delete", id });
+        }}
       />
 
       {editingDeliveryId && (

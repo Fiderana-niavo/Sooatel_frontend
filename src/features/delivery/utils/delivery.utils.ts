@@ -3,8 +3,7 @@ import type { CreateDeliveryDto, PendingPurchase } from "../types/delivery.type"
 export function buildDeliveryPayload(
   purchases: PendingPurchase[],
   activePurchaseIds: Set<string>,
-  qtyMap: Map<string, number>,
-  idPurchaseClicked: string
+  qtyMap: Map<string, number>
 ): CreateDeliveryDto {
   // Group item lines with qty > 0 and track affected purchases
   const lineMap = new Map<string, { quantity: number }>();
@@ -30,7 +29,6 @@ export function buildDeliveryPayload(
   }
 
   return {
-    idPurchaseClicked,
     idPurchases: Array.from(touchedPurchaseIds),
     lines: Array.from(lineMap.entries()).map(([idSuppliedItem, { quantity }]) => ({
       idSuppliedItem,

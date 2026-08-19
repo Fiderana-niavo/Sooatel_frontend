@@ -3,21 +3,49 @@ import { useQuery } from "@tanstack/react-query";
 import { purchaseService } from "../../services/purchase.service";
 import { Button } from "@/components/ui/Button/button";
 import { formatCurrency } from "../../../../utils/formatters";
-import { Eye, Plus, PackageCheck } from "lucide-react";
+import { Eye, Plus, PackageCheck, Edit, Ban, CheckCircle2 } from "lucide-react";
 import { PurchaseDetailSheet } from "./PurchaseDetailSheet";
 import { PurchaseStatusBadge } from "./PurchaseStatusBadge";
 import { DeliverySheet } from "../../../delivery/components/DeliverySheet/DeliverySheet";
 import { ActionDropdown } from "@/components/ui/ActionDropdown/ActionDropdown";
+import { ConfirmPurchaseDialog } from "./ConfirmPurchaseDialog";
+import { CancelPurchaseDialog } from "./CancelPurchaseDialog";
+import { DeliveryDetailSheet } from "../../../delivery/components/DeliveryList/DeliveryDetailSheet";
 import type { Purchase } from "../../types/purchase.type";
+import { useEffect } from "react";
 
-export function PurchaseListPage({ onGoToCreate }: { onGoToCreate?: () => void }) {
+export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }: { onGoToCreate?: () => void, onGoToEdit?: (p: Purchase) => void, onGoToDeliveries?: () => void }) {
+  const [activeTab, setActiveTab] = useState<"toutes" | "annulees">("toutes");
   const [page] = useState(1);
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<string | null>(null);
   const [receptionPurchase, setReceptionPurchase] = useState<Purchase | null>(null);
+  const [viewDeliveryId, setViewDeliveryId] = useState<string | null>(null);
+  const [confirmPurchase, setConfirmPurchase] = useState<Purchase | null>(null);
+  const [cancelPurchase, setCancelPurchase] = useState<Purchase | null>(null);
+  const [confirmAndReceivePurchase, setConfirmAndReceivePurchase] = useState<Purchase | null>(null);
+
+  useEffect(() => {
+    const savedStr = sessionStorage.getItem("deliverySheetSavedState");
+    if (savedStr) {
+      try {
+        const parsed = JSON.parse(savedStr);
+        if (parsed && parsed.purchase) {
+          console.log("PurchaseListPage restoring receptionPurchase from saved state:", parsed.purchase.idPurchase);
+          setReceptionPurchase(parsed.purchase);
+        }
+      } catch (e) {
+        console.error("Failed to parse saved delivery sheet state", e);
+      }
+    }
+  }, []);
 
   const result = useQuery({
-    queryKey: ["purchases", page],
-    queryFn: () => purchaseService.getAll({ page, limit: 10 })
+    queryKey: ["purchases", page, activeTab],
+    queryFn: () => purchaseService.getAll({ 
+      page, 
+      limit: 10,
+      lifecycleStatus: activeTab === "annulees" ? -3 : undefined 
+    })
   });
 
   const { data, isLoading } = result;
@@ -32,7 +60,28 @@ export function PurchaseListPage({ onGoToCreate }: { onGoToCreate?: () => void }
         </Button>
       </div>
 
-      <div className="border border-border/50 shadow-sm rounded-lg bg-card text-card-foreground">
+      <div className="flex gap-4 border-b border-border/50 pb-2">
+        <button
+          onClick={() => setActiveTab("toutes")}
+          className={`px-4 py-2 font-medium text-sm transition-colors relative ${activeTab === "toutes" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          Toutes les commandes
+          {activeTab === "toutes" && (
+            <span className="absolute bottom-[-9px] left-0 right-0 h-0.5 bg-primary rounded-t-full" />
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab("annulees")}
+          className={`px-4 py-2 font-medium text-sm transition-colors relative ${activeTab === "annulees" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          Annulées
+          {activeTab === "annulees" && (
+            <span className="absolute bottom-[-9px] left-0 right-0 h-0.5 bg-primary rounded-t-full" />
+          )}
+        </button>
+      </div>
+
+      <div className="border border-border/50 shadow-sm rounded-lg bg-card text-card-foreground mt-4">
         <div className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
@@ -57,7 +106,10 @@ export function PurchaseListPage({ onGoToCreate }: { onGoToCreate?: () => void }
                   </tr>
                 ) : (
                   data?.records.map((purchase) => {
-                    const isDeliverable = purchase.status === "Créé" || purchase.status === "Partiellement Livré";
+                    const isOpen = purchase.lifecycleStatus === "Ouvert" || (purchase.lifecycleStatus as unknown) === 5;
+                    const isConfirmed = purchase.lifecycleStatus === "Confirmé" || (purchase.lifecycleStatus as unknown) === 0;
+                    const isCancelled = purchase.lifecycleStatus === "Annulé" || (purchase.lifecycleStatus as unknown) === -3;
+
                     return (
                       <tr key={purchase.idPurchase} className="hover:bg-muted/50 transition-colors">
                         <td className="px-6 py-4 font-medium text-foreground">{purchase.ref}</td>
@@ -77,10 +129,37 @@ export function PurchaseListPage({ onGoToCreate }: { onGoToCreate?: () => void }
                                   onClick: () => setSelectedPurchaseId(purchase.idPurchase),
                                 },
                                 {
+                                  label: "Confirmer",
+                                  icon: <CheckCircle2 className="h-4 w-4" />,
+                                  onClick: () => setConfirmPurchase(purchase),
+                                  hidden: activeTab === "annulees" || !isOpen,
+                                  className: "text-blue-600 dark:text-blue-400 hover:text-blue-700",
+                                },
+                                {
+                                  label: "Modifier",
+                                  icon: <Edit className="h-4 w-4" />,
+                                  onClick: () => onGoToEdit && onGoToEdit(purchase),
+                                  hidden: activeTab === "annulees" || isCancelled || (isConfirmed && (purchase.status === "Livré" || purchase.status === 0)),
+                                  className: "text-orange-600 dark:text-orange-400 hover:text-orange-700",
+                                },
+                                {
+                                  label: "Annuler",
+                                  icon: <Ban className="h-4 w-4" />,
+                                  onClick: () => setCancelPurchase(purchase),
+                                  hidden: activeTab === "annulees" || isCancelled || (isConfirmed && (purchase.status === "Livré" || purchase.status === 0)),
+                                  className: "text-red-600 dark:text-red-400 hover:text-red-700",
+                                },
+                                {
                                   label: "Réception",
                                   icon: <PackageCheck className="h-4 w-4" />,
-                                  onClick: () => setReceptionPurchase(purchase),
-                                  hidden: !isDeliverable,
+                                  onClick: () => {
+                                    if (!isConfirmed) {
+                                      setConfirmAndReceivePurchase(purchase);
+                                    } else {
+                                      setReceptionPurchase(purchase);
+                                    }
+                                  },
+                                  hidden: activeTab === "annulees" || purchase.status === "Livré",
                                   className: "text-emerald-600 dark:text-emerald-400 hover:text-emerald-700",
                                 },
                               ]}
@@ -100,12 +179,70 @@ export function PurchaseListPage({ onGoToCreate }: { onGoToCreate?: () => void }
       <PurchaseDetailSheet
         idPurchase={selectedPurchaseId}
         onClose={() => setSelectedPurchaseId(null)}
+        onGoToDelivery={(idDelivery) => {
+          setViewDeliveryId(idDelivery);
+        }}
+        onConfirm={(p) => {
+          setSelectedPurchaseId(null);
+          setConfirmPurchase(p);
+        }}
+        onReceive={(p) => {
+          setSelectedPurchaseId(null);
+          if (p.status === "Créé" || p.status === "Brouillon") {
+             setConfirmAndReceivePurchase(p);
+          } else {
+             setReceptionPurchase(p);
+          }
+        }}
+        onEdit={(p) => {
+          setSelectedPurchaseId(null);
+          if (onGoToEdit) onGoToEdit(p);
+        }}
+        onCancel={(p) => {
+          setSelectedPurchaseId(null);
+          setCancelPurchase(p);
+        }}
+      />
+
+      <DeliveryDetailSheet
+        idDelivery={viewDeliveryId}
+        onClose={() => setViewDeliveryId(null)}
       />
 
       <DeliverySheet
         purchase={receptionPurchase}
-        onClose={() => setReceptionPurchase(null)}
+        onClose={() => {
+          setReceptionPurchase(null);
+        }}
+        onGoToDeliveries={(idPurchase) => {
+          sessionStorage.setItem("deliveryFilter", JSON.stringify({ idPurchase, status: 5 /* OPEN */, returnToPurchases: true }));
+          if (onGoToDeliveries) onGoToDeliveries();
+        }}
       />
+
+      {confirmPurchase && (
+        <ConfirmPurchaseDialog
+          purchase={confirmPurchase}
+          onClose={() => setConfirmPurchase(null)}
+        />
+      )}
+
+      {confirmAndReceivePurchase && (
+        <ConfirmPurchaseDialog
+          purchase={confirmAndReceivePurchase}
+          onClose={() => setConfirmAndReceivePurchase(null)}
+          onConfirmed={() => {
+            setReceptionPurchase(confirmAndReceivePurchase);
+          }}
+        />
+      )}
+
+      {cancelPurchase && (
+        <CancelPurchaseDialog
+          purchase={cancelPurchase}
+          onClose={() => setCancelPurchase(null)}
+        />
+      )}
     </div>
   );
 }

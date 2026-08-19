@@ -16,7 +16,7 @@ export const deliveryService = {
     return response.payload;
   },
 
-  getAllDeliveries: async (params?: { page?: number; limit?: number; ref?: string; status?: number; startDate?: string; endDate?: string }): Promise<PaginatedResponse<DeliveryListRecord>> => {
+  getAllDeliveries: async (params?: { page?: number; limit?: number; ref?: string; status?: number; startDate?: string; endDate?: string; idPurchase?: string }): Promise<PaginatedResponse<DeliveryListRecord>> => {
     const { data: response } = await axios.get<ApiResponse<PaginatedResponse<DeliveryListRecord>>>(`${BASE}/deliveries`, { params });
     return response.payload;
   },

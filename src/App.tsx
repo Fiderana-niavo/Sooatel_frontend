@@ -295,13 +295,13 @@ function App() {
                   ) : activeTab === "Commandes Fournisseurs" ? (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
                       <ProtectedRoute permission="supplier.manage">
-                        <PurchasesContainer />
+                        <PurchasesContainer onGoToDeliveries={() => setActiveTab("Livraisons Fournisseurs")} />
                       </ProtectedRoute>
                     </div>
                   ) : activeTab === "Livraisons Fournisseurs" ? (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
                       <ProtectedRoute permission="supplier.manage">
-                        <DeliveryListPage />
+                        <DeliveryListPage onGoToPurchases={() => setActiveTab("Commandes Fournisseurs")} />
                       </ProtectedRoute>
                     </div>
                   ) : activeTab === "Gestion des Produits & Inventaire" ? (

@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,14 +8,20 @@ import {
   DialogFooter,
 } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
+import { cn } from "@/utils/ui";
 
 interface ConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  title?: string;
-  description: string;
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  children?: React.ReactNode;
   onConfirm: () => void;
   loading?: boolean;
+  cancelText?: React.ReactNode;
+  confirmText?: React.ReactNode;
+  loadingText?: React.ReactNode;
+  confirmButtonClassName?: string;
 }
 
 export function ConfirmDialog({
@@ -22,34 +29,44 @@ export function ConfirmDialog({
   onOpenChange,
   title = "Confirmation",
   description,
+  children,
   onConfirm,
   loading = false,
+  cancelText = "Annuler",
+  confirmText = "Confirmer",
+  loadingText = "Traitement...",
+  confirmButtonClassName,
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl">{title}</DialogTitle>
-          <DialogDescription className="mt-2 text-base text-muted-foreground">
-            {description}
-          </DialogDescription>
+          {description && (
+            <DialogDescription className="mt-2 text-base text-muted-foreground asChild={typeof description !== 'string'}">
+              {typeof description === 'string' ? <p>{description}</p> : description}
+            </DialogDescription>
+          )}
         </DialogHeader>
-        <DialogFooter className="mt-6 flex justify-end gap-3">
+        
+        {children && <div className="py-2">{children}</div>}
+
+        <DialogFooter className="mt-4 flex justify-end gap-3">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={loading}
-            className="rounded-xl px-6"
+            className="rounded-xl px-6 flex-1 sm:flex-none"
           >
-            Annuler
+            {cancelText}
           </Button>
           <Button
-            variant="destructive"
+            variant={confirmButtonClassName ? "default" : "destructive"}
             onClick={onConfirm}
             disabled={loading}
-            className="rounded-xl px-6"
+            className={cn("rounded-xl px-6 flex-1 sm:flex-none", confirmButtonClassName)}
           >
-            {loading ? "Traitement..." : "Confirmer"}
+            {loading ? loadingText : confirmText}
           </Button>
         </DialogFooter>
       </DialogContent>

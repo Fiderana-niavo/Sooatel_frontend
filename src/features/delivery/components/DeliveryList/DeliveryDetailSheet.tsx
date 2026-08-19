@@ -6,18 +6,25 @@ import { formatCurrency } from "../../../../utils/formatters";
 import { PurchaseStatusBadge } from "../../../purchases/components/PurchaseList/PurchaseStatusBadge";
 import { PurchaseDetailSheet } from "../../../purchases/components/PurchaseList/PurchaseDetailSheet";
 import { Button } from "@/components/ui/Button/button";
-import { CheckCircle2, AlertCircle } from "lucide-react";
+import { CheckCircle2, AlertCircle, Edit2, Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
+import { Snackbar } from "@/components/ui/Snackbar/snackbar";
+import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
 interface DeliveryDetailSheetProps {
   idDelivery: string | null;
   onClose: () => void;
+  onEdit?: (id: string, supplierId?: string) => void;
+  onDelete?: (id: string) => void;
 }
 
-export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDelivery, onClose }) => {
+export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDelivery, onClose, onEdit, onDelete }) => {
   const [selectedPurchaseId, setSelectedPurchaseId] = React.useState<string | null>(null);
   const queryClient = useQueryClient();
   const [isValidating, setIsValidating] = React.useState(false);
+  const [showConfirm, setShowConfirm] = React.useState(false);
+  const [snackbar, setSnackbar] = React.useState<{ message: string; type: SnackbarType; isOpen: boolean }>({ message: "", type: "info", isOpen: false });
 
   const { data: delivery, isLoading } = useQuery({
     queryKey: ["deliveryDetails", idDelivery],
@@ -27,18 +34,22 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
 
   const handleValidate = async () => {
     if (!idDelivery || !delivery) return;
-    if (!confirm("Voulez-vous vraiment valider cette livraison ? Cette action mettra à jour les stocks et est irréversible.")) return;
 
     setIsValidating(true);
     try {
       await deliveryService.validateDelivery(idDelivery);
       queryClient.invalidateQueries({ queryKey: ["deliveryDetails", idDelivery] });
       queryClient.invalidateQueries({ queryKey: ["deliveries"] });
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ["purchaseDeliveries"] });
+      queryClient.invalidateQueries({ queryKey: ["purchaseDetails"] });
+      setSnackbar({ message: "Livraison validée avec succès.", type: "success", isOpen: true });
+    } catch (err: any) {
       console.error(err);
-      alert("Erreur lors de la validation.");
+      const msg = err?.response?.data?.message || err?.response?.data?.error || "Erreur lors de la validation.";
+      setSnackbar({ message: msg, type: "error", isOpen: true });
     } finally {
       setIsValidating(false);
+      setShowConfirm(false);
     }
   };
 
@@ -47,11 +58,29 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
       <Sheet open={!!idDelivery} onOpenChange={(open) => !open && onClose()}>
         <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
           <SheetHeader className="mb-6">
-            <SheetTitle className="text-2xl font-bold flex justify-between items-center pr-8">
-              Détails de la Livraison
+          <SheetTitle className="flex flex-col gap-4 pr-8">
+            <div className="flex justify-between items-center w-full">
+              <span className="text-2xl font-bold">Détails de la Livraison</span>
               {delivery && <PurchaseStatusBadge status={delivery.status} />}
-            </SheetTitle>
-          </SheetHeader>
+            </div>
+            {delivery && delivery.status === "Ouvert" && (
+              <div className="flex flex-wrap items-center gap-3">
+                {onEdit && (
+                  <Button variant="outline" size="sm" onClick={() => onEdit(delivery.idDelivery, delivery.purchases?.[0]?.idSupplier || "")} className="text-amber-600 border-amber-200 hover:bg-amber-50">
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    Modifier
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button variant="outline" size="sm" onClick={() => onDelete(delivery.idDelivery)} className="text-red-600 border-red-200 hover:bg-red-50">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Annuler
+                  </Button>
+                )}
+              </div>
+            )}
+          </SheetTitle>
+        </SheetHeader>
 
           {isLoading ? (
             <div className="flex justify-center py-8 text-muted-foreground">Chargement des détails...</div>
@@ -146,7 +175,7 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
                     </p>
                   </div>
                   <Button
-                    onClick={handleValidate}
+                    onClick={() => setShowConfirm(true)}
                     disabled={isValidating}
                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
                   >
@@ -168,6 +197,22 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
           setTimeout(() => setSelectedPurchaseId(null), 50);
         }}
       />
+      
+      <ConfirmDialog
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        title="Valider définitivement la livraison"
+        description="Voulez-vous vraiment valider cette livraison ? Cette action mettra à jour les stocks et est irréversible."
+        onConfirm={handleValidate}
+      />
+
+      {snackbar.isOpen && (
+        <Snackbar
+          message={snackbar.message}
+          type={snackbar.type}
+          onClose={() => setSnackbar((prev) => ({ ...prev, isOpen: false }))}
+        />
+      )}
     </>
   );
 };
