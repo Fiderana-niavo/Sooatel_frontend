@@ -226,8 +226,8 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
               {submitError}
             </div>
             {submitError.includes("livraison en cours") && onGoToDeliveries && idPurchaseToEdit && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full mt-1 text-sm text-red-600 border-red-200 hover:bg-red-500/20"
                 onClick={() => {
                   sessionStorage.setItem("purchasePosSavedState", JSON.stringify({ idPurchaseToEdit, purchaseData }));
@@ -244,8 +244,8 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
           <Button type="button" variant="outline" onClick={onGoToList}>
             Annuler
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8"
             disabled={!isFormValid || createMutation.isPending || updateMutation.isPending}
           >

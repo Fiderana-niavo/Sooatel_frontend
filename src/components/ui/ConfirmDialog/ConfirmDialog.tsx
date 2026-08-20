@@ -22,6 +22,7 @@ interface ConfirmDialogProps {
   confirmText?: React.ReactNode;
   loadingText?: React.ReactNode;
   confirmButtonClassName?: string;
+  hideConfirmButton?: boolean;
 }
 
 export function ConfirmDialog({
@@ -36,6 +37,7 @@ export function ConfirmDialog({
   confirmText = "Confirmer",
   loadingText = "Traitement...",
   confirmButtonClassName,
+  hideConfirmButton = false,
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -60,14 +62,16 @@ export function ConfirmDialog({
           >
             {cancelText}
           </Button>
-          <Button
-            variant={confirmButtonClassName ? "default" : "destructive"}
-            onClick={onConfirm}
-            disabled={loading}
-            className={cn("rounded-xl px-6 flex-1 sm:flex-none", confirmButtonClassName)}
-          >
-            {loading ? loadingText : confirmText}
-          </Button>
+          {!hideConfirmButton && (
+            <Button
+              variant={confirmButtonClassName ? "default" : "destructive"}
+              onClick={onConfirm}
+              disabled={loading}
+              className={cn("rounded-xl px-6 flex-1 sm:flex-none", confirmButtonClassName)}
+            >
+              {loading ? loadingText : confirmText}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

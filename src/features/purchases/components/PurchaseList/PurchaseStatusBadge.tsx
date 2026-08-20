@@ -11,7 +11,7 @@ export const PurchaseStatusBadge: React.FC<PurchaseStatusBadgeProps> = ({ status
 
   if (statusStr === "Créé" || status === 6) {
     badgeColor = "bg-blue-100 text-blue-800 border-blue-200";
-  } else if (statusStr === "Partiellement Livré" || status === 3) {
+  } else if (statusStr === "Partiel" || statusStr === "Partiellement Livré" || status === 3) {
     badgeColor = "bg-yellow-100 text-yellow-800 border-yellow-200";
   } else if (statusStr === "Livré" || status === 0) {
     badgeColor = "bg-green-100 text-green-800 border-green-200";

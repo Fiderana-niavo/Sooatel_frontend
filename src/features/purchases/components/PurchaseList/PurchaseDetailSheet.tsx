@@ -56,19 +56,19 @@ export const PurchaseDetailSheet: React.FC<PurchaseDetailSheetProps> = ({ idPurc
                     Confirmer
                   </Button>
                 )}
-                {purchase.status !== "Annulé" && purchase.status !== "Livré" && onReceive && (
+                {purchase.status !== "Annulé" && purchase.status !== "Livré" && purchase.status !== 0 && onReceive && (
                   <Button variant="outline" size="sm" onClick={() => onReceive(purchase)} className="text-emerald-600 border-emerald-200 hover:bg-emerald-50">
                     <PackageCheck className="h-4 w-4 mr-2" />
                     Réception
                   </Button>
                 )}
-                {purchase.status !== "Annulé" && purchase.status !== "Livré" && onEdit && (
+                {purchase.status !== "Annulé" && purchase.status !== "Livré" && purchase.status !== 0 && onEdit && (
                   <Button variant="outline" size="sm" onClick={() => onEdit(purchase)} className="text-amber-600 border-amber-200 hover:bg-amber-50">
                     <Edit className="h-4 w-4 mr-2" />
                     Modifier
                   </Button>
                 )}
-                {purchase.status !== "Annulé" && purchase.status !== "Livré" && onCancel && (
+                {purchase.status !== "Annulé" && purchase.status !== "Livré" && purchase.status !== 0 && onCancel && (
                   <Button variant="outline" size="sm" onClick={() => onCancel(purchase)} className="text-red-600 border-red-200 hover:bg-red-50">
                     <Ban className="h-4 w-4 mr-2" />
                     Annuler
@@ -99,6 +99,18 @@ export const PurchaseDetailSheet: React.FC<PurchaseDetailSheetProps> = ({ idPurc
               <div>
                 <p className="text-sm text-muted-foreground font-medium">Responsable de l'achat</p>
                 <p className="font-semibold">{purchase.purchaser?.name} {purchase.purchaser?.lastname}</p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-sm text-muted-foreground font-medium mb-1">Confirmation</p>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  (purchase.lifecycleStatus === "Confirmé" || (purchase.lifecycleStatus as unknown) === 0) ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                  (purchase.lifecycleStatus === "Annulé" || (purchase.lifecycleStatus as unknown) === -3) ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                  'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                }`}>
+                  {(purchase.lifecycleStatus === "Confirmé" || (purchase.lifecycleStatus as unknown) === 0) ? 'Confirmé' : 
+                   (purchase.lifecycleStatus === "Annulé" || (purchase.lifecycleStatus as unknown) === -3) ? 'Annulé' : 
+                   'Non confirmé'}
+                </span>
               </div>
             </div>
 

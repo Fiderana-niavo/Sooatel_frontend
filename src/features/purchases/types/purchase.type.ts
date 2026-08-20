@@ -56,7 +56,7 @@ export interface CreatePurchaseDto {
 
 export const PURCHASE_STATUS_LABELS: Record<number, string> = {
   6: "Créé",
-  3: "Partiellement Livré",
+  3: "Partiel",
   0: "Livré",
 };
 

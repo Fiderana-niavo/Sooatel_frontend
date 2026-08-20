@@ -41,10 +41,10 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
 
   const result = useQuery({
     queryKey: ["purchases", page, activeTab],
-    queryFn: () => purchaseService.getAll({ 
-      page, 
+    queryFn: () => purchaseService.getAll({
+      page,
       limit: 10,
-      lifecycleStatus: activeTab === "annulees" ? -3 : undefined 
+      lifecycleStatus: activeTab === "annulees" ? -3 : undefined
     })
   });
 
@@ -91,18 +91,19 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
                   <th className="px-6 py-4 font-semibold">Date</th>
                   <th className="px-6 py-4 font-semibold">Fournisseur</th>
                   <th className="px-6 py-4 font-semibold text-right">Total</th>
-                  <th className="px-6 py-4 font-semibold text-center">Statut</th>
-                  <th className="px-6 py-4 font-semibold text-center">Actions</th>
+                  <th className="px-6 py-4 font-semibold text-center whitespace-nowrap">Confirmation</th>
+                  <th className="px-6 py-4 font-semibold text-center whitespace-nowrap">Statut</th>
+                  <th className="px-4 py-4 font-semibold text-center w-24">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">Chargement des commandes...</td>
+                    <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">Chargement des commandes...</td>
                   </tr>
                 ) : data?.records?.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">Aucune commande trouvée.</td>
+                    <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">Aucune commande trouvée.</td>
                   </tr>
                 ) : (
                   data?.records.map((purchase) => {
@@ -112,14 +113,22 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
 
                     return (
                       <tr key={purchase.idPurchase} className="hover:bg-muted/50 transition-colors">
-                        <td className="px-6 py-4 font-medium text-foreground">{purchase.ref}</td>
-                        <td className="px-6 py-4">{new Date(purchase.purchaseDate).toLocaleDateString()}</td>
-                        <td className="px-6 py-4">{purchase.supplier?.name}</td>
-                        <td className="px-6 py-4 text-right font-medium">{formatCurrency(purchase.totalAmount)}</td>
+                        <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">{purchase.ref}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{new Date(purchase.purchaseDate).toLocaleDateString()}</td>
+                        <td className="px-6 py-4 truncate max-w-[200px]" title={purchase.supplier?.name}>{purchase.supplier?.name}</td>
+                        <td className="px-6 py-4 text-right font-medium whitespace-nowrap">{formatCurrency(purchase.totalAmount)}</td>
+                        <td className="px-6 py-4 text-center">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${isConfirmed ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                              isCancelled ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                                'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                            }`}>
+                            {isConfirmed ? 'Confirmé' : isCancelled ? 'Annulé' : 'Non confirmé'}
+                          </span>
+                        </td>
                         <td className="px-6 py-4 text-center">
                           <PurchaseStatusBadge status={purchase.status} />
                         </td>
-                        <td className="px-6 py-4 text-center">
+                        <td className="px-4 py-4 text-center">
                           <div className="flex justify-center">
                             <ActionDropdown
                               items={[
@@ -139,14 +148,14 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
                                   label: "Modifier",
                                   icon: <Edit className="h-4 w-4" />,
                                   onClick: () => onGoToEdit && onGoToEdit(purchase),
-                                  hidden: activeTab === "annulees" || isCancelled || (isConfirmed && (purchase.status === "Livré" || purchase.status === 0)),
+                                  hidden: activeTab === "annulees" || isCancelled || purchase.status === "Livré" || purchase.status === 0,
                                   className: "text-orange-600 dark:text-orange-400 hover:text-orange-700",
                                 },
                                 {
                                   label: "Annuler",
                                   icon: <Ban className="h-4 w-4" />,
                                   onClick: () => setCancelPurchase(purchase),
-                                  hidden: activeTab === "annulees" || isCancelled || (isConfirmed && (purchase.status === "Livré" || purchase.status === 0)),
+                                  hidden: activeTab === "annulees" || isCancelled || purchase.status === "Livré" || purchase.status === 0,
                                   className: "text-red-600 dark:text-red-400 hover:text-red-700",
                                 },
                                 {
@@ -189,9 +198,9 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
         onReceive={(p) => {
           setSelectedPurchaseId(null);
           if (p.status === "Créé" || p.status === "Brouillon") {
-             setConfirmAndReceivePurchase(p);
+            setConfirmAndReceivePurchase(p);
           } else {
-             setReceptionPurchase(p);
+            setReceptionPurchase(p);
           }
         }}
         onEdit={(p) => {

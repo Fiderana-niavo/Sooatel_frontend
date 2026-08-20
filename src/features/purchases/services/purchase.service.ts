@@ -46,7 +46,7 @@ export const purchaseService = {
     return response.payload;
   },
 
-  cancel: async (id: string, options?: { forceDeleteOpenDelivery?: boolean }): Promise<Purchase> => {
+  cancel: async (id: string, options?: { forceAction?: "delete" | "confirm" }): Promise<Purchase> => {
     const { data: response } = await axios.post<ApiResponse<Purchase>>(`${BASE}/purchases/${id}/cancel`, options);
     return response.payload;
   },
