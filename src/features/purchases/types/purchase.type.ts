@@ -41,6 +41,7 @@ export interface Purchase {
   supplier?: Supplier;
   purchaser?: EmployeeRef;
   details?: PurchaseDetail[];
+  advanceAmount?: number;
 }
 
 export interface CreatePurchaseDto {
@@ -52,6 +53,8 @@ export interface CreatePurchaseDto {
     quantity: number;
     unitPrice: number;
   }[];
+  advanceAmount?: number;
+  idPaymentMethod?: string;
 }
 
 export const PURCHASE_STATUS_LABELS: Record<number, string> = {

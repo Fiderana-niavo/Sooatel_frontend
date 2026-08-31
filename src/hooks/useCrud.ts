@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
-export function useCrud<T, C = Partial<T>, U = Partial<T>>(
+export function useCrud<T, C = any, U = any>(
   fetchFn: () => Promise<T[]>,
   createFn: (data: C) => Promise<T>,
   updateFn: (id: string, data: U) => Promise<T>,

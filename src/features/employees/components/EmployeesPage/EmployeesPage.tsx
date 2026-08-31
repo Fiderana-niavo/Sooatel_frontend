@@ -253,7 +253,7 @@ export function EmployeesPage({
     if (!selectedEmployeeDetail?.userAccount) return;
     try {
       const result = await EmployeeService.generateAccessToken(
-        selectedEmployeeDetail.userAccount.idUser,
+        selectedEmployeeDetail.userAccount.idUser!,
       );
       setGeneratedKey(result);
     } catch (err: any) {
@@ -450,7 +450,7 @@ export function EmployeesPage({
   };
 
   const savePlanning = async (data: {
-    teamId: string;
+    teamId: string | null;
     availabilities: any[];
   }) => {
     if (!planningEmployee) return;

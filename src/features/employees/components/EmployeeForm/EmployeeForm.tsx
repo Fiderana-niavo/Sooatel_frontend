@@ -79,7 +79,7 @@ export function EmployeeForm({
   const [selectedRoles, setSelectedRoles] = useState<Role[]>(initialData?.userAccount?.roles || []);
   const [overrides, setOverrides] = useState<Record<string, "grant" | "deny" | "default">>(() => {
     const map: Record<string, "grant" | "deny" | "default"> = {};
-    initialData?.userAccount?.permissionsOverrides?.forEach(o => {
+    initialData?.userAccount?.permissionsOverrides?.forEach((o: { idPermission: string; overrideType: "grant" | "deny" | "default" }) => {
       map[o.idPermission] = o.overrideType;
     });
     return map;

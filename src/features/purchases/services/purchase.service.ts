@@ -50,4 +50,9 @@ export const purchaseService = {
     const { data: response } = await axios.post<ApiResponse<Purchase>>(`${BASE}/purchases/${id}/cancel`, options);
     return response.payload;
   },
+
+  getPaymentMethods: async (): Promise<{ value: string; label: string }[]> => {
+    const { data: response } = await axios.get<ApiResponse<any>>(`${BASE}/payment-methods/select`);
+    return response.payload;
+  },
 };

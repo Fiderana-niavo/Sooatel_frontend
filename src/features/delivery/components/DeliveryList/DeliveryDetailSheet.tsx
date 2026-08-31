@@ -1,10 +1,12 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { deliveryService } from "../../services/delivery.service";
+import { supplierPaymentService } from "../../../purchases/services/supplier-payment.service";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/Sheet/sheet";
 import { formatCurrency } from "../../../../utils/formatters";
 import { PurchaseStatusBadge } from "../../../purchases/components/PurchaseList/PurchaseStatusBadge";
 import { PurchaseDetailSheet } from "../../../purchases/components/PurchaseList/PurchaseDetailSheet";
+import { DeliverySheet } from "../DeliverySheet/DeliverySheet";
 import { Button } from "@/components/ui/Button/button";
 import { CheckCircle2, AlertCircle, Edit2, Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,15 +17,14 @@ import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 interface DeliveryDetailSheetProps {
   idDelivery: string | null;
   onClose: () => void;
-  onEdit?: (id: string, supplierId?: string) => void;
-  onDelete?: (id: string) => void;
 }
 
-export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDelivery, onClose, onEdit, onDelete }) => {
+export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDelivery, onClose }) => {
   const [selectedPurchaseId, setSelectedPurchaseId] = React.useState<string | null>(null);
   const queryClient = useQueryClient();
   const [isValidating, setIsValidating] = React.useState(false);
-  const [showConfirm, setShowConfirm] = React.useState(false);
+  const [confirmAction, setConfirmAction] = React.useState<"validate" | "delete" | null>(null);
+  const [isEditing, setIsEditing] = React.useState(false);
   const [snackbar, setSnackbar] = React.useState<{ message: string; type: SnackbarType; isOpen: boolean }>({ message: "", type: "info", isOpen: false });
 
   const { data: delivery, isLoading } = useQuery({
@@ -32,12 +33,35 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
     enabled: !!idDelivery,
   });
 
+  const [useCredit, setUseCredit] = React.useState(true);
+  const deliveryData = delivery as any;
+  const idSupplier = deliveryData?.idSupplier || deliveryData?.supplier?.idSupplier || deliveryData?.purchases?.[0]?.idSupplier;
+  
+  const { data: balanceData } = useQuery({
+    queryKey: ["supplierBalance", idSupplier],
+    queryFn: async () => {
+      const res = await supplierPaymentService.getSupplierBalance(idSupplier!);
+      return res.data.payload;
+    },
+    enabled: !!idSupplier,
+  });
+
+  const summaryQuery = useQuery({
+    queryKey: ["deliveryPaymentSummary", idDelivery],
+    queryFn: () => supplierPaymentService.getDeliverySummary(idDelivery!),
+    enabled: !!idDelivery,
+  });
+  const paymentSummary = summaryQuery.data?.data?.payload;
+
   const handleValidate = async () => {
     if (!idDelivery || !delivery) return;
 
     setIsValidating(true);
     try {
       await deliveryService.validateDelivery(idDelivery);
+      if (useCredit && balanceData && balanceData.balance > 0) {
+         await supplierPaymentService.applySupplierCredit(idSupplier, { idDelivery });
+      }
       queryClient.invalidateQueries({ queryKey: ["deliveryDetails", idDelivery] });
       queryClient.invalidateQueries({ queryKey: ["deliveries"] });
       queryClient.invalidateQueries({ queryKey: ["purchaseDeliveries"] });
@@ -49,7 +73,26 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
       setSnackbar({ message: msg, type: "error", isOpen: true });
     } finally {
       setIsValidating(false);
-      setShowConfirm(false);
+      setConfirmAction(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!idDelivery) return;
+    
+    setIsValidating(true);
+    try {
+      await deliveryService.deleteDelivery(idDelivery);
+      queryClient.invalidateQueries({ queryKey: ["deliveries"] });
+      queryClient.invalidateQueries({ queryKey: ["purchases"] });
+      onClose(); // Close the sheet since it's deleted
+    } catch (err: any) {
+      console.error(err);
+      const msg = err?.response?.data?.message || err?.response?.data?.error || "Erreur lors de la suppression.";
+      setSnackbar({ message: msg, type: "error", isOpen: true });
+    } finally {
+      setIsValidating(false);
+      setConfirmAction(null);
     }
   };
 
@@ -65,18 +108,14 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
             </div>
             {delivery && delivery.status === "Ouvert" && (
               <div className="flex flex-wrap items-center gap-3">
-                {onEdit && (
-                  <Button variant="outline" size="sm" onClick={() => onEdit(delivery.idDelivery, delivery.purchases?.[0]?.idSupplier || "")} className="text-amber-600 border-amber-200 hover:bg-amber-50">
+                  <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="text-amber-600 border-amber-200 hover:bg-amber-50">
                     <Edit2 className="h-4 w-4 mr-2" />
                     Modifier
                   </Button>
-                )}
-                {onDelete && (
-                  <Button variant="outline" size="sm" onClick={() => onDelete(delivery.idDelivery)} className="text-red-600 border-red-200 hover:bg-red-50">
+                  <Button variant="outline" size="sm" onClick={() => setConfirmAction("delete")} className="text-red-600 border-red-200 hover:bg-red-50">
                     <Trash2 className="h-4 w-4 mr-2" />
                     Annuler
                   </Button>
-                )}
               </div>
             )}
           </SheetTitle>
@@ -161,10 +200,45 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
                         <td colSpan={3} className="px-4 py-3 text-right">Total de la livraison</td>
                         <td className="px-4 py-3 text-right text-lg text-primary">{formatCurrency(delivery.totalAmount)}</td>
                       </tr>
+                      {delivery.status !== "Ouvert" && (
+                        <tr>
+                          <td colSpan={3} className="px-4 py-2 text-right text-muted-foreground">Reste à payer</td>
+                          <td className={`px-4 py-2 text-right text-md ${delivery.balanceDue <= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                            {formatCurrency(Math.max(0, delivery.balanceDue))}
+                          </td>
+                        </tr>
+                      )}
                     </tfoot>
                   </table>
                 </div>
               </div>
+
+              {paymentSummary?.payments && paymentSummary.payments.length > 0 && (
+                <div className="pt-6 border-t border-border/50">
+                  <h3 className="text-lg font-semibold mb-4">Historique des paiements</h3>
+                  <div className="rounded-lg border border-border/50 overflow-hidden bg-card p-4 space-y-3">
+                    <div className="space-y-3">
+                      {paymentSummary.payments.map((p, i) => (
+                        <div key={i} className="flex items-center justify-between text-sm border-b border-border/50 pb-2 last:border-0 last:pb-0">
+                          <div className="flex flex-col">
+                            <span className="font-medium">
+                              {p.ref}
+                              </span>
+                            <div className="text-xs text-muted-foreground flex items-center gap-1">
+                              {new Date(p.date).toLocaleDateString()} - {p.method}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                              {formatCurrency(p.amount)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {delivery.status === "Ouvert" && (
                 <div className="pt-6 border-t border-border/50">
@@ -175,7 +249,7 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
                     </p>
                   </div>
                   <Button
-                    onClick={() => setShowConfirm(true)}
+                    onClick={() => setConfirmAction("validate")}
                     disabled={isValidating}
                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
                   >
@@ -199,12 +273,39 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
       />
       
       <ConfirmDialog
-        open={showConfirm}
-        onOpenChange={setShowConfirm}
-        title="Valider définitivement la livraison"
-        description="Voulez-vous vraiment valider cette livraison ? Cette action mettra à jour les stocks et est irréversible."
-        onConfirm={handleValidate}
-      />
+        open={!!confirmAction}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        title={confirmAction === "validate" ? "Valider la livraison" : "Supprimer la livraison"}
+        description={confirmAction === "validate" 
+          ? "Voulez-vous vraiment valider cette livraison ? Cette action mettra à jour les stocks et est irréversible."
+          : "Voulez-vous vraiment supprimer cette livraison ?"}
+        onConfirm={confirmAction === "validate" ? handleValidate : handleDelete}
+        loading={isValidating}
+        confirmText={confirmAction === "validate" ? "Valider" : "Supprimer"}
+        cancelText="Annuler"
+        confirmButtonClassName={confirmAction === "validate" ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-red-600 hover:bg-red-700 text-white"}
+      >
+        {confirmAction === "validate" && balanceData && balanceData.balance > 0 && (
+          <div className="mt-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-900/30 rounded-lg text-emerald-800 dark:text-emerald-400 text-sm">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={useCredit} 
+                onChange={(e) => setUseCredit(e.target.checked)} 
+                className="rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              Utiliser le crédit fournisseur disponible ({formatCurrency(balanceData.balance)}) pour régler cette livraison
+            </label>
+          </div>
+        )}
+      </ConfirmDialog>
+      {isEditing && (
+        <DeliverySheet 
+          deliveryIdToEdit={idDelivery} 
+          supplierIdForEdit={delivery?.purchases?.[0]?.idSupplier || ""}
+          onClose={() => setIsEditing(false)} 
+        />
+      )}
 
       {snackbar.isOpen && (
         <Snackbar
@@ -216,3 +317,4 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
     </>
   );
 };
+

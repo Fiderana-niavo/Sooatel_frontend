@@ -21,10 +21,14 @@ export const ConfirmPurchaseDialog: React.FC<ConfirmPurchaseDialogProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const mutation = useMutation({
-    mutationFn: () => purchaseService.confirm(purchase!.idPurchase),
+    mutationFn: async () => {
+      const confirmedPurchase = await purchaseService.confirm(purchase!.idPurchase);
+      return confirmedPurchase;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["purchases"] });
       queryClient.invalidateQueries({ queryKey: ["purchase", purchase!.idPurchase] });
+      queryClient.invalidateQueries({ queryKey: ["supplierBalance"] });
       if (onConfirmed) onConfirmed();
       onClose();
     },
@@ -59,6 +63,8 @@ export const ConfirmPurchaseDialog: React.FC<ConfirmPurchaseDialogProps> = ({
             </p>
             <p>Elle pourra être modifiée ou annulée sous certaines conditions.</p>
           </div>
+
+
 
           {error && (
             <div className="flex items-center gap-2 text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-md">

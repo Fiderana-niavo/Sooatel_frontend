@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { deliveryService } from "../../services/delivery.service";
+import { supplierPaymentService } from "@/features/purchases/services/supplier-payment.service";
 import { formatCurrency } from "../../../../utils/formatters";
 import { Eye, CheckCircle2, Edit2, Trash2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
@@ -10,10 +11,12 @@ import { DeliveryDetailSheet } from "./DeliveryDetailSheet";
 import { DeliverySheet } from "../DeliverySheet/DeliverySheet";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
+import { GlobalSupplierPaymentDialog } from "@/features/purchases/components/PurchaseList/GlobalSupplierPaymentDialog";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
 export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => void }) {
   const [page] = useState(1);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(() => {
     const saved = sessionStorage.getItem("viewDeliveryDetailId");
     if (saved) {
@@ -27,7 +30,7 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
   const [editingDeliveryId, setEditingDeliveryId] = useState<string | null>(null);
   const [editingSupplierId, setEditingSupplierId] = useState<string | null>(null);
 
-  const [confirmAction, setConfirmAction] = useState<{ type: "validate" | "delete", id: string } | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ type: "validate" | "delete", id: string, idSupplier?: string } | null>(null);
   const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({ message: "", type: "info", isOpen: false });
 
   const showSnackbar = (message: string, type: SnackbarType = "info") => {
@@ -55,12 +58,27 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
 
   const { data, isLoading, refetch } = result;
 
+  const [useCredit, setUseCredit] = useState(true);
+  const validateSupplierId = confirmAction?.type === "validate" ? confirmAction.idSupplier : null;
+  
+  const { data: balanceData } = useQuery({
+    queryKey: ["supplierBalance", validateSupplierId],
+    queryFn: async () => {
+      const res = await supplierPaymentService.getSupplierBalance(validateSupplierId!);
+      return res.data.payload;
+    },
+    enabled: !!validateSupplierId,
+  });
+
   const handleConfirm = async () => {
     if (!confirmAction) return;
 
     try {
       if (confirmAction.type === "validate") {
         await deliveryService.validateDelivery(confirmAction.id);
+        if (useCredit && balanceData && balanceData.balance > 0) {
+           await supplierPaymentService.applySupplierCredit(confirmAction.idSupplier!, { idDelivery: confirmAction.id });
+        }
         showSnackbar("Livraison validée avec succès.", "success");
       } else if (confirmAction.type === "delete") {
         await deliveryService.deleteDelivery(confirmAction.id);
@@ -81,6 +99,9 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-foreground">Livraisons Fournisseurs</h1>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setPaymentDialogOpen(true)} className="border-primary text-primary hover:bg-primary/10">
+            Faire un paiement / acompte
+          </Button>
           {filters.returnToPurchases && onGoToPurchases && (
             <Button
               variant="outline"
@@ -157,7 +178,7 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
                                 {
                                   label: "Valider",
                                   icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
-                                  onClick: () => setConfirmAction({ type: "validate", id: delivery.idDelivery }),
+                                  onClick: () => setConfirmAction({ type: "validate", id: delivery.idDelivery, idSupplier: delivery.idSupplier }),
                                 },
                                 {
                                   label: "Modifier",
@@ -190,15 +211,6 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
       <DeliveryDetailSheet
         idDelivery={selectedDeliveryId}
         onClose={() => setSelectedDeliveryId(null)}
-        onEdit={(id, supplierId) => {
-          setSelectedDeliveryId(null);
-          setEditingDeliveryId(id);
-          setEditingSupplierId(supplierId || null);
-        }}
-        onDelete={(id) => {
-          setSelectedDeliveryId(null);
-          setConfirmAction({ type: "delete", id });
-        }}
       />
 
       {editingDeliveryId && (
@@ -220,7 +232,21 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
           ? "Voulez-vous vraiment valider cette livraison ? Cette action est irréversible et mettra à jour les stocks." 
           : "Voulez-vous vraiment supprimer cette livraison ?"}
         onConfirm={handleConfirm}
-      />
+      >
+        {confirmAction?.type === "validate" && balanceData && balanceData.balance > 0 && (
+          <div className="mt-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-900/30 rounded-lg text-emerald-800 dark:text-emerald-400 text-sm">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={useCredit} 
+                onChange={(e) => setUseCredit(e.target.checked)} 
+                className="rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              Utiliser le crédit fournisseur disponible ({formatCurrency(balanceData.balance)}) pour régler cette livraison
+            </label>
+          </div>
+        )}
+      </ConfirmDialog>
 
       {snackbar.isOpen && (
         <Snackbar
@@ -229,6 +255,12 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
           onClose={() => setSnackbar((prev) => ({ ...prev, isOpen: false }))}
         />
       )}
+
+      <GlobalSupplierPaymentDialog
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+        onSuccess={() => { refetch(); }}
+      />
     </div>
   );
 }

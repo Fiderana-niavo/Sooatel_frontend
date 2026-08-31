@@ -1,12 +1,14 @@
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { purchaseService } from "../../services/purchase.service";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/Sheet/sheet";
 import { Button } from "@/components/ui/Button/button";
 import { CheckCircle2, PackageCheck, Edit, Ban } from "lucide-react";
-import { formatCurrency } from "../../../../utils/formatters";
+import { formatCurrency } from "@/utils/formatters";
 import { PurchaseStatusBadge } from "./PurchaseStatusBadge";
 import type { PurchaseDeliveryHistory } from "../../../delivery/types/delivery.type";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
+import { SupplierPaymentForm } from "./SupplierPaymentForm";
 
 interface PurchaseDetailSheetProps {
   idPurchase: string | null;
@@ -19,11 +21,16 @@ interface PurchaseDetailSheetProps {
 }
 
 export const PurchaseDetailSheet: React.FC<PurchaseDetailSheetProps> = ({ idPurchase, onClose, onGoToDelivery, onConfirm, onReceive, onEdit, onCancel }) => {
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [idPaymentToEdit, setIdPaymentToEdit] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const { data: purchase, isLoading: isLoadingPurchase } = useQuery({
     queryKey: ["purchase", idPurchase],
     queryFn: () => purchaseService.getById(idPurchase!),
     enabled: !!idPurchase,
   });
+
+
 
   const { data: details, isLoading: isLoadingDetails } = useQuery({
     queryKey: ["purchaseDetails", idPurchase],
@@ -151,6 +158,7 @@ export const PurchaseDetailSheet: React.FC<PurchaseDetailSheetProps> = ({ idPurc
                       <td colSpan={3} className="px-4 py-3 text-right">Total Général</td>
                       <td className="px-4 py-3 text-right text-lg text-primary">{formatCurrency(purchase.totalAmount)}</td>
                     </tr>
+
                   </tfoot>
                 </table>
               </div>
@@ -208,11 +216,37 @@ export const PurchaseDetailSheet: React.FC<PurchaseDetailSheetProps> = ({ idPurc
                 </div>
               </div>
             )}
+
+
+
           </div>
         ) : (
           <div className="py-8 text-center text-red-500">Erreur lors du chargement de la commande.</div>
         )}
       </SheetContent>
+      {showPaymentForm && purchase && (
+        <ConfirmDialog
+          open
+          title="Modifier Paiement"
+          onOpenChange={(open) => { if (!open) { setShowPaymentForm(false); setIdPaymentToEdit(null); } }}
+          onConfirm={() => {}}
+          hideConfirmButton
+          cancelText="Fermer"
+        >
+          <SupplierPaymentForm
+            idSupplier={purchase.idSupplier}
+            idPaymentToEdit={idPaymentToEdit}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: ["purchases"] });
+              queryClient.invalidateQueries({ queryKey: ["purchases"] });
+              queryClient.invalidateQueries({ queryKey: ["purchaseDetails", idPurchase] });
+              setShowPaymentForm(false);
+              setIdPaymentToEdit(null);
+            }}
+            onCancel={() => { setShowPaymentForm(false); setIdPaymentToEdit(null); }}
+          />
+        </ConfirmDialog>
+      )}
     </Sheet>
   );
 };

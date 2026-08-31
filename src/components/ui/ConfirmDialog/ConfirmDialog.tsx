@@ -51,7 +51,7 @@ export function ConfirmDialog({
           )}
         </DialogHeader>
         
-        {children && <div className="py-2">{children}</div>}
+        {children && <div className="py-2 overflow-y-auto max-h-[65vh] pr-2 -mr-2">{children}</div>}
 
         <DialogFooter className="mt-4 flex justify-end gap-3">
           <Button

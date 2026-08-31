@@ -3,14 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { purchaseService } from "../../services/purchase.service";
 import { Button } from "@/components/ui/Button/button";
 import { formatCurrency } from "../../../../utils/formatters";
-import { Eye, Plus, PackageCheck, Edit, Ban, CheckCircle2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { PurchaseDetailSheet } from "./PurchaseDetailSheet";
 import { PurchaseStatusBadge } from "./PurchaseStatusBadge";
+import { getPurchaseDropdownActions } from "../../utils/purchase-actions";
 import { DeliverySheet } from "../../../delivery/components/DeliverySheet/DeliverySheet";
 import { ActionDropdown } from "@/components/ui/ActionDropdown/ActionDropdown";
 import { ConfirmPurchaseDialog } from "./ConfirmPurchaseDialog";
 import { CancelPurchaseDialog } from "./CancelPurchaseDialog";
 import { DeliveryDetailSheet } from "../../../delivery/components/DeliveryList/DeliveryDetailSheet";
+import { GlobalSupplierPaymentDialog } from "./GlobalSupplierPaymentDialog";
 import type { Purchase } from "../../types/purchase.type";
 import { useEffect } from "react";
 
@@ -22,6 +24,7 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
   const [viewDeliveryId, setViewDeliveryId] = useState<string | null>(null);
   const [confirmPurchase, setConfirmPurchase] = useState<Purchase | null>(null);
   const [cancelPurchase, setCancelPurchase] = useState<Purchase | null>(null);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [confirmAndReceivePurchase, setConfirmAndReceivePurchase] = useState<Purchase | null>(null);
 
   useEffect(() => {
@@ -54,10 +57,15 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
     <div className="p-6 space-y-6 bg-background min-h-screen">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-foreground">Commandes Fournisseurs</h1>
-        <Button onClick={onGoToCreate} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-          <Plus className="mr-2 h-4 w-4" />
-          Nouvelle Commande
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={() => setPaymentDialogOpen(true)} className="border-primary text-primary hover:bg-primary/10">
+            Faire un paiement / acompte
+          </Button>
+          <Button onClick={onGoToCreate} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Plus className="mr-2 h-4 w-4" />
+            Nouvelle Commande
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-4 border-b border-border/50 pb-2">
@@ -107,7 +115,6 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
                   </tr>
                 ) : (
                   data?.records.map((purchase) => {
-                    const isOpen = purchase.lifecycleStatus === "Ouvert" || (purchase.lifecycleStatus as unknown) === 5;
                     const isConfirmed = purchase.lifecycleStatus === "Confirmé" || (purchase.lifecycleStatus as unknown) === 0;
                     const isCancelled = purchase.lifecycleStatus === "Annulé" || (purchase.lifecycleStatus as unknown) === -3;
 
@@ -131,47 +138,15 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
                         <td className="px-4 py-4 text-center">
                           <div className="flex justify-center">
                             <ActionDropdown
-                              items={[
-                                {
-                                  label: "Détails",
-                                  icon: <Eye className="h-4 w-4" />,
-                                  onClick: () => setSelectedPurchaseId(purchase.idPurchase),
-                                },
-                                {
-                                  label: "Confirmer",
-                                  icon: <CheckCircle2 className="h-4 w-4" />,
-                                  onClick: () => setConfirmPurchase(purchase),
-                                  hidden: activeTab === "annulees" || !isOpen,
-                                  className: "text-blue-600 dark:text-blue-400 hover:text-blue-700",
-                                },
-                                {
-                                  label: "Modifier",
-                                  icon: <Edit className="h-4 w-4" />,
-                                  onClick: () => onGoToEdit && onGoToEdit(purchase),
-                                  hidden: activeTab === "annulees" || isCancelled || purchase.status === "Livré" || purchase.status === 0,
-                                  className: "text-orange-600 dark:text-orange-400 hover:text-orange-700",
-                                },
-                                {
-                                  label: "Annuler",
-                                  icon: <Ban className="h-4 w-4" />,
-                                  onClick: () => setCancelPurchase(purchase),
-                                  hidden: activeTab === "annulees" || isCancelled || purchase.status === "Livré" || purchase.status === 0,
-                                  className: "text-red-600 dark:text-red-400 hover:text-red-700",
-                                },
-                                {
-                                  label: "Réception",
-                                  icon: <PackageCheck className="h-4 w-4" />,
-                                  onClick: () => {
-                                    if (!isConfirmed) {
-                                      setConfirmAndReceivePurchase(purchase);
-                                    } else {
-                                      setReceptionPurchase(purchase);
-                                    }
-                                  },
-                                  hidden: activeTab === "annulees" || purchase.status === "Livré",
-                                  className: "text-emerald-600 dark:text-emerald-400 hover:text-emerald-700",
-                                },
-                              ]}
+                              items={getPurchaseDropdownActions(purchase, activeTab, {
+                                onDetails: (id) => setSelectedPurchaseId(id),
+                                onConfirm: (p) => setConfirmPurchase(p),
+                                onEdit: (p) => onGoToEdit && onGoToEdit(p),
+                                onCancel: (p) => setCancelPurchase(p),
+
+                                onConfirmAndReceive: (p) => setConfirmAndReceivePurchase(p),
+                                onReceive: (p) => setReceptionPurchase(p),
+                              })}
                             />
                           </div>
                         </td>
@@ -252,6 +227,12 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
           onClose={() => setCancelPurchase(null)}
         />
       )}
+
+      <GlobalSupplierPaymentDialog
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+        onSuccess={() => {}}
+      />
     </div>
   );
 }

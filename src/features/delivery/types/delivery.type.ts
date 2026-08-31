@@ -38,6 +38,7 @@ export interface DeliveryListRecord {
   deliveryDate: string;
   totalAmount: number;
   status: string;
+  balanceDue?: number;
   purchaseRef?: string;
   idSupplier?: string;
   supplierName?: string;
@@ -48,6 +49,7 @@ export interface DeliveryDetails {
   ref: string;
   deliveryDate: string;
   totalAmount: number;
+  balanceDue: number;
   status: string;
   purchases: {
     idPurchase: string;

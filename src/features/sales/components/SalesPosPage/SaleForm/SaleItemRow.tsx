@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/Inputs/input";
 import { Button } from "@/components/ui/Button/button";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
 import { Trash2, AlertTriangle, Check } from "lucide-react";
-import type { SaleItem, MenuItemRef } from "../../types";
+import type { SaleItem, MenuItemRef } from "../../../types";
 
 interface SaleItemRowProps {
   item: SaleItem;

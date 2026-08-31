@@ -1,0 +1,434 @@
+import { useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { usePaymentAllocations } from "../../hooks/usePaymentAllocations";
+import { supplierPaymentService } from "../../services/supplier-payment.service";
+import type { AllocationDto } from "../../types/supplier-payment.type";
+import { purchaseService } from "../../services/purchase.service";
+import { formatCurrency } from "@/utils/formatters";
+import { Trash2, AlertCircle, Loader2, Plus, ArrowRight, Wand2 } from "lucide-react";
+import { Button } from "@/components/ui/Button/button";
+import { AllocationLabel } from "./AllocationLabel";
+
+interface Props {
+  idSupplier: string;
+  initialAllocation?: AllocationDto;
+  idPaymentToEdit?: string | null;
+  onSuccess: () => void;
+  onCancel: () => void;
+}
+
+interface PaymentMethodRef {
+  value: string;
+  label: string;
+}
+
+
+export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentToEdit, onSuccess, onCancel }: Props) {
+  const queryClient = useQueryClient();
+
+  const [idPaymentMethod, setIdPaymentMethod] = useState("");
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
+  const [notes, setNotes] = useState("");
+
+  const [amount, setAmount] = useState<string | number>(
+    initialAllocation?.amount || ""
+  );
+
+  // Flag to know if edit data is loaded
+  const [isEditLoaded, setIsEditLoaded] = useState(!idPaymentToEdit);
+  const [error, setError] = useState<string | null>(null);
+
+  const pmQuery = useQuery({
+    queryKey: ["payment-methods"],
+    queryFn: async () => {
+      const res = await purchaseService.getPaymentMethods();
+      return (res ?? []) as PaymentMethodRef[];
+    },
+  });
+
+  const destQuery = useQuery({
+    queryKey: ["payment-destinations", idSupplier],
+    queryFn: async () => {
+      if (!idSupplier) return null;
+      const res = await supplierPaymentService.getAvailableDestinations(idSupplier);
+      return res.data.payload;
+    },
+    enabled: !!idSupplier,
+  });
+
+  const destinations = destQuery.data;
+  const paymentMethods = pmQuery.data ?? [];
+
+  const balanceQuery = useQuery({
+    queryKey: ["supplierBalance", idSupplier],
+    queryFn: async () => {
+      const res = await supplierPaymentService.getSupplierBalance(idSupplier);
+      return res.data.payload;
+    },
+    enabled: !!idSupplier,
+  });
+  const balanceData = balanceQuery.data;
+
+  const editQuery = useQuery({
+    queryKey: ["supplier-payment", idPaymentToEdit],
+    queryFn: async () => {
+      if (!idPaymentToEdit) return null;
+      const res = await supplierPaymentService.getPaymentById(idPaymentToEdit);
+      return res.data.payload;
+    },
+    enabled: !!idPaymentToEdit,
+  });
+
+  const {
+    allocations,
+    setAllocations,
+    totalAllocated,
+    remaining,
+    updateAllocationAmount,
+    removeAllocation,
+    addDeliveryAllocation,
+    addCreditAllocation,
+    autoDispatch,
+  } = usePaymentAllocations({ initialAllocation, amount, setAmount, destinations });
+
+
+  useEffect(() => {
+    if (editQuery.data && !isEditLoaded) {
+      const p = editQuery.data;
+      setAmount(p.amount);
+      setIdPaymentMethod(p.idPaymentMethod || "");
+      if (p.paymentDate) {
+        setPaymentDate(new Date(p.paymentDate).toISOString().slice(0, 10));
+      }
+      setNotes(p.notes || "");
+      if (p.allocations) {
+        setAllocations(p.allocations.map((a: any) => ({
+          ...a,
+          amount: Number(a.amount)
+        })));
+      }
+      setIsEditLoaded(true);
+    }
+  }, [editQuery.data, isEditLoaded, setAllocations]);
+
+  const saveMutation = useMutation({
+    mutationFn: () => {
+      const dto = {
+        idSupplier,
+        amount: Number(amount),
+        idPaymentMethod,
+        paymentDate,
+        notes: notes || undefined,
+        allocations: allocations.map((a) => ({ ...a, amount: Number(a.amount) })),
+      };
+      if (idPaymentToEdit) {
+        return supplierPaymentService.updatePayment(idPaymentToEdit, dto);
+      }
+      return supplierPaymentService.createPayment(dto);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deliveries"] });
+      queryClient.invalidateQueries({ queryKey: ["purchases"] });
+      queryClient.invalidateQueries({ queryKey: ["payment-destinations", idSupplier] });
+      onSuccess();
+    },
+    onError: (err: unknown) => {
+      const axiosErr = err as { response?: { data?: { error?: string; message?: string } } };
+      setError(
+        axiosErr.response?.data?.error ||
+        axiosErr.response?.data?.message ||
+        "Erreur lors du paiement."
+      );
+    },
+  });
+
+  const applyCreditMutation = useMutation({
+    mutationFn: () => supplierPaymentService.applySupplierCredit(idSupplier, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["supplierBalance", idSupplier] });
+      queryClient.invalidateQueries({ queryKey: ["payment-destinations", idSupplier] });
+      queryClient.invalidateQueries({ queryKey: ["supplier-payments"] });
+      onSuccess();
+    },
+    onError: (err: any) => {
+      setError(err.response?.data?.message || "Erreur lors de l'application du crédit.");
+    },
+  });
+
+  const handleApplyCredit = () => {
+    if (window.confirm("Voulez-vous utiliser ce crédit pour payer automatiquement les dettes ouvertes ?")) {
+      applyCreditMutation.mutate();
+    }
+  };
+
+  const handleSubmit = () => {
+    setError(null);
+    if (!amount || Number(amount) <= 0) { setError("Veuillez saisir un montant valide."); return; }
+    if (!idPaymentMethod) { setError("Veuillez sélectionner un mode de paiement."); return; }
+    if (allocations.length === 0) { setError("Veuillez ajouter au moins une allocation."); return; }
+    if (Math.abs(remaining) > 0.01) {
+      setError(`Le montant alloué (${formatCurrency(totalAllocated)}) ne correspond pas au montant du paiement (${formatCurrency(Number(amount))}). Reste : ${formatCurrency(remaining)}.`);
+      return;
+    }
+    saveMutation.mutate();
+  };
+
+
+
+  const getAllocationMax = (a: AllocationDto) => {
+    if (a.allocationType === "DELIVERY") {
+      return destinations?.deliveries.find((d) => d.idDelivery === a.idDelivery)?.balanceDue || 0;
+    }
+    return Number.MAX_SAFE_INTEGER;
+  };
+
+  const handleAllocationAmountChange = (index: number, a: AllocationDto, value: string) => {
+    const numValue = Number(value);
+    if (isNaN(numValue)) return;
+    const max = getAllocationMax(a);
+    updateAllocationAmount(index, Math.min(numValue, max));
+  };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAmount(e.target.value);
+  };
+
+  return (
+    <div className="space-y-5 py-2">
+      {idPaymentToEdit && editQuery.isLoading && (
+        <div className="flex justify-center p-4"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+      )}
+      {isEditLoaded && (
+        <>
+          {balanceData && (
+            <div className={`rounded-lg p-3 text-sm border flex items-center justify-between mb-4 ${balanceData.balance > 0 ? "bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-900/30 dark:text-emerald-400" : "bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400"}`}>
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                <span>
+                  {balanceData.balance > 0 ? (
+                    <>Crédit fournisseur disponible : <strong>{formatCurrency(balanceData.balance)}</strong></>
+                  ) : (
+                    <>Dette totale (Reste à payer) : <strong>{formatCurrency(Math.abs(balanceData.balance))}</strong></>
+                  )}
+                </span>
+              </div>
+              {balanceData.balance > 0 && !idPaymentToEdit && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleApplyCredit}
+                  disabled={applyCreditMutation.isPending}
+                  className="h-7 text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border-emerald-300 dark:bg-emerald-800 dark:text-emerald-100 dark:border-emerald-700"
+                >
+                  {applyCreditMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Wand2 className="h-3 w-3 mr-1" />}
+                  Utiliser ce crédit
+                </Button>
+              )}
+            </div>
+          )}
+          {error && (
+            <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30 flex items-start gap-2 mb-4">
+              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <p>{error}</p>
+            </div>
+          )}
+
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1 col-span-2">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-semibold text-foreground">Montant total (Ar)</label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs bg-primary/5 text-primary border-primary/20 hover:bg-primary/10"
+                  onClick={autoDispatch}
+                  disabled={Number(amount) <= 0 || !destinations}
+                  type="button"
+                >
+                  <Wand2 className="mr-1.5 h-3 w-3" />
+                  Auto-Répartir
+                </Button>
+              </div>
+              <input
+                type="number"
+                min={0}
+                value={amount}
+                onChange={handleAmountChange}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Mode de paiement</label>
+              <select
+                value={idPaymentMethod}
+                onChange={(e) => setIdPaymentMethod(e.target.value)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="">-- Sélectionner --</option>
+                {paymentMethods.map((pm) => (
+                  <option key={pm.value} value={pm.value}>{pm.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Date</label>
+              <input
+                type="date"
+                value={paymentDate}
+                onChange={(e) => setPaymentDate(e.target.value)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div className="space-y-1 col-span-2">
+              <label className="text-sm font-medium">Notes (Optionnel)</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={2}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                placeholder="Ex: Virement bancaire, numéro de chèque, etc."
+              />
+            </div>
+          </div>
+
+          {destinations?.unvalidatedDeliveriesCount && destinations.unvalidatedDeliveriesCount > 0 ? (
+            <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 text-sm text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/30 flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p><strong>{destinations.unvalidatedDeliveriesCount} livraison(s)</strong> en attente de validation.</p>
+                <p className="mt-1">Elles n'apparaissent pas ici. Si vous souhaitez les payer, vous devez d'abord les valider.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.setItem("activeTab", "Livraisons Fournisseurs");
+                    sessionStorage.setItem("deliveryFilter", JSON.stringify({ status: 5 })); // 5 = Ouvert
+                    window.location.reload();
+                  }}
+                  className="mt-2 inline-flex items-center gap-1 font-medium underline hover:text-amber-800 dark:hover:text-amber-300 cursor-pointer"
+                >
+                  Voir les livraisons non validées
+                  <ArrowRight className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm space-y-1">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Total paiement</span>
+              <span className="font-medium">{formatCurrency(Number(amount) || 0)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Total affecté</span>
+              <span className="font-medium">{formatCurrency(totalAllocated)}</span>
+            </div>
+            <div className={`flex justify-between font-semibold border-t border-border/50 pt-1 ${Math.abs(remaining) > 0.01 ? "text-destructive" : "text-emerald-600 dark:text-emerald-400"}`}>
+              <span>Reste à affecter</span>
+              <span>{formatCurrency(remaining)}</span>
+            </div>
+          </div>
+
+          {allocations.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-sm font-semibold">Répartition</h4>
+              {allocations.map((a, i) => (
+                <div key={i} className="flex items-center gap-2 rounded-lg border border-border bg-card p-2">
+                  <span className="flex-1 text-sm truncate">
+                    <AllocationLabel allocation={a} destinations={destinations} />
+                  </span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={a.amount}
+                    onChange={(e) => handleAllocationAmountChange(i, a, e.target.value)}
+                    readOnly={a.allocationType === "SUPPLIER_CREDIT"}
+                    className={`w-32 rounded border border-border px-2 py-1 text-sm text-right focus:outline-none focus:ring-1 focus:ring-primary ${a.allocationType === "SUPPLIER_CREDIT"
+                        ? "bg-muted cursor-not-allowed opacity-70"
+                        : "bg-background"
+                      }`}
+                  />
+                  <button onClick={() => removeAllocation(i)} className="text-muted-foreground hover:text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+
+          {destQuery.isLoading ? (
+            <div className="flex justify-center py-4"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+          ) : (
+            <div className="space-y-3">
+              {destinations?.deliveries && destinations.deliveries.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-2 text-foreground">Livraisons à payer</h4>
+                  <div className="space-y-1">
+                    {destinations.deliveries.map((d) => {
+                      const added = allocations.some((a) => a.idDelivery === d.idDelivery);
+                      return (
+                        <div key={d.idDelivery} className="flex items-center justify-between text-sm rounded border border-border/50 px-3 py-2 bg-background">
+                          <div>
+                            <span className="font-medium">{d.ref}</span>
+                            {d.purchaseRef && (
+                              <span className="text-xs text-muted-foreground ml-2">
+                                (Commande {d.purchaseRef})
+                              </span>
+                            )}
+                            <span className="text-muted-foreground ml-2">
+                              {new Date(d.deliveryDate).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-amber-600 font-medium">{formatCurrency(d.balanceDue)}</span>
+                            <button
+                              onClick={() => addDeliveryAllocation(d)}
+                              disabled={added}
+                              className="text-primary hover:text-primary/70 disabled:opacity-40"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+
+
+              {remaining > 0 && !allocations.find((a) => a.allocationType === "SUPPLIER_CREDIT") && (
+                <button
+                  onClick={addCreditAllocation}
+                  className="text-sm text-amber-600 hover:underline flex items-center gap-1"
+                >
+                  <Plus className="h-4 w-4" /> Ajouter au crédit fournisseur ({formatCurrency(remaining)})
+                </button>
+              )}
+            </div>
+          )}
+
+          {error && (
+            <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30 flex items-start gap-2 mb-4">
+              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <p>{error}</p>
+            </div>
+          )}
+
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" className="flex-1" onClick={onCancel} disabled={saveMutation.isPending}>
+              Annuler
+            </Button>
+            <Button className="flex-1" onClick={handleSubmit} disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              {idPaymentToEdit ? "Enregistrer" : "Confirmer"}
+            </Button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

@@ -92,6 +92,11 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
     queryFn: () => EmployeeService.getAll({ limit: 100 })
   });
 
+  const { data: paymentMethods } = useQuery({
+    queryKey: ["payment-methods"],
+    queryFn: () => purchaseService.getPaymentMethods()
+  });
+
   const { data: suppliedItems, refetch: refetchSuppliedItems } = useQuery({
     queryKey: ["suppliedItems", purchaseData.idSupplier],
     queryFn: () => purchaseService.getSuppliedItemsBySupplier(purchaseData.idSupplier),
@@ -167,7 +172,7 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
 
   const totalAmount = purchaseData.details.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
 
-  const isFormValid = purchaseData.idSupplier && purchaseData.idPurchaser && purchaseData.details.length > 0 && purchaseData.details.every(d => d.idSuppliedItem && d.quantity > 0 && d.unitPrice >= 0);
+  const isFormValid = purchaseData.idSupplier && purchaseData.idPurchaser && purchaseData.details.length > 0 && purchaseData.details.every(d => d.idSuppliedItem && d.quantity > 0 && d.unitPrice >= 0) && (!purchaseData.advanceAmount || purchaseData.advanceAmount <= 0 || purchaseData.idPaymentMethod);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,6 +189,7 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
 
   const supplierOptions = suppliers?.records?.map(s => ({ value: s.idSupplier, label: s.name })) || [];
   const employeeOptions = employees?.records?.map(e => ({ value: e.idEmployee, label: `${e.name || ''} ${e.lastname || ''}`.trim() })) || [];
+  const pmOptions = paymentMethods || [];
 
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
@@ -204,6 +210,8 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
           data={purchaseData}
           suppliers={supplierOptions}
           employees={employeeOptions}
+          paymentMethods={pmOptions}
+          isEditMode={!!idPurchaseToEdit}
           onChange={handleInfoChange}
         />
 

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button/button";
 import { Plus } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { SaleItemRow } from "./SaleItemRow";
-import type { SaleItem, MenuItemRef } from "../../types";
+import type { SaleItem, MenuItemRef } from "../../../types";
 
 interface SaleItemsProps {
   items: SaleItem[];

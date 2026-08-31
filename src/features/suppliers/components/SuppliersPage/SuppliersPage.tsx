@@ -10,6 +10,8 @@ import { SupplierForm } from "../SupplierForm/SupplierForm";
 import { SupplierProductForm } from "../ProductForms/SupplierProductForm";
 import { SupplierProductPriceForm } from "../ProductForms/SupplierProductPriceForm";
 import { SupplierProductLinkForm } from "../ProductForms/SupplierProductLinkForm";
+import { SupplierPaymentForm } from "@/features/purchases/components/PurchaseList/SupplierPaymentForm";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 
 export function SuppliersPage() {
   const [snackbar, setSnackbar] = useState<{ message: string, type: "success" | "error" | "info" } | null>(null);
@@ -43,6 +45,9 @@ export function SuppliersPage() {
   const [linkedItems, setLinkedItems] = useState<SuppliedItem[]>([]);
   const [allItems, setAllItems] = useState<import("@/features/items/types").Item[]>([]);
   
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [paymentSupplier, setPaymentSupplier] = useState<Supplier | null>(null);
+
   useEffect(() => {
     fetchSuppliers();
   }, [supplierPage, supplierSearch]);
@@ -230,6 +235,10 @@ export function SuppliersPage() {
           setPriceDialogOpen(true);
         }}
         onLinkProduct={(product) => openLinkDialog(product)}
+        onPaySupplier={(supplier) => {
+          setPaymentSupplier(supplier);
+          setPaymentDialogOpen(true);
+        }}
       />
 
       <SupplierForm 
@@ -263,6 +272,27 @@ export function SuppliersPage() {
         onAddLink={handleAddLink}
         onDeleteLink={handleDeleteLink}
       />
+
+      {paymentDialogOpen && paymentSupplier && (
+        <ConfirmDialog
+          open={paymentDialogOpen}
+          title="Paiement fournisseur"
+          onOpenChange={(open) => { if (!open) setPaymentDialogOpen(false); }}
+          onConfirm={() => {}}
+          hideConfirmButton
+          cancelText="Fermer"
+        >
+          <SupplierPaymentForm
+            idSupplier={paymentSupplier.idSupplier}
+            onSuccess={() => {
+              setPaymentDialogOpen(false);
+              addSnackbar("Paiement enregistré", "success");
+              fetchProducts(paymentSupplier.idSupplier);
+            }}
+            onCancel={() => setPaymentDialogOpen(false)}
+          />
+        </ConfirmDialog>
+      )}
 
       {snackbar && (
         <Snackbar 

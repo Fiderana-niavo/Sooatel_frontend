@@ -20,9 +20,9 @@ export function InventoryCatalogPage() {
     setSnackbar({ message, type, isOpen: true });
   };
 
-  const items = useCrud<Item>(ItemService.getAll, ItemService.create, ItemService.update, ItemService.delete, "idItem" as keyof Item);
-  const itemTypes = useCrud<ItemType>(ItemTypeService.getAll, ItemTypeService.create, ItemTypeService.update, ItemTypeService.delete, "idProductType" as keyof ItemType);
-  const unitOfMeasures = useCrud<UnitOfMeasure>(UnitOfMeasureService.getAll, UnitOfMeasureService.create, UnitOfMeasureService.update, UnitOfMeasureService.delete, "idUnit" as keyof UnitOfMeasure);
+  const items = useCrud<Item, any, any>(ItemService.getAll, ItemService.create, ItemService.update, ItemService.delete, "idItem" as keyof Item);
+  const itemTypes = useCrud<ItemType, any, any>(ItemTypeService.getAll, ItemTypeService.create, ItemTypeService.update, ItemTypeService.delete, "idProductType" as keyof ItemType);
+  const unitOfMeasures = useCrud<UnitOfMeasure, any, any>(UnitOfMeasureService.getAll, UnitOfMeasureService.create, UnitOfMeasureService.update, UnitOfMeasureService.delete, "idUnit" as keyof UnitOfMeasure);
 
   const modalActions: Record<string, () => void> = {
     items: () => items.setIsOpen(true),

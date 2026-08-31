@@ -88,7 +88,7 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleItemChange = (index: number, field: keyof SaleItem, value: any) => {
+  const handleItemChange = (index: number, field: keyof SaleItem | string | number | symbol, value: any) => {
     setFormData(prev => {
       const newItems = [...prev.items];
       newItems[index] = { ...newItems[index], [field]: value };
@@ -110,7 +110,7 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
     }));
   };
 
-  const handlePaymentChange = (field: string, value: any) => {
+  const handlePaymentChange = (field: string | number | symbol, value: any) => {
     setFormData(prev => {
       if (!prev.payment) {
         return { ...prev, payment: { paymentDate: "", amount: 0, idPaymentMethod: "", [field]: value } };

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/Inputs/input";
 import { Button } from "@/components/ui/Button/button";
-import type { SalePayment, PaymentMethodRef } from "../../types";
+import type { SalePayment, PaymentMethodRef } from "../../sales/types";
 import { CalendarDays } from "lucide-react";
 
 interface SalePaymentProps {
