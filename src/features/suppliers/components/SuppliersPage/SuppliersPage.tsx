@@ -28,6 +28,8 @@ export function SuppliersPage() {
   // State: Products (for selected supplier)
   const [products, setProducts] = useState<SupplierProduct[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [productPage, setProductPage] = useState(1);
 
   // Dialogs
   const [supplierDialogOpen, setSupplierDialogOpen] = useState(false);
@@ -54,9 +56,9 @@ export function SuppliersPage() {
 
   useEffect(() => {
     if (selectedSupplier) {
-      fetchProducts(selectedSupplier.idSupplier);
+      fetchProducts(selectedSupplier.idSupplier, productPage);
     }
-  }, [selectedSupplier]);
+  }, [selectedSupplier, productPage]);
 
   const fetchSuppliers = async () => {
     setLoadingSuppliers(true);
@@ -71,11 +73,12 @@ export function SuppliersPage() {
     }
   };
 
-  const fetchProducts = async (idSupplier: string) => {
+  const fetchProducts = async (idSupplier: string, page = 1) => {
     setLoadingProducts(true);
     try {
-      const res = await api.getSupplierProducts({ idSupplier, limit: 100 });
+      const res = await api.getSupplierProducts({ idSupplier, limit: 10, page });
       setProducts(res.records || []);
+      setTotalProducts(res.total || 0);
     } catch (err: unknown) {
       addSnackbar((err as any).response?.data?.message || "Erreur lors du chargement des produits", "error");
     } finally {
@@ -177,7 +180,7 @@ export function SuppliersPage() {
         addSnackbar("Produit ajouté", "success");
       }
       setProductDialogOpen(false);
-      fetchProducts(selectedSupplier.idSupplier);
+      fetchProducts(selectedSupplier.idSupplier, productPage);
     } catch (err: unknown) {
       addSnackbar((err as any).response?.data?.message || "Erreur de sauvegarde", "error");
     }
@@ -201,14 +204,14 @@ export function SuppliersPage() {
         addSnackbar("Erreur de prix corrigée (Sans nouvel historique)", "success");
       }
       setPriceDialogOpen(false);
-      fetchProducts(selectedSupplier.idSupplier);
+      fetchProducts(selectedSupplier.idSupplier, productPage);
     } catch (err: unknown) {
       addSnackbar((err as any).response?.data?.message || "Erreur de modification du prix", "error");
     }
   };
 
   return (
-    <div className="flex h-[calc(100vh-140px)] gap-6 animate-in fade-in">
+    <div className="flex flex-col md:flex-row h-auto md:h-[calc(100vh-140px)] gap-6 animate-in fade-in">
       <SuppliersList 
         suppliers={suppliers}
         loadingSuppliers={loadingSuppliers}
@@ -226,6 +229,9 @@ export function SuppliersPage() {
         selectedSupplier={selectedSupplier}
         products={products}
         loadingProducts={loadingProducts}
+        totalProducts={totalProducts}
+        productPage={productPage}
+        onPageChange={setProductPage}
         onEditSupplier={(supplier) => { setEditingSupplier(supplier); setSupplierDialogOpen(true); }}
         onNewProduct={() => { setEditingProduct(null); setProductDialogOpen(true); }}
         onEditProduct={(product) => { setEditingProduct(product); setProductDialogOpen(true); }}
@@ -239,6 +245,7 @@ export function SuppliersPage() {
           setPaymentSupplier(supplier);
           setPaymentDialogOpen(true);
         }}
+        onBack={() => setSelectedSupplier(null)}
       />
 
       <SupplierForm 
@@ -287,7 +294,7 @@ export function SuppliersPage() {
             onSuccess={() => {
               setPaymentDialogOpen(false);
               addSnackbar("Paiement enregistré", "success");
-              fetchProducts(paymentSupplier.idSupplier);
+              fetchProducts(paymentSupplier.idSupplier, productPage);
             }}
             onCancel={() => setPaymentDialogOpen(false)}
           />

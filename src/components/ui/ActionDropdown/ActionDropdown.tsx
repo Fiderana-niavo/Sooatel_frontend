@@ -50,8 +50,16 @@ export const ActionDropdown: React.FC<ActionDropdownProps> = ({ items, icon }) =
     e.stopPropagation();
     if (!isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+      const dropdownHeightEstimate = visibleItems.length * 36 + 16; // Approx 36px per item + padding
+      
+      let top = rect.bottom + window.scrollY + 4; // 4px gap
+      // If not enough space below, open upwards
+      if (rect.bottom + dropdownHeightEstimate > window.innerHeight && rect.top > dropdownHeightEstimate) {
+        top = rect.top + window.scrollY - dropdownHeightEstimate - 4;
+      }
+
       setCoords({
-        top: rect.bottom + window.scrollY,
+        top,
         left: rect.right - 192 + window.scrollX // 192px = w-48
       });
     }

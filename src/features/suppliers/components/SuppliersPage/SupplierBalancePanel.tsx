@@ -36,7 +36,7 @@ export function SupplierBalancePanel({ idSupplier }: Props) {
     queryKey: ["payment-destinations", idSupplier],
     queryFn: async () => {
       const res = await supplierPaymentService.getAvailableDestinations(idSupplier);
-      return res.data.payload.deliveries; // it returns { deliveries, purchases }
+      return res.data.payload; 
     },
     enabled: affectDialog
   });
@@ -149,13 +149,13 @@ export function SupplierBalancePanel({ idSupplier }: Props) {
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">-- Auto-répartir sur toutes les dettes --</option>
-              {deliveriesQuery.data?.map((d: any) => (
+              {deliveriesQuery.data?.deliveries?.map((d: any) => (
                 <option key={d.idDelivery} value={d.idDelivery}>
                   {d.ref} — Reste : {formatCurrency(d.balanceDue)}
                 </option>
               ))}
             </select>
-            {deliveriesQuery.data?.length === 0 && (
+            {deliveriesQuery.data?.deliveries?.length === 0 && (
               <p className="text-xs text-muted-foreground">Aucune livraison impayee pour ce fournisseur.</p>
             )}
           </div>

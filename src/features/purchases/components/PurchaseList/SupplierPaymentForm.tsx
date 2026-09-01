@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePaymentAllocations } from "../../hooks/usePaymentAllocations";
 import { supplierPaymentService } from "../../services/supplier-payment.service";
 import type { AllocationDto } from "../../types/supplier-payment.type";
@@ -14,6 +14,7 @@ interface Props {
   initialAllocation?: AllocationDto;
   idPaymentToEdit?: string | null;
   onSuccess: () => void;
+  onGoToDeliveries?: () => void;
   onCancel: () => void;
 }
 
@@ -22,17 +23,35 @@ interface PaymentMethodRef {
   label: string;
 }
 
-
-export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentToEdit, onSuccess, onCancel }: Props) {
+export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentToEdit, onSuccess, onCancel, onGoToDeliveries }: Props) {
   const queryClient = useQueryClient();
 
   const [idPaymentMethod, setIdPaymentMethod] = useState("");
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState("");
+  const [isCreditAppliedLocally, setIsCreditAppliedLocally] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [amount, setAmount] = useState<string | number>(
     initialAllocation?.amount || ""
   );
+
+  useEffect(() => {
+    const savedStr = sessionStorage.getItem("supplierPaymentSavedState");
+    if (savedStr) {
+      try {
+        const saved = JSON.parse(savedStr);
+        if (saved.idSupplier === idSupplier) {
+          if (saved.amount) setAmount(saved.amount);
+          if (saved.idPaymentMethod) setIdPaymentMethod(saved.idPaymentMethod);
+          if (saved.paymentDate) setPaymentDate(saved.paymentDate);
+          if (saved.notes) setNotes(saved.notes);
+          if (saved.isCreditAppliedLocally) setIsCreditAppliedLocally(saved.isCreditAppliedLocally);
+        }
+      } catch (e) {}
+      sessionStorage.removeItem("supplierPaymentSavedState");
+    }
+  }, [idSupplier]);
 
   // Flag to know if edit data is loaded
   const [isEditLoaded, setIsEditLoaded] = useState(!idPaymentToEdit);
@@ -91,7 +110,6 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
     autoDispatch,
   } = usePaymentAllocations({ initialAllocation, amount, setAmount, destinations });
 
-
   useEffect(() => {
     if (editQuery.data && !isEditLoaded) {
       const p = editQuery.data;
@@ -111,69 +129,67 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
     }
   }, [editQuery.data, isEditLoaded, setAllocations]);
 
-  const saveMutation = useMutation({
-    mutationFn: () => {
-      const dto = {
-        idSupplier,
-        amount: Number(amount),
-        idPaymentMethod,
-        paymentDate,
-        notes: notes || undefined,
-        allocations: allocations.map((a) => ({ ...a, amount: Number(a.amount) })),
-      };
-      if (idPaymentToEdit) {
-        return supplierPaymentService.updatePayment(idPaymentToEdit, dto);
+  const handleApplyCredit = () => {
+    if (!destQuery.data || destQuery.data.deliveries.length === 0) {
+      setError("Pas de dette à payer pour le moment.");
+      return;
+    }
+    setIsCreditAppliedLocally(true);
+  };
+
+  const handleSubmit = async () => {
+    setError(null);
+    const hasPaymentAmount = Number(amount) > 0;
+
+    if (!hasPaymentAmount && !isCreditAppliedLocally) {
+      setError("Veuillez saisir un montant ou utiliser un crédit.");
+      return;
+    }
+
+    if (hasPaymentAmount) {
+      if (!idPaymentMethod) { setError("Veuillez sélectionner un mode de paiement."); return; }
+      if (allocations.length === 0) { setError("Veuillez ajouter au moins une allocation."); return; }
+      if (Math.abs(remaining) > 0.01) {
+        setError(`Le montant alloué (${formatCurrency(totalAllocated)}) ne correspond pas au montant du paiement (${formatCurrency(Number(amount))}). Reste : ${formatCurrency(remaining)}.`);
+        return;
       }
-      return supplierPaymentService.createPayment(dto);
-    },
-    onSuccess: () => {
+    }
+
+    setIsSubmitting(true);
+    try {
+      if (isCreditAppliedLocally) {
+        await supplierPaymentService.applySupplierCredit(idSupplier, {});
+      }
+      
+      if (hasPaymentAmount) {
+        const dto = {
+          idSupplier,
+          amount: Number(amount),
+          idPaymentMethod,
+          paymentDate,
+          notes: notes || undefined,
+          allocations: allocations.map((a) => ({ ...a, amount: Number(a.amount) })),
+        };
+        if (idPaymentToEdit) {
+          await supplierPaymentService.updatePayment(idPaymentToEdit, dto);
+        } else {
+          await supplierPaymentService.createPayment(dto);
+        }
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["deliveries"] });
       queryClient.invalidateQueries({ queryKey: ["purchases"] });
       queryClient.invalidateQueries({ queryKey: ["payment-destinations", idSupplier] });
-      onSuccess();
-    },
-    onError: (err: unknown) => {
-      const axiosErr = err as { response?: { data?: { error?: string; message?: string } } };
-      setError(
-        axiosErr.response?.data?.error ||
-        axiosErr.response?.data?.message ||
-        "Erreur lors du paiement."
-      );
-    },
-  });
-
-  const applyCreditMutation = useMutation({
-    mutationFn: () => supplierPaymentService.applySupplierCredit(idSupplier, {}),
-    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["supplierBalance", idSupplier] });
-      queryClient.invalidateQueries({ queryKey: ["payment-destinations", idSupplier] });
       queryClient.invalidateQueries({ queryKey: ["supplier-payments"] });
+      
       onSuccess();
-    },
-    onError: (err: any) => {
-      setError(err.response?.data?.message || "Erreur lors de l'application du crédit.");
-    },
-  });
-
-  const handleApplyCredit = () => {
-    if (window.confirm("Voulez-vous utiliser ce crédit pour payer automatiquement les dettes ouvertes ?")) {
-      applyCreditMutation.mutate();
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.response?.data?.error || "Erreur lors de l'enregistrement.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
-  const handleSubmit = () => {
-    setError(null);
-    if (!amount || Number(amount) <= 0) { setError("Veuillez saisir un montant valide."); return; }
-    if (!idPaymentMethod) { setError("Veuillez sélectionner un mode de paiement."); return; }
-    if (allocations.length === 0) { setError("Veuillez ajouter au moins une allocation."); return; }
-    if (Math.abs(remaining) > 0.01) {
-      setError(`Le montant alloué (${formatCurrency(totalAllocated)}) ne correspond pas au montant du paiement (${formatCurrency(Number(amount))}). Reste : ${formatCurrency(remaining)}.`);
-      return;
-    }
-    saveMutation.mutate();
-  };
-
-
 
   const getAllocationMax = (a: AllocationDto) => {
     if (a.allocationType === "DELIVERY") {
@@ -190,7 +206,8 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAmount(e.target.value);
+    const rawValue = e.target.value.replace(/[^\d]/g, "");
+    setAmount(rawValue ? parseInt(rawValue, 10) : "");
   };
 
   return (
@@ -200,37 +217,40 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
       )}
       {isEditLoaded && (
         <>
-          {balanceData && (
-            <div className={`rounded-lg p-3 text-sm border flex items-center justify-between mb-4 ${balanceData.balance > 0 ? "bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-900/30 dark:text-emerald-400" : "bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400"}`}>
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4" />
-                <span>
-                  {balanceData.balance > 0 ? (
-                    <>Crédit fournisseur disponible : <strong>{formatCurrency(balanceData.balance)}</strong></>
-                  ) : (
-                    <>Dette totale (Reste à payer) : <strong>{formatCurrency(Math.abs(balanceData.balance))}</strong></>
-                  )}
-                </span>
-              </div>
-              {balanceData.balance > 0 && !idPaymentToEdit && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={handleApplyCredit}
-                  disabled={applyCreditMutation.isPending}
-                  className="h-7 text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border-emerald-300 dark:bg-emerald-800 dark:text-emerald-100 dark:border-emerald-700"
-                >
-                  {applyCreditMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Wand2 className="h-3 w-3 mr-1" />}
-                  Utiliser ce crédit
-                </Button>
+          {balanceData && (balanceData.debit > 0 || balanceData.credit > 0) && (
+            <div className="flex flex-col gap-2 mb-4">
+              {balanceData.debit > 0 && (
+                <div className="rounded-lg p-3 text-sm border flex items-center justify-between bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>Dette totale (Reste à payer) : <strong>{formatCurrency(isCreditAppliedLocally ? Math.max(0, balanceData.debit - balanceData.credit) : balanceData.debit)}</strong></span>
+                  </div>
+                </div>
               )}
-            </div>
-          )}
-          {error && (
-            <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30 flex items-start gap-2 mb-4">
-              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <p>{error}</p>
+              {balanceData.credit > 0 && (
+                <div className="rounded-lg p-3 text-sm border flex items-center justify-between bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-900/30 dark:text-emerald-400">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>
+                      {isCreditAppliedLocally
+                        ? <>Crédit appliqué à ce paiement : <strong>{formatCurrency(balanceData.credit)}</strong></>
+                        : <>Crédit fournisseur disponible : <strong>{formatCurrency(balanceData.credit)}</strong></>}
+                    </span>
+                  </div>
+                  {!idPaymentToEdit && !isCreditAppliedLocally && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={handleApplyCredit}
+                      className="h-7 text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border-emerald-300 dark:bg-emerald-800 dark:text-emerald-100 dark:border-emerald-700"
+                    >
+                      <Wand2 className="h-3 w-3 mr-1" />
+                      Utiliser ce crédit
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -252,10 +272,9 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                 </Button>
               </div>
               <input
-                type="number"
-                min={0}
-                value={amount}
-                onChange={handleAmountChange}
+                  type="text"
+                  value={amount ? amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "\u202F") : ""}
+                  onChange={handleAmountChange}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -303,8 +322,15 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                   type="button"
                   onClick={() => {
                     localStorage.setItem("activeTab", "Livraisons Fournisseurs");
-                    sessionStorage.setItem("deliveryFilter", JSON.stringify({ status: 5 })); // 5 = Ouvert
-                    window.location.reload();
+                    sessionStorage.setItem("deliveryFilter", JSON.stringify({ status: 5, openSupplierPaymentFor: idSupplier }));
+                    sessionStorage.setItem("supplierPaymentSavedState", JSON.stringify({
+                      idSupplier, amount, idPaymentMethod, paymentDate, notes, isCreditAppliedLocally
+                    }));
+                    if (onGoToDeliveries) {
+                      onGoToDeliveries();
+                    } else {
+                      window.location.reload();
+                    }
                   }}
                   className="mt-2 inline-flex items-center gap-1 font-medium underline hover:text-amber-800 dark:hover:text-amber-300 cursor-pointer"
                 >
@@ -339,9 +365,8 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                     <AllocationLabel allocation={a} destinations={destinations} />
                   </span>
                   <input
-                    type="number"
-                    min={0}
-                    value={a.amount}
+                    type="text"
+                    value={a.amount ? a.amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "\u202F") : ""}
                     onChange={(e) => handleAllocationAmountChange(i, a, e.target.value)}
                     readOnly={a.allocationType === "SUPPLIER_CREDIT"}
                     className={`w-32 rounded border border-border px-2 py-1 text-sm text-right focus:outline-none focus:ring-1 focus:ring-primary ${a.allocationType === "SUPPLIER_CREDIT"
@@ -349,14 +374,13 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                         : "bg-background"
                       }`}
                   />
-                  <button onClick={() => removeAllocation(i)} className="text-muted-foreground hover:text-destructive">
+                  <button type="button" onClick={() => removeAllocation(i)} className="text-muted-foreground hover:text-destructive">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               ))}
             </div>
           )}
-
 
           {destQuery.isLoading ? (
             <div className="flex justify-center py-4"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
@@ -384,6 +408,7 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                           <div className="flex items-center gap-3">
                             <span className="text-amber-600 font-medium">{formatCurrency(d.balanceDue)}</span>
                             <button
+                              type="button"
                               onClick={() => addDeliveryAllocation(d)}
                               disabled={added}
                               className="text-primary hover:text-primary/70 disabled:opacity-40"
@@ -398,10 +423,9 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                 </div>
               )}
 
-
-
               {remaining > 0 && !allocations.find((a) => a.allocationType === "SUPPLIER_CREDIT") && (
                 <button
+                  type="button"
                   onClick={addCreditAllocation}
                   className="text-sm text-amber-600 hover:underline flex items-center gap-1"
                 >
@@ -412,18 +436,17 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
           )}
 
           {error && (
-            <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30 flex items-start gap-2 mb-4">
+            <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30 flex items-start gap-2">
               <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <p>{error}</p>
             </div>
           )}
-
           <div className="flex gap-2 pt-2">
-            <Button variant="outline" className="flex-1" onClick={onCancel} disabled={saveMutation.isPending}>
+            <Button type="button" variant="outline" className="flex-1" onClick={onCancel} disabled={isSubmitting}>
               Annuler
             </Button>
-            <Button className="flex-1" onClick={handleSubmit} disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            <Button type="button" className="flex-1" onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               {idPaymentToEdit ? "Enregistrer" : "Confirmer"}
             </Button>
           </div>

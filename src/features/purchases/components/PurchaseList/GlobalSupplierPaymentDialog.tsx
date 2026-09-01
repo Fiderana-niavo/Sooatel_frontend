@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SupplierPaymentForm } from "./SupplierPaymentForm";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
@@ -8,10 +8,25 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  onGoToDeliveries?: () => void;
 }
 
-export function GlobalSupplierPaymentDialog({ open, onOpenChange, onSuccess }: Props) {
+export function GlobalSupplierPaymentDialog({ open, onOpenChange, onSuccess, onGoToDeliveries }: Props) {
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
+
+  useEffect(() => {
+    if (open) {
+      const savedStr = sessionStorage.getItem("supplierPaymentSavedState");
+      if (savedStr) {
+        try {
+          const saved = JSON.parse(savedStr);
+          if (saved.idSupplier) {
+            setSelectedSupplierId(saved.idSupplier);
+          }
+        } catch(e) {}
+      }
+    }
+  }, [open]);
 
   const { data: suppliersRes, isLoading } = useQuery({
     queryKey: ["all-suppliers"],

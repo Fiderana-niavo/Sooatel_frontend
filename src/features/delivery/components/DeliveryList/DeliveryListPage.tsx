@@ -16,6 +16,7 @@ import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
 export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => void }) {
   const [page] = useState(1);
+  const [hasSavedPaymentState, setHasSavedPaymentState] = useState(() => !!sessionStorage.getItem("supplierPaymentSavedState"));
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(() => {
     const saved = sessionStorage.getItem("viewDeliveryDetailId");
@@ -96,12 +97,31 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
 
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-3xl font-bold text-foreground">Livraisons Fournisseurs</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setPaymentDialogOpen(true)} className="border-primary text-primary hover:bg-primary/10">
-            Faire un paiement / acompte
-          </Button>
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+          {hasSavedPaymentState && (
+            <Button 
+              variant="default" 
+              onClick={() => {
+                setPaymentDialogOpen(true);
+                setHasSavedPaymentState(false);
+              }} 
+              className="w-full md:w-auto font-semibold shadow-md animate-in fade-in zoom-in duration-300"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Reprendre le paiement en cours
+            </Button>
+          )}
+          {!hasSavedPaymentState && (
+            <Button 
+              variant="outline" 
+              onClick={() => setPaymentDialogOpen(true)} 
+              className="border-primary text-primary hover:bg-primary/10 w-full md:w-auto"
+            >
+              Faire un paiement / acompte
+            </Button>
+          )}
           {filters.returnToPurchases && onGoToPurchases && (
             <Button
               variant="outline"

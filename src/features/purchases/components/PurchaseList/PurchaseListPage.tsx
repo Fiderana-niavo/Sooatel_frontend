@@ -54,14 +54,14 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
   const { data, isLoading } = result;
 
   return (
-    <div className="p-6 space-y-6 bg-background min-h-screen">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-foreground">Commandes Fournisseurs</h1>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={() => setPaymentDialogOpen(true)} className="border-primary text-primary hover:bg-primary/10">
+    <div className="p-4 md:p-6 space-y-6 bg-background min-h-screen">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Commandes Fournisseurs</h1>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
+          <Button variant="outline" onClick={() => setPaymentDialogOpen(true)} className="border-primary text-primary hover:bg-primary/10 w-full sm:w-auto">
             Faire un paiement / acompte
           </Button>
-          <Button onClick={onGoToCreate} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+          <Button onClick={onGoToCreate} className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Nouvelle Commande
           </Button>
@@ -100,7 +100,7 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
                   <th className="px-6 py-4 font-semibold">Fournisseur</th>
                   <th className="px-6 py-4 font-semibold text-right">Total</th>
                   <th className="px-6 py-4 font-semibold text-center whitespace-nowrap">Confirmation</th>
-                  <th className="px-6 py-4 font-semibold text-center whitespace-nowrap">Statut</th>
+                  <th className="px-6 py-4 font-semibold text-center whitespace-nowrap">Livraison</th>
                   <th className="px-4 py-4 font-semibold text-center w-24">Actions</th>
                 </tr>
               </thead>
@@ -126,8 +126,8 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
                         <td className="px-6 py-4 text-right font-medium whitespace-nowrap">{formatCurrency(purchase.totalAmount)}</td>
                         <td className="px-6 py-4 text-center">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${isConfirmed ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                              isCancelled ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
-                                'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                            isCancelled ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                              'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
                             }`}>
                             {isConfirmed ? 'Confirmé' : isCancelled ? 'Annulé' : 'Non confirmé'}
                           </span>
@@ -231,7 +231,8 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
       <GlobalSupplierPaymentDialog
         open={paymentDialogOpen}
         onOpenChange={setPaymentDialogOpen}
-        onSuccess={() => {}}
+        onSuccess={() => { }}
+        onGoToDeliveries={onGoToDeliveries}
       />
     </div>
   );

@@ -30,7 +30,7 @@ export function SuppliersList({
   onNewSupplier,
 }: SuppliersListProps) {
   return (
-    <div className="w-1/3 flex flex-col bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
+    <div className={`w-full md:w-1/3 flex-col bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm ${selectedSupplier ? 'hidden md:flex' : 'flex'}`}>
       <div className="p-4 border-b border-border/50 bg-muted/20 flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold flex items-center gap-2">

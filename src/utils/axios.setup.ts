@@ -41,9 +41,13 @@ export const setupAxiosInterceptors = () => {
               const data = await response.json();
 
               if (response.ok && data.ok) {
-                // Success: save new token and retry original request
+                // Success: save new tokens and retry original request
                 const newAccessToken = data.payload.accessToken;
+                const newRefreshToken = data.payload.refreshToken;
                 localStorage.setItem("authToken", newAccessToken);
+                if (newRefreshToken) {
+                  localStorage.setItem("refreshToken", newRefreshToken);
+                }
 
                 originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
                 return axios(originalRequest);

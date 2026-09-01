@@ -16,9 +16,9 @@ export const getPurchaseDropdownActions = (
   activeTab: string,
   callbacks: PurchaseActionCallbacks
 ) => {
-  const isConfirmed = purchase.status !== "Non confirmé";
-  const isCancelled = purchase.status === "Annulé";
-  const isOpen = purchase.status === "Ouvert";
+  const isConfirmed = purchase.lifecycleStatus === 0 || purchase.lifecycleStatus === "Confirmé";
+  const isCancelled = purchase.lifecycleStatus === -3 || purchase.lifecycleStatus === "Annulé";
+  const isFullyDelivered = purchase.status === 0 || purchase.status === "Livré";
 
   return [
     {
@@ -30,24 +30,23 @@ export const getPurchaseDropdownActions = (
       label: "Confirmer",
       icon: <CheckCircle2 className="h-4 w-4" />,
       onClick: () => callbacks.onConfirm(purchase),
-      hidden: activeTab === "annulees" || !isOpen,
+      hidden: activeTab === "annulees" || isCancelled || isConfirmed,
       className: "text-blue-600 dark:text-blue-400 hover:text-blue-700",
     },
     {
       label: "Modifier",
       icon: <Edit className="h-4 w-4" />,
       onClick: () => callbacks.onEdit(purchase),
-      hidden: activeTab === "annulees" || isCancelled || purchase.status === "Livré" || purchase.status === 0,
+      hidden: activeTab === "annulees" || isCancelled || isFullyDelivered,
       className: "text-orange-600 dark:text-orange-400 hover:text-orange-700",
     },
     {
       label: "Annuler",
       icon: <Ban className="h-4 w-4" />,
       onClick: () => callbacks.onCancel(purchase),
-      hidden: activeTab === "annulees" || isCancelled || purchase.status === "Livré" || purchase.status === 0,
+      hidden: activeTab === "annulees" || isCancelled || isFullyDelivered,
       className: "text-red-600 dark:text-red-400 hover:text-red-700",
     },
-
     {
       label: "Réception",
       icon: <PackageCheck className="h-4 w-4" />,
@@ -58,7 +57,7 @@ export const getPurchaseDropdownActions = (
           callbacks.onReceive(purchase);
         }
       },
-      hidden: activeTab === "annulees" || purchase.status === "Livré",
+      hidden: activeTab === "annulees" || isCancelled || isFullyDelivered,
       className: "text-emerald-600 dark:text-emerald-400 hover:text-emerald-700",
     },
   ];

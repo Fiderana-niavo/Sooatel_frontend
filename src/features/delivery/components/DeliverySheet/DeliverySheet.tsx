@@ -322,12 +322,14 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
                       <tbody className="divide-y divide-border/40">
                         {p.details.map((detail) => {
                           const currentQty = qtyMap.get(detail.idPurchaseDetail) ?? 0;
-                          const fullyDelivered = detail.remaining <= 0;
+                          const displayRemaining = Math.max(0, detail.remaining - currentQty);
+                          // "Livré" badge only if already fully delivered from backend (before user types anything)
+                          const alreadyFullyDelivered = detail.remaining <= 0;
 
                           return (
                             <tr
                               key={detail.idPurchaseDetail}
-                              className={`${fullyDelivered ? "opacity-50" : ""}`}
+                              className={`${alreadyFullyDelivered ? "opacity-50" : ""}`}
                             >
                               <td className="px-4 py-2.5 font-medium">
                                 {detail.suppliedItem?.item?.label ?? "Article inconnu"}
@@ -345,14 +347,14 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
                                 )}
                               </td>
                               <td className="px-4 py-2.5 text-right">
-                                {fullyDelivered ? (
+                                {alreadyFullyDelivered ? (
                                   <span className="text-emerald-600 dark:text-emerald-400 flex items-center justify-end gap-1">
                                     <CheckCircle2 className="h-3.5 w-3.5" />
                                     Livré
                                   </span>
                                 ) : (
-                                  <span className="text-amber-600 dark:text-amber-400">
-                                    {detail.remaining}
+                                  <span className={displayRemaining === 0 ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-amber-600 dark:text-amber-400"}>
+                                    {displayRemaining}
                                   </span>
                                 )}
                               </td>

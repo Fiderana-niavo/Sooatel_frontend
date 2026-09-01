@@ -288,19 +288,19 @@ function App() {
                     </div>
                   ) : activeTab === "Fournisseurs & Achats" ? (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="supplier.manage">
+                      <ProtectedRoute permission="supplier.read">
                         <SuppliersPage />
                       </ProtectedRoute>
                     </div>
                   ) : activeTab === "Commandes Fournisseurs" ? (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="supplier.manage">
+                      <ProtectedRoute permission="stock.manage">
                         <PurchasesContainer onGoToDeliveries={() => setActiveTab("Livraisons Fournisseurs")} />
                       </ProtectedRoute>
                     </div>
                   ) : activeTab === "Livraisons Fournisseurs" ? (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="supplier.manage">
+                      <ProtectedRoute permission="stock.manage">
                         <DeliveryListPage onGoToPurchases={() => setActiveTab("Commandes Fournisseurs")} />
                       </ProtectedRoute>
                     </div>

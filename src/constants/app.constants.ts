@@ -41,9 +41,9 @@ export const NAVIGATION_GROUPS = [
     items: [
       { title: "Gestion des Produits & Inventaire", url: "/inventory/catalog", icon: Box, permission: "stock.manage" },
       { title: "Niveaux de Stock", url: "/inventory/stock", icon: Boxes, permission: "stock.read" },
-      { title: "Fournisseurs & Achats", url: "/inventory/suppliers", icon: Package, permission: "supplier.manage" },
-      { title: "Commandes Fournisseurs", url: "/inventory/purchases", icon: Package, permission: "supplier.manage" },
-      { title: "Livraisons Fournisseurs", url: "/inventory/deliveries", icon: PackageCheck, permission: "supplier.manage" },
+      { title: "Fournisseurs & Achats", url: "/inventory/suppliers", icon: Package, permission: "supplier.read" },
+      { title: "Commandes Fournisseurs", url: "/inventory/purchases", icon: Package, permission: "stock.manage" },
+      { title: "Livraisons Fournisseurs", url: "/inventory/deliveries", icon: PackageCheck, permission: "stock.manage" },
       { title: "Mouvements", url: "/inventory/movements", icon: ArrowRightLeft, permission: "stock.read" },
       { title: "Audits & Alertes", url: "/inventory/audits", icon: AlertTriangle, permission: "stock.audit" },
       { title: "Prévisions IA", url: "/inventory/ai", icon: TrendingUp, permission: "stock.forecast" },
