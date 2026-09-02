@@ -19,7 +19,7 @@ export const NAVIGATION_GROUPS = [
       { title: "Tableau de bord", url: "/resto/dashboard", icon: LayoutDashboard, permission: "sale.manage" },
       { title: "Caisse & PDV", url: "/resto/pos", icon: CreditCard, permission: "sales.pos" },
       { title: "Historique des Ventes", url: "/resto/sales", icon: List, permission: "sales.pos" },
-      { title: "Recettes", url: "/resto/revenue", icon: TrendingUp, permission: "sales.pos" },
+      { title: "Revenus", url: "/resto/revenue", icon: TrendingUp, permission: "sales.pos" },
       { title: "Mouvements de Caisse", url: "/cash-movements", icon: Banknote, permission: "restaurant.purchases" },
       { title: "Catalogue & Menus", url: "/resto/catalog", icon: BookOpen, permission: "restaurant.access" },
     ],
@@ -41,6 +41,7 @@ export const NAVIGATION_GROUPS = [
     items: [
       { title: "Gestion des Produits & Inventaire", url: "/inventory/catalog", icon: Box, permission: "stock.manage" },
       { title: "Niveaux de Stock", url: "/inventory/stock", icon: Boxes, permission: "stock.read" },
+      { title: "Recettes", url: "/inventory/recipes", icon: BookOpen, permission: "stock.manage" },
       { title: "Fournisseurs & Achats", url: "/inventory/suppliers", icon: Package, permission: "supplier.read" },
       { title: "Commandes Fournisseurs", url: "/inventory/purchases", icon: Package, permission: "stock.manage" },
       { title: "Livraisons Fournisseurs", url: "/inventory/deliveries", icon: PackageCheck, permission: "stock.manage" },
@@ -105,6 +106,7 @@ export const INVENTORY_MODULES = [
       { id: "items", title: "Articles", description: "Gérez la liste de vos produits et ingrédients.", icon: Box, colorClass: "text-primary bg-primary/10", hoverClass: "group-hover:bg-primary" },
       { id: "itemTypes", title: "Types d'Articles", description: "Catégorisez vos articles (ex: Boisson, Viande...).", icon: Layers, colorClass: "text-secondary bg-secondary/10", hoverClass: "group-hover:bg-secondary" },
       { id: "units", title: "Unités de Mesure", description: "Configurez les unités (Kg, Litre, Pièce...).", icon: Ruler, colorClass: "text-emerald-500 bg-emerald-500/10", hoverClass: "group-hover:bg-emerald-500" },
+      { id: "itemUnits", title: "Unités Alternatives", description: "Gérez les ratios de conversion pour les articles.", icon: ArrowRightLeft, colorClass: "text-amber-500 bg-amber-500/10", hoverClass: "group-hover:bg-amber-500" },
     ]
   }
 ];

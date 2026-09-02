@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/Inputs/input";
 import { Coffee, Edit, Trash2, Plus, X, Check, Filter, Search } from "lucide-react";
 import type { MenuItem } from "../types";
 import type { MenuCategory } from "../../menu-categories/types";
-import type { Item } from "../../items/types";
+import type { Item } from "../../items/types/item.type";
 
 interface MenuItemsModalProps {
   isOpen: boolean;
@@ -135,7 +135,7 @@ export function MenuItemsModal({ isOpen, onClose, data, items, categories, selec
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Article (Stock lié)</label>
                 <select value={newIdItem} onChange={(e) => setNewIdItem(e.target.value)} className="w-full bg-background border border-input rounded-xl px-3 h-10 text-sm">
                   <option value="">Sélectionner...</option>
-                  {items.map((i) => <option key={i.idItem} value={i.idItem}>{i.label}</option>)}
+                  {items.map((i) => <option key={i.idItem} value={i.idItem}>{i.label + (i.unit?.symbol ? ` (${i.unit.symbol})` : "")}</option>)}
                 </select>
               </div>
               <div className="space-y-1.5">
@@ -167,7 +167,7 @@ export function MenuItemsModal({ isOpen, onClose, data, items, categories, selec
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
                       <select value={editIdItem} onChange={(e) => setEditIdItem(e.target.value)} className="md:col-span-2 w-full bg-background border border-input rounded-md px-3 h-9 text-sm">
                         <option value="">Article...</option>
-                        {items.map((i) => <option key={i.idItem} value={i.idItem}>{i.label}</option>)}
+                        {items.map((i) => <option key={i.idItem} value={i.idItem}>{i.label + (i.unit?.symbol ? ` (${i.unit.symbol})` : "")}</option>)}
                       </select>
                       <select value={editIdCategory} onChange={(e) => setEditIdCategory(e.target.value)} className="w-full bg-background border border-input rounded-md px-3 h-9 text-sm">
                         <option value="">Catégorie...</option>

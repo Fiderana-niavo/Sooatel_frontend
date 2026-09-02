@@ -1,6 +1,6 @@
 import axios from "axios";
 import type { ApiResponse } from "@/types/api.type";
-import type { Item, CreateItemDto } from "../types";
+import type { Item, CreateItemDto } from "../types/item.type";
 
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 

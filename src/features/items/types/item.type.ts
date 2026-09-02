@@ -11,6 +11,9 @@ export interface Item {
   idProductType: string;
   idUnit: string;
   description?: string;
+  unit?: {
+    symbol: string;
+  };
 }
 
 export interface CreateItemDto {

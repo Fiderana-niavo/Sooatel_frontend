@@ -54,11 +54,11 @@ export const TopProductsDonut: React.FC<Props> = ({
           {
             data: products.map((p) => p.percentage),
             backgroundColor: COLORS,
-            borderColor: COLORS.map((c) => c.replace("0.9", "1")),
-            borderWidth: 2,
-            hoverOffset: 10,
-            offset: products.map((p) =>
-              p.idMenu === selectedIdMenu ? 12 : 0
+            borderColor: "transparent",
+            borderWidth: 0,
+            hoverOffset: 4,
+            offset: products.map((p) => 
+              p.idMenu === selectedIdMenu ? 6 : 0
             ),
           },
         ],

@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
-import { ItemService } from "@/features/items/services";
+import { ItemService } from "@/features/items";
 import { createSupplierProduct, createSuppliedItem, getSupplierProducts } from "@/features/suppliers/services/supplier.service";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 import { Link, PlusCircle } from "lucide-react";
@@ -19,7 +19,7 @@ interface AddSuppliedItemModalProps {
 
 export const AddSuppliedItemModal: React.FC<AddSuppliedItemModalProps> = ({ idSupplier, isOpen, onClose, onSuccess, showSnackbar }) => {
   const [mode, setMode] = useState<"create" | "link">("create");
-  
+
   const [formData, setFormData] = useState({
     name: "",
     actualPrice: "",
@@ -57,7 +57,7 @@ export const AddSuppliedItemModal: React.FC<AddSuppliedItemModalProps> = ({ idSu
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (mode === "create") {
       if (!formData.name || !formData.actualPrice || !formData.idItem) {
         if (showSnackbar) showSnackbar("Veuillez remplir tous les champs obligatoires.", "error");
@@ -73,7 +73,7 @@ export const AddSuppliedItemModal: React.FC<AddSuppliedItemModalProps> = ({ idSu
     setIsSubmitting(true);
     try {
       let product;
-      
+
       if (mode === "create") {
         // 1. Create SupplierProduct
         product = await createSupplierProduct({
@@ -138,28 +138,28 @@ export const AddSuppliedItemModal: React.FC<AddSuppliedItemModalProps> = ({ idSu
             <>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Désignation (Nom chez le fournisseur) <span className="text-red-500">*</span></label>
-                <Input 
+                <Input
                   value={formData.name}
                   onChange={(e) => handleChange("name", e.target.value)}
                   placeholder="Ex: Coca-Cola 1.5L"
-                  required 
+                  required
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Prix d'achat (Ar) <span className="text-red-500">*</span></label>
-                  <Input 
-                    type="number" 
+                  <Input
+                    type="number"
                     min="0"
                     value={formData.actualPrice}
                     onChange={(e) => handleChange("actualPrice", e.target.value)}
-                    required 
+                    required
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Qté Minimum</label>
-                  <Input 
-                    type="number" 
+                  <Input
+                    type="number"
                     min="1"
                     value={formData.minPurchaseNumber}
                     onChange={(e) => handleChange("minPurchaseNumber", e.target.value)}
@@ -168,7 +168,7 @@ export const AddSuppliedItemModal: React.FC<AddSuppliedItemModalProps> = ({ idSu
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Notes / Remarques</label>
-                <Input 
+                <Input
                   value={formData.notes}
                   onChange={(e) => handleChange("notes", e.target.value)}
                   placeholder="Informations supplémentaires (ex: délai, condition...)"
@@ -202,7 +202,7 @@ export const AddSuppliedItemModal: React.FC<AddSuppliedItemModalProps> = ({ idSu
               C'est ce nom qui s'affichera dans vos commandes.
             </p>
           </div>
-          
+
           <DialogFooter className="pt-4">
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Annuler

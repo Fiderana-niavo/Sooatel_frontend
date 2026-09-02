@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button/button";
 import { Trash2 } from "lucide-react";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
 import type { SupplierProduct, SuppliedItem } from "../../types/supplier.type";
-import type { Item } from "@/features/items/types";
+import type { Item } from "@/features/items/types/item.type";
 
 interface SupplierProductLinkFormProps {
   open: boolean;
@@ -70,7 +70,7 @@ export function SupplierProductLinkForm({
                 <div className="flex-1">
                   <input type="hidden" name="idItem" value={selectedItemId} />
                   <SearchableSelect
-                    options={allItems.map(item => ({ value: item.idItem, label: item.label }))}
+                    options={allItems.map(item => ({ value: item.idItem, label: item.label + (item.unit?.symbol ? ` (${item.unit.symbol})` : "") }))}
                     value={selectedItemId}
                     onChange={(val) => setSelectedItemId(val as string)}
                     placeholder="Sélectionner un article interne..."

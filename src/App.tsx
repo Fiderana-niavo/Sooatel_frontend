@@ -22,6 +22,7 @@ import { SuppliersPage } from "@/features/suppliers";
 import type { SaleRecord } from "@/features/sales";
 import { PurchasesContainer } from "@/features/purchases";
 import { DeliveryListPage } from "@/features/delivery/components/DeliveryList/DeliveryListPage";
+import { RecipesPage } from "@/features/recipes/components/RecipesPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { useAppStore } from "@/store/app.store";
 
@@ -200,7 +201,7 @@ function App() {
                 <section className="bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[2rem] p-8 md:p-12 border border-border/50 flex-1 w-full max-w-5xl mx-auto space-y-10 relative overflow-hidden">
                   <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
 
-                  {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Plannings" && activeTab !== "Paramètres Globaux" && activeTab !== "Chambres & Évènements" && activeTab !== "Catalogue & Menus" && activeTab !== "Caisse & PDV" && activeTab !== "Historique des Ventes" && activeTab !== "Recettes" && activeTab !== "Tableau de bord" && activeTab !== "Mouvements de Caisse" && activeTab !== "Fournisseurs & Achats" && activeTab !== "Commandes Fournisseurs" && activeTab !== "Livraisons Fournisseurs" && (
+                  {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Plannings" && activeTab !== "Paramètres Globaux" && activeTab !== "Chambres & Évènements" && activeTab !== "Catalogue & Menus" && activeTab !== "Caisse & PDV" && activeTab !== "Historique des Ventes" && activeTab !== "Revenus" && activeTab !== "Tableau de bord" && activeTab !== "Mouvements de Caisse" && activeTab !== "Fournisseurs & Achats" && activeTab !== "Commandes Fournisseurs" && activeTab !== "Livraisons Fournisseurs" && activeTab !== "Recettes" && (
                     <div>
                       <h2 className="text-2xl font-bold mb-2">Bienvenue sur {appMode === "utopia" ? "Utopia" : "Sooatel"}</h2>
                       <p className="text-muted-foreground m-0 text-lg">
@@ -268,10 +269,16 @@ function App() {
                         />
                       </ProtectedRoute>
                     </div>
-                  ) : activeTab === "Recettes" ? (
+                  ) : activeTab === "Revenus" ? (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
                       <ProtectedRoute permission="sales.pos">
                         <RevenuePage />
+                      </ProtectedRoute>
+                    </div>
+                  ) : activeTab === "Recettes" ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                      <ProtectedRoute permission="stock.manage">
+                        <RecipesPage />
                       </ProtectedRoute>
                     </div>
                   ) : activeTab === "Tableau de bord" ? (

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
 import * as api from "../../services/supplier.service";
 import type { Supplier, SupplierProduct, SupplierDto, SupplierProductDto, SuppliedItem } from "../../types/supplier.type";
-import { ItemService } from "@/features/items/services";
+import { ItemService, type Item } from "@/features/items";
 
 import { SuppliersList } from "../SuppliersList/SuppliersList";
 import { SupplierProductsList } from "../SupplierProductsList/SupplierProductsList";
@@ -45,7 +45,7 @@ export function SuppliersPage() {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkProduct, setLinkProduct] = useState<SupplierProduct | null>(null);
   const [linkedItems, setLinkedItems] = useState<SuppliedItem[]>([]);
-  const [allItems, setAllItems] = useState<import("@/features/items/types").Item[]>([]);
+  const [allItems, setAllItems] = useState<Item[]>([]);
   
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [paymentSupplier, setPaymentSupplier] = useState<Supplier | null>(null);

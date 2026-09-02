@@ -27,8 +27,7 @@ export function ProtectedRoute({ permission, children }: ProtectedRouteProps) {
         <div className="space-y-2">
           <h2 className="text-2xl font-bold text-foreground">Accès refusé</h2>
           <p className="text-muted-foreground max-w-sm">
-            Vous n'avez pas les permissions nécessaires pour accéder à cette section.
-            Contactez votre administrateur.
+            Vous n'avez pas la permission pour acceder a cette page.
           </p>
         </div>
         <span className="text-xs font-mono text-muted-foreground/60 bg-muted px-3 py-1 rounded-full">
