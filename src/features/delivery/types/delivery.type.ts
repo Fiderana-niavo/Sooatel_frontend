@@ -81,6 +81,7 @@ export interface PendingPurchase {
 export interface DeliveryLineDto {
   idSuppliedItem: string;
   quantity: number;
+  unitPrice: number;
 }
 
 export interface CreateDeliveryDto {

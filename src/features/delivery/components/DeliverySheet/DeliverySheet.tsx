@@ -26,6 +26,8 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   // Map idPurchaseDetail -> entered quantity
   const [qtyMap, setQtyMap] = useState<Map<string, number>>(new Map());
+  // Map idPurchaseDetail -> entered unit price
+  const [priceMap, setPriceMap] = useState<Map<string, number>>(new Map());
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
 
@@ -56,6 +58,7 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
             setActivePurchaseIds(new Set(parsed.activePurchaseIds || []));
             setExpandedIds(new Set(parsed.expandedIds || []));
             setQtyMap(new Map(parsed.qtyMap || []));
+            setPriceMap(new Map(parsed.priceMap || []));
             sessionStorage.removeItem("deliverySheetSavedState"); // Clean up
             setSubmitError(null);
             setSubmitSuccess(null);
@@ -69,6 +72,7 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
       setActivePurchaseIds(new Set([purchase.idPurchase]));
       setExpandedIds(new Set([purchase.idPurchase]));
       setQtyMap(new Map());
+      setPriceMap(new Map());
       setSubmitError(null);
       setSubmitSuccess(null);
     }
@@ -79,6 +83,7 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
     if (isEditMode && pendingResult.data && deliveryDetails) {
       const activeIds = new Set<string>();
       const qtyMapInit = new Map<string, number>();
+      const priceMapInit = new Map<string, number>();
 
       for (const p of pendingResult.data) {
         for (const detail of p.details) {
@@ -87,6 +92,7 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
           if (editDetail && Number(editDetail.quantity) > 0) {
             activeIds.add(p.idPurchase);
             qtyMapInit.set(detail.idPurchaseDetail, Number(editDetail.quantity));
+            priceMapInit.set(detail.idPurchaseDetail, Number(editDetail.unitPrice ?? detail.unitPrice));
           }
         }
       }
@@ -94,6 +100,7 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
       setActivePurchaseIds(activeIds);
       setExpandedIds(new Set(activeIds));
       setQtyMap(qtyMapInit);
+      setPriceMap(priceMapInit);
       setSubmitError(null);
       setSubmitSuccess(null);
     }
@@ -168,6 +175,15 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
     });
   }, []);
 
+  const handlePriceChange = useCallback((idPurchaseDetail: string, value: string) => {
+    const num = Math.max(0, parseFloat(value) || 0);
+    setPriceMap((prev) => {
+      const next = new Map(prev);
+      next.set(idPurchaseDetail, num);
+      return next;
+    });
+  }, []);
+
   const handleSubmit = () => {
     if (!pendingResult.data) return;
     if (!isEditMode && !purchase) return;
@@ -177,7 +193,8 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
     const payload = buildDeliveryPayload(
       pendingResult.data,
       activePurchaseIds,
-      qtyMap
+      qtyMap,
+      priceMap
     );
 
     if (payload.lines.length === 0) {
@@ -201,8 +218,8 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
   };
 
   const currentTotalAmount = React.useMemo(() => {
-    return pendingResult.data ? calculateCurrentTotalAmount(pendingResult.data, activePurchaseIds, qtyMap) : 0;
-  }, [pendingResult.data, activePurchaseIds, qtyMap]);
+    return pendingResult.data ? calculateCurrentTotalAmount(pendingResult.data, activePurchaseIds, qtyMap, priceMap) : 0;
+  }, [pendingResult.data, activePurchaseIds, qtyMap, priceMap]);
 
   // Sort: clicked purchase first, then others
   const sorted: PendingPurchase[] = pendingResult.data
@@ -316,12 +333,14 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
                           <th className="px-4 py-2 text-right font-medium">Commandé</th>
                           <th className="px-4 py-2 text-right font-medium">Déjà livré</th>
                           <th className="px-4 py-2 text-right font-medium">Restant</th>
+                          <th className="px-4 py-2 text-right font-medium">Prix unité (Ar)</th>
                           <th className="px-4 py-2 text-right font-medium">Reçu maintenant</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/40">
                         {p.details.map((detail) => {
                           const currentQty = qtyMap.get(detail.idPurchaseDetail) ?? 0;
+                          const currentPrice = priceMap.get(detail.idPurchaseDetail) ?? Number(detail.unitPrice) ?? 0;
                           const displayRemaining = Math.max(0, detail.remaining - currentQty);
                           // "Livré" badge only if already fully delivered from backend (before user types anything)
                           const alreadyFullyDelivered = detail.remaining <= 0;
@@ -363,6 +382,22 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
                                   type="number"
                                   min="0"
                                   step="0.01"
+                                  value={currentPrice === 0 ? "" : currentPrice}
+                                  placeholder={Number(detail.unitPrice).toString()}
+                                  disabled={!isActive}
+                                  onChange={(e) =>
+                                    handlePriceChange(detail.idPurchaseDetail, e.target.value)
+                                  }
+                                  className="w-24 text-right border border-border rounded-md px-2 py-1 text-sm bg-background
+                                    focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary
+                                    disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                />
+                              </td>
+                              <td className="px-4 py-2.5 text-right">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
                                   value={currentQty === 0 ? "" : currentQty}
                                   placeholder="0"
                                   disabled={!isActive}
@@ -380,7 +415,7 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
                       </tbody>
                       <tfoot className="bg-muted/30">
                         <tr>
-                          <td colSpan={3} className="px-4 py-2 text-right text-xs text-muted-foreground">
+                          <td colSpan={4} className="px-4 py-2 text-right text-xs text-muted-foreground">
                             Total commande
                           </td>
                           <td colSpan={2} className="px-4 py-2 text-right font-semibold text-sm">

@@ -74,7 +74,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
             setInputValue(e.target.value);
             if (!isOpen) setIsOpen(true);
           }}
-          onFocus={() => setIsOpen(true)}
+          onClick={() => setIsOpen(true)}
           disabled={disabled}
         />
         <ChevronDown size={16} className="absolute right-3 text-muted-foreground opacity-50 pointer-events-none" />

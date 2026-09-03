@@ -48,6 +48,7 @@ export const DashboardPage: React.FC = () => {
       setSummary(result);
     } catch (e) {
       console.error("[DashboardPage] fetchSummary error", e);
+      setSummary(null);
     } finally {
       setLoadingSummary(false);
     }
@@ -65,6 +66,7 @@ export const DashboardPage: React.FC = () => {
       }
     } catch (e) {
       console.error("[DashboardPage] fetchTopProducts error", e);
+      setTopProducts(null);
     } finally {
       setLoadingTop(false);
     }
@@ -79,6 +81,7 @@ export const DashboardPage: React.FC = () => {
       setProductDetail(result);
     } catch (e) {
       console.error("[DashboardPage] fetchProductDetail error", e);
+      setProductDetail(null);
     } finally {
       setLoadingDetail(false);
     }

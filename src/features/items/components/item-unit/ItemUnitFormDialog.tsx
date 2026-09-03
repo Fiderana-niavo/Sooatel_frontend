@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
@@ -21,6 +21,12 @@ export function ItemUnitFormDialog({ isOpen, onClose, items, units, onAdd }: Ite
   const [idItem, setIdItem] = useState("");
   const [idUnit, setIdUnit] = useState("");
   const [ratio, setRatio] = useState("");
+
+  useEffect(() => {
+    if (isOpen && items.length === 1 && !idItem) {
+      setIdItem(items[0].idItem);
+    }
+  }, [isOpen, items, idItem]);
 
   const handleSubmit = () => {
     if (!idItem || !idUnit || !ratio) return;
