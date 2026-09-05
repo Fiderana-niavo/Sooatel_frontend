@@ -79,7 +79,14 @@ export const RecipeVersionsView: React.FC<Props> = ({
                       recipe.isActive ? "text-primary" : "text-foreground"
                     )}>
                       {recipe.recipeCost != null
-                        ? `${Number(recipe.recipeCost).toLocaleString("fr-FR", { style: "currency", currency: "MGA" })} / ${recipe.item?.unit?.symbol ?? ""}`
+                        ? (() => {
+                            const yieldQty = Number(recipe.yieldQuantity) || 1;
+                            const batchCost = Number(recipe.recipeCost) * yieldQty;
+                            const perUnit = `${Number(recipe.recipeCost).toLocaleString("fr-FR", { style: "currency", currency: "MGA" })} / ${recipe.item?.unit?.symbol ?? ""}`;
+                            return yieldQty > 1
+                              ? <>{batchCost.toLocaleString("fr-FR", { style: "currency", currency: "MGA" })} <span className="text-muted-foreground font-normal text-xs">({perUnit})</span></>
+                              : perUnit;
+                          })()
                         : <span className="text-muted-foreground italic text-xs">Coût non calculé</span>
                       }
                     </p>

@@ -147,8 +147,13 @@ export const RecipeIngredientsDrawer: React.FC<Props> = ({ recipe, onClose, onEd
                   <div>
                     <div className="text-xs font-medium text-primary uppercase tracking-wider mb-0.5">Coût de revient total</div>
                     <div className="text-2xl font-bold text-foreground tabular-nums">
-                      {formatCurrency(analysis.totalCost)}
+                      {formatCurrency(analysis.totalCost * (Number(recipe.yieldQuantity) || 1))}
                     </div>
+                    {(Number(recipe.yieldQuantity) || 1) > 1 && (
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        ({formatCurrency(analysis.totalCost)} / {recipe.item?.unit?.symbol ?? "pièce"})
+                      </div>
+                    )}
                   </div>
                   <div className="text-right">
                     <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Rendement</div>

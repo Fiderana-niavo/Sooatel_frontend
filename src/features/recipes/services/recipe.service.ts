@@ -45,8 +45,19 @@ export const RecipeService = {
     if (!res.data.ok) throw new Error(res.data.error ?? "Erreur API");
   },
 
-  async setActive(idRecipe: string): Promise<{ createdNewVersion: boolean; newVersion?: number; activatedExistingVersion?: number }> {
-    const res = await axios.put<ApiResponse<{ createdNewVersion: boolean; newVersion?: number; activatedExistingVersion?: number }>>(`${BASE}/${idRecipe}/active`);
+  async setActive(idRecipe: string, force: boolean = false, checkOnly: boolean = false): Promise<{ 
+    createdNewVersion?: boolean; 
+    newVersion?: number; 
+    activatedExistingVersion?: number; 
+    requiresConfirmation?: boolean;
+    currentCost?: number;
+    siblingVersion?: number;
+  }> {
+    const params = new URLSearchParams();
+    if (force) params.append("force", "true");
+    if (checkOnly) params.append("checkOnly", "true");
+    const qs = params.toString() ? `?${params.toString()}` : "";
+    const res = await axios.put<ApiResponse<any>>(`${BASE}/${idRecipe}/active${qs}`);
     if (!res.data.ok) throw new Error(res.data.error ?? "Erreur API");
     return res.data.payload;
   },

@@ -11,6 +11,7 @@ import { RecipeIngredientsDrawer } from "./RecipeIngredientsDrawer";
 import { RecipeVersionsView } from "./RecipeVersionsView";
 import { ItemUnitFormDialog } from "@/features/items/components/item-unit/ItemUnitFormDialog";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
+import { getActivationConfirmationMessage } from "../constants/recipe.constants";
 import type { Recipe, RecipeDetail } from "../types/recipe.type";
 import type { RecipeRow } from "./RecipeFormRow";
 
@@ -22,7 +23,12 @@ export function RecipesPage() {
   const [editingDetails, setEditingDetails] = useState<RecipeDetail[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [selectedVersionsItem, setSelectedVersionsItem] = useState<string | null>(null);
-  const [confirmActiveRecipeId, setConfirmActiveRecipeId] = useState<string | null>(null);
+  const [activationState, setActivationState] = useState<{
+    idRecipe: string;
+    requiresConfirmation: boolean;
+    currentCost?: number;
+    siblingVersion?: number;
+  } | null>(null);
   const [addingUnitForIngredient, setAddingUnitForIngredient] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean; duration?: number }>({
     message: "",
@@ -72,6 +78,8 @@ export function RecipesPage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recipes"] });
+      queryClient.invalidateQueries({ queryKey: ["recipe-ingredients"] });
+      queryClient.invalidateQueries({ queryKey: ["recipe-details"] });
       setIsFormOpen(false);
       showSnackbar("Recette créée avec succès !", "success");
     },
@@ -93,6 +101,8 @@ export function RecipesPage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recipes"] });
+      queryClient.invalidateQueries({ queryKey: ["recipe-ingredients"] });
+      queryClient.invalidateQueries({ queryKey: ["recipe-details"] });
       setIsFormOpen(false);
       setEditingRecipe(null);
       showSnackbar("Recette modifiée avec succès !", "success");
@@ -107,7 +117,9 @@ export function RecipesPage() {
     mutationFn: (idRecipe: string) => RecipeService.remove(idRecipe),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recipes"] });
-      showSnackbar("Recette supprimée.", "info");
+      queryClient.invalidateQueries({ queryKey: ["recipe-ingredients"] });
+      queryClient.invalidateQueries({ queryKey: ["recipe-details"] });
+      showSnackbar("Recette supprimée.", "success");
 
       // If the deleted recipe was active in the dialog, close it or it might break
       // But it's handled by queries invalidating and re-rendering, so it should be fine.
@@ -118,26 +130,35 @@ export function RecipesPage() {
     },
   });
 
+  const checkActiveMutation = useMutation({
+    mutationFn: (idRecipe: string) => RecipeService.setActive(idRecipe, false, true),
+    onSuccess: (result, idRecipe) => {
+      setActivationState({
+        idRecipe,
+        requiresConfirmation: result.requiresConfirmation ?? false,
+        currentCost: result.currentCost,
+        siblingVersion: result.siblingVersion,
+      });
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message || err.message || "Erreur lors de la vérification";
+      showSnackbar(msg, "error");
+    },
+  });
+
   const setActiveMutation = useMutation({
-    mutationFn: (idRecipe: string) => RecipeService.setActive(idRecipe),
-    onSuccess: (result) => {
+    mutationFn: ({ idRecipe, force }: { idRecipe: string, force?: boolean }) => RecipeService.setActive(idRecipe, force),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recipes"] });
-      if (result.createdNewVersion) {
-        showSnackbar(`Nouveau coût détecté — Version ${result.newVersion} créée et définie comme active.`, "success");
-      } else if (result.activatedExistingVersion) {
-        showSnackbar(
-          `⚠️ Version ${result.activatedExistingVersion} activée à la place de celle demandée. Au prix actuel des ingrédients, ces deux versions ont exactement le même coût — inutile de créer un doublon dans l'historique.`,
-          "warning"
-        );
-      } else {
-        showSnackbar("Version définie comme active avec succès.", "success");
-      }
-      setConfirmActiveRecipeId(null);
+      queryClient.invalidateQueries({ queryKey: ["recipe-ingredients"] });
+      queryClient.invalidateQueries({ queryKey: ["recipe-details"] });
+      showSnackbar("Version définie comme active avec succès.", "success");
+      setActivationState(null);
     },
     onError: (err: any) => {
       const msg = err.response?.data?.message || err.message || "Erreur lors de l'activation";
       showSnackbar(msg, "error");
-      setConfirmActiveRecipeId(null);
+      setActivationState(null);
     },
   });
 
@@ -195,7 +216,7 @@ export function RecipesPage() {
           <RecipeVersionsView
             recipes={versions}
             onBack={() => setSelectedVersionsItem(null)}
-            onSetActive={(id) => setConfirmActiveRecipeId(id)}
+            onSetActive={(id) => checkActiveMutation.mutate(id)}
             onViewIngredients={setSelectedRecipe}
             onEdit={handleEdit}
             onDelete={(id) => {
@@ -203,7 +224,7 @@ export function RecipesPage() {
                 deleteMutation.mutate(id);
               }
             }}
-            isSettingActive={setActiveMutation.isPending}
+            isSettingActive={setActiveMutation.isPending || checkActiveMutation.isPending}
           />
         )}
 
@@ -244,18 +265,22 @@ export function RecipesPage() {
         )}
 
         <ConfirmDialog
-          open={!!confirmActiveRecipeId}
-          onOpenChange={(open) => !open && setConfirmActiveRecipeId(null)}
-          title="Activer cette version"
-          description="Êtes-vous sûr de vouloir activer cette version ? La version actuellement active ne le sera plus."
+          open={!!activationState}
+          onOpenChange={(open) => !open && setActivationState(null)}
+          title={activationState?.requiresConfirmation ? "Variance de prix détectée" : "Activer cette version"}
+          description={getActivationConfirmationMessage(
+            activationState?.requiresConfirmation ?? false,
+            activationState?.currentCost,
+            activationState?.siblingVersion
+          )}
           onConfirm={() => {
-            if (confirmActiveRecipeId) {
-              setActiveMutation.mutate(confirmActiveRecipeId);
+            if (activationState) {
+              setActiveMutation.mutate({ idRecipe: activationState.idRecipe, force: true });
             }
           }}
           loading={setActiveMutation.isPending}
           confirmText="Activer"
-          confirmButtonClassName="bg-primary hover:bg-primary/90 text-primary-foreground"
+          confirmButtonClassName={activationState?.requiresConfirmation ? "bg-amber-500 hover:bg-amber-600 text-white" : "bg-primary hover:bg-primary/90 text-primary-foreground"}
         />
 
         {snackbar.isOpen && (
@@ -321,7 +346,7 @@ export function RecipesPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => setSelectedVersionsItem(active.idItem)}
-                        className="h-7 text-xs rounded-full gap-1.5 px-3 bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary hover:text-primary"
+                        className="h-7 text-xs rounded-full gap-1.5 px-3 bg-primary/5 hover:bg-primary border-primary/20 text-primary hover:text-primary-foreground transition-all duration-300"
                         title="Voir l'historique des versions"
                       >
                         <History className="size-3.5" />
