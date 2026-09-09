@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
 import { ItemService } from "@/features/items/services/item.service";
-import { inventoryService } from "../../inventory/services/inventory.service";
-import type { LossDto } from "../../inventory/types/inventory.type";
+import { inventoryService } from "@/features/inventory/services/inventory.service";
+import type { LossDto } from "@/features/inventory/types/inventory.type";
 
 import { LOSS_REASONS } from "../../constants/stock-movement.constant";
 
