@@ -31,10 +31,13 @@ export interface Employee {
   userAccount?: UserAccount;
   team?: { idTeam: string; teamName: string } | null;
   availabilities?: any[];
-  internship?: {
+  internship: {
     idInternship?: string;
-    schoolName: string | null;
+    idSchool: string | null;
+    schoolName?: string | null;
     academicSupervisorName: string | null;
+    academicSupervisorEmail: string | null;
+    academicSupervisorNumber: string | null;
     professionnalSupervisorName: string | null;
   } | null;
 }
@@ -59,10 +62,13 @@ export interface EmployeeJobInfo {
   jobTitle: string | null;
 }
 
-export interface InternshipInfo {
-  idInternship: string;
-  schoolName: string | null;
+export interface Internship {
+  idInternship?: string;
+  idSchool: string | null;
+  schoolName?: string | null;
   academicSupervisorName: string | null;
+  academicSupervisorEmail: string | null;
+  academicSupervisorNumber: string | null;
   professionnalSupervisorName: string | null;
 }
 
@@ -77,7 +83,7 @@ export interface EmployeeDetail {
   phoneNumber: string | null;
   notes: string | null;
   job: EmployeeJobInfo | null;
-  internship: InternshipInfo | null;
+  internship: Internship | null;
   team: { idTeam: string; teamName: string } | null;
   availabilities: any[];
   // compatibility with form account stuff if needed
@@ -121,8 +127,10 @@ export interface CreateEmployeeDto {
     hasFixedSchedule: boolean;
   } | null;
   internship?: {
-    schoolName: string | null;
+    idSchool: string | null;
     academicSupervisorName: string | null;
+    academicSupervisorEmail: string | null;
+    academicSupervisorNumber: string | null;
     professionnalSupervisorName: string | null;
   } | null;
   userAccount?: {
@@ -142,6 +150,8 @@ export interface ChangeJobDto {
   assignmentDate: string;
   endDate: string | null;
   hasFixedSchedule: boolean;
+  lastJobEndDate?: string;
+  reactivateAccount?: boolean;
 }
 
 export interface SetAvailabilityDto {

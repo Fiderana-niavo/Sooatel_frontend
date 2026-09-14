@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { EmployeesTable } from "../EmployeesTable/EmployeesTable";
 import { EmployeeForm } from "../EmployeeForm/EmployeeForm";
 import { EmployeePlanningModal } from "../EmployeePlanningModal/EmployeePlanningModal";
+import { DeactivatedEmployeesPage } from "../DeactivatedEmployeesPage/DeactivatedEmployeesPage";
 import type { EmployeeListItem, EmployeeDetail } from "../../types/type";
 import type { Role, Permission } from "@/features/roles/types";
 import { Button } from "@/components/ui/Button/button";
@@ -17,6 +18,9 @@ import {
   Copy,
   Check,
   UserX,
+  Mail,
+  Phone,
+  AlertTriangle,
 } from "lucide-react";
 import {
   Dialog,
@@ -57,13 +61,13 @@ export function EmployeesPage({
 
   const [searchParams, setSearchParams] = useSearchParams();
   const view =
-    (searchParams.get("action") as "list" | "create" | "edit" | "details") ||
+    (searchParams.get("action") as "list" | "create" | "edit" | "details" | "deactivations") ||
     "list";
   const [selectedEmployeeDetail, setSelectedEmployeeDetail] =
     useState<EmployeeDetail | null>(null);
 
   const setView = useCallback(
-    (newView: "list" | "create" | "edit" | "details", id?: string) => {
+    (newView: "list" | "create" | "edit" | "details" | "deactivations", id?: string) => {
       if (newView === "list") {
         setSearchParams({});
       } else {
@@ -136,6 +140,8 @@ export function EmployeesPage({
   const [selectedStatus, setSelectedStatus] = useState<"active" | "former">(
     "active",
   );
+  const [totalRecentDeactivations, setTotalRecentDeactivations] = useState(0);
+
   useEffect(() => {
     Promise.all([
       JobTitleService.getAll(),
@@ -166,6 +172,12 @@ export function EmployeesPage({
           category: p.category?.name || "Autres",
         }));
         setAvailablePermissions(perms);
+      })
+      .catch(console.error);
+
+    EmployeeService.getRecentDeactivations({ days: 3, page: 1, limit: 1 })
+      .then((res) => {
+        setTotalRecentDeactivations(res.total);
       })
       .catch(console.error);
   }, []);
@@ -227,6 +239,9 @@ export function EmployeesPage({
           `Détails : ${selectedEmployeeDetail?.name} ${selectedEmployeeDetail?.lastname}`,
         );
         break;
+      case "deactivations":
+        setPageTitle("Détails des comptes désactivés");
+        break;
     }
   }, [view, selectedEmployeeDetail]);
   const [planningEmployee, setPlanningEmployee] =
@@ -272,6 +287,7 @@ export function EmployeesPage({
   const [newAssignmentDate, setNewAssignmentDate] = useState("");
   const [newEndDate, setNewEndDate] = useState("");
   const [newHasFixedSchedule, setNewHasFixedSchedule] = useState(false);
+  const [newReactivateAccount, setNewReactivateAccount] = useState(true);
 
   const openChangeJobModal = (item: EmployeeListItem) => {
     setIsRenewal(false);
@@ -393,6 +409,7 @@ export function EmployeesPage({
         assignmentDate: newAssignmentDate,
         endDate: newEndDate || null,
         hasFixedSchedule: newHasFixedSchedule,
+        reactivateAccount: newReactivateAccount,
       };
       if (isRenewal) {
         await EmployeeService.renewContract(changeJobEmployee.idEmployee, dto);
@@ -586,9 +603,14 @@ export function EmployeesPage({
         : null,
       internship: formData.internship
         ? {
+            idSchool: formData.internship.idSchool || null,
             schoolName: formData.internship.schoolName || null,
             academicSupervisorName:
               formData.internship.academicSupervisorName || null,
+            academicSupervisorEmail:
+              formData.internship.academicSupervisorEmail || null,
+            academicSupervisorNumber:
+              formData.internship.academicSupervisorNumber || null,
             professionnalSupervisorName:
               formData.internship.professionnalSupervisorName || null,
           }
@@ -657,7 +679,34 @@ export function EmployeesPage({
       )}
 
       {view === "list" && (
-        <EmployeesTable
+        <div className="space-y-4">
+          {totalRecentDeactivations > 0 && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-start gap-3 shadow-sm">
+              <AlertTriangle className="size-5 text-amber-600 mt-0.5" />
+              <div className="w-full">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="font-semibold text-amber-900 text-sm">
+                      Désactivations récentes suite à une fin de contrat
+                    </h4>
+                    <p className="text-sm mt-1">
+                      {totalRecentDeactivations} compte(s) utilisateur(s) ont été désactivés automatiquement lors des 3 derniers jours car leur contrat est arrivé à échéance.
+                    </p>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-amber-800 hover:text-amber-900 hover:bg-amber-100 h-8"
+                    onClick={() => setView("deactivations")}
+                  >
+                    Voir les détails
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <EmployeesTable
           employees={employeesList}
           searchTerm={searchTerm}
           onSearchChange={(val) => {
@@ -703,6 +752,13 @@ export function EmployeesPage({
           selectedStatus={selectedStatus}
           onStatusChange={handleStatusChange}
         />
+        </div>
+      )}
+
+      {view === "deactivations" && (
+        <div className="space-y-4">
+          <DeactivatedEmployeesPage setPageTitle={setPageTitle} />
+        </div>
       )}
 
       {(view === "create" || (view === "edit" && selectedEmployeeDetail)) && (
@@ -919,19 +975,31 @@ export function EmployeesPage({
                       <span className="text-xs text-muted-foreground block">
                         École d'origine
                       </span>
-                      <span className="font-semibold text-foreground">
+                      <span className="text-sm font-medium text-foreground">
                         {selectedEmployeeDetail.internship.schoolName || "-"}
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-4 border-t pt-3">
-                      <div>
-                        <span className="text-xs text-muted-foreground block">
+                      <div className="flex flex-col gap-1 p-3 bg-muted/30 rounded-lg">
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                           Tuteur Académique
                         </span>
-                        <span className="font-medium text-foreground">
+                        <div className="font-medium text-sm">
                           {selectedEmployeeDetail.internship
                             .academicSupervisorName || "-"}
-                        </span>
+                        </div>
+                        {selectedEmployeeDetail.internship.academicSupervisorEmail && (
+                          <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                            <Mail className="size-3" />
+                            {selectedEmployeeDetail.internship.academicSupervisorEmail}
+                          </div>
+                        )}
+                        {selectedEmployeeDetail.internship.academicSupervisorNumber && (
+                          <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                            <Phone className="size-3" />
+                            {selectedEmployeeDetail.internship.academicSupervisorNumber}
+                          </div>
+                        )}
                       </div>
                       <div>
                         <span className="text-xs text-muted-foreground block">
@@ -1288,6 +1356,22 @@ export function EmployeesPage({
               <Switch
                 checked={newHasFixedSchedule}
                 onCheckedChange={setNewHasFixedSchedule}
+                className="border border-input/50 shadow-sm data-[state=checked]:border-primary"
+              />
+            </div>
+
+            <div className="flex items-center justify-between bg-muted/10 border border-border p-3.5 rounded-xl shadow-sm">
+              <div>
+                <span className="text-sm font-semibold block text-foreground">
+                  Réactiver le compte utilisateur
+                </span>
+                <span className="text-xs text-muted-foreground block">
+                  Permettre à l'employé de se connecter à nouveau
+                </span>
+              </div>
+              <Switch
+                checked={newReactivateAccount}
+                onCheckedChange={setNewReactivateAccount}
                 className="border border-input/50 shadow-sm data-[state=checked]:border-primary"
               />
             </div>

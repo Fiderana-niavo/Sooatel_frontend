@@ -8,6 +8,7 @@ import { AccountCredentials } from "./AccountCredentials";
 import { PermissionsGrid } from "./PermissionsGrid";
 import { ChangeJobModal } from "./ChangeJobModal";
 import { EmployeePlanningModal } from "../EmployeePlanningModal/EmployeePlanningModal";
+import { SearchableSchoolSelect } from "../../../schools/components/SearchableSchoolSelect";
 import { Can } from "@/components/Can/Can";
 
 import type { Team, ShiftType } from "@/features/planning/types/type";
@@ -113,8 +114,10 @@ export function EmployeeForm({
     setFormData(prev => ({
       ...prev,
       internship: {
-        schoolName: prev.internship?.schoolName || null,
+        idSchool: prev.internship?.idSchool || null,
         academicSupervisorName: prev.internship?.academicSupervisorName || null,
+        academicSupervisorEmail: prev.internship?.academicSupervisorEmail || null,
+        academicSupervisorNumber: prev.internship?.academicSupervisorNumber || null,
         professionnalSupervisorName: prev.internship?.professionnalSupervisorName || null,
         ...prev.internship,
         [field]: value || null
@@ -233,11 +236,10 @@ export function EmployeeForm({
                   {availableEmploymentTypes.find(t => t.idEmploymentType === formData.idEmploymentType)?.label.toLowerCase().includes("stage") && (
                     <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 pt-4 border-t">
                       <div className="space-y-2 md:col-span-2">
-                        <label className="text-sm font-medium">École d'origine</label>
-                        <Input 
-                          className="bg-background" 
-                          value={formData.internship?.schoolName || ""} 
-                          onChange={(e) => handleInternshipChange("schoolName", e.target.value)} 
+                        <label className="text-sm font-medium">École / Établissement</label>
+                        <SearchableSchoolSelect
+                          value={formData.internship?.idSchool || null}
+                          onChange={(id) => handleInternshipChange("idSchool", id || "")}
                         />
                       </div>
                       <div className="space-y-2">
@@ -246,6 +248,24 @@ export function EmployeeForm({
                           className="bg-background" 
                           value={formData.internship?.academicSupervisorName || ""} 
                           onChange={(e) => handleInternshipChange("academicSupervisorName", e.target.value)} 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Email Tuteur Académique</label>
+                        <Input 
+                          type="email"
+                          className="bg-background" 
+                          value={formData.internship?.academicSupervisorEmail || ""} 
+                          onChange={(e) => handleInternshipChange("academicSupervisorEmail", e.target.value)} 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Téléphone Tuteur Académique</label>
+                        <Input 
+                          type="tel"
+                          className="bg-background" 
+                          value={formData.internship?.academicSupervisorNumber || ""} 
+                          onChange={(e) => handleInternshipChange("academicSupervisorNumber", e.target.value)} 
                         />
                       </div>
                       <div className="space-y-2">

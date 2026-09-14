@@ -14,6 +14,7 @@ interface SearchableSelectProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  onCreate?: (value: string) => void | Promise<void>;
 }
 
 export const SearchableSelect: React.FC<SearchableSelectProps> = ({
@@ -23,9 +24,11 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   placeholder = "Sélectionner...",
   className,
   disabled = false,
+  onCreate,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
@@ -58,6 +61,20 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   const filteredOptions = options.filter((opt) =>
     opt.label.toLowerCase().includes(inputValue.toLowerCase())
   );
+
+  const exactMatch = options.find((opt) => opt.label.toLowerCase() === inputValue.trim().toLowerCase());
+
+  const handleCreate = async () => {
+    if (!onCreate || !inputValue.trim() || isCreating) return;
+    setIsCreating(true);
+    try {
+      await onCreate(inputValue.trim());
+      // we do not close the dropdown immediately in case the parent needs to update options,
+      // but we let the parent handle the value change. The user will see the newly created option.
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   return (
     <div className={cn("relative w-full", className)} ref={dropdownRef}>
@@ -105,6 +122,17 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                   {value === opt.value && <Check size={16} />}
                 </button>
               ))
+            )}
+            
+            {onCreate && inputValue.trim() !== "" && !exactMatch && (
+              <button
+                type="button"
+                className="w-full flex items-center justify-between px-2 py-2 mt-1 text-sm rounded-sm bg-primary/5 text-primary hover:bg-primary/10 font-medium text-left border-t"
+                onClick={handleCreate}
+                disabled={isCreating}
+              >
+                {isCreating ? "Création en cours..." : `+ Créer "${inputValue.trim()}"`}
+              </button>
             )}
           </div>
         </div>

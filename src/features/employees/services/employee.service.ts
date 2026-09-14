@@ -67,4 +67,10 @@ export const EmployeeService = {
     if (!res.data.ok) throw new Error(res.data.error);
     return res.data.payload;
   },
+
+  getRecentDeactivations: async (params?: { page?: number; limit?: number; days?: number }): Promise<PaginatedResponse<{ idEmployee: string; fullName: string; endDate: string }>> => {
+    const res = await axios.get<ApiResponse<PaginatedResponse<{ idEmployee: string; fullName: string; endDate: string }>>>(`${BASE}/employees/recent-deactivations`, { params });
+    if (!res.data.ok) throw new Error(res.data.error);
+    return res.data.payload;
+  },
 };
