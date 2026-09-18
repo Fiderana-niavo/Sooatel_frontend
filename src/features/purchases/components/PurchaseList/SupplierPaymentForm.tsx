@@ -1,3 +1,4 @@
+import { toIsoDate } from "@/utils/date";
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePaymentAllocations } from "../../hooks/usePaymentAllocations";
@@ -27,7 +28,7 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
   const queryClient = useQueryClient();
 
   const [idPaymentMethod, setIdPaymentMethod] = useState("");
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
+  const [paymentDate, setPaymentDate] = useState(toIsoDate(new Date()));
   const [notes, setNotes] = useState("");
   const [isCreditAppliedLocally, setIsCreditAppliedLocally] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -116,7 +117,7 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
       setAmount(p.amount);
       setIdPaymentMethod(p.idPaymentMethod || "");
       if (p.paymentDate) {
-        setPaymentDate(new Date(p.paymentDate).toISOString().slice(0, 10));
+        setPaymentDate(toIsoDate(new Date(p.paymentDate)));
       }
       setNotes(p.notes || "");
       if (p.allocations) {

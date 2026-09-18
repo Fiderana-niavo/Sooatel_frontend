@@ -1,3 +1,4 @@
+import { toIsoDateTime } from "@/utils/date";
 import React, { useState } from "react";
 import { Input } from "@/components/ui/Inputs/input";
 import { Button } from "@/components/ui/Button/button";
@@ -103,7 +104,7 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
           <Input 
             type="datetime-local"
             value={payment.paymentDate || ""}
-            max={new Date().toISOString().slice(0, 16)}
+            max={toIsoDateTime(new Date())}
             onChange={(e) => onChange("paymentDate", e.target.value)}
             onBlur={handleDateBlur}
           />

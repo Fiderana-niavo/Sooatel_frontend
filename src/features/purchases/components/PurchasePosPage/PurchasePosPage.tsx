@@ -1,3 +1,4 @@
+import { toIsoDateTime } from "@/utils/date";
 import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { purchaseService } from "../../services/purchase.service";
@@ -14,7 +15,7 @@ import { formatCurrency } from "../../../../utils/formatters";
 
 export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries }: { onGoToList?: () => void, idPurchaseToEdit?: string, onGoToDeliveries?: (idPurchase: string) => void }) {
   const [purchaseData, setPurchaseData] = useState<CreatePurchaseDto>({
-    purchaseDate: new Date().toISOString().slice(0, 16),
+    purchaseDate: toIsoDateTime(new Date()),
     idSupplier: "",
     idPurchaser: "",
     details: [],
@@ -64,8 +65,8 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
     if (editPurchase && editDetails) {
       setPurchaseData({
         purchaseDate: editPurchase.purchaseDate
-          ? new Date(editPurchase.purchaseDate).toISOString().slice(0, 16)
-          : new Date().toISOString().slice(0, 16),
+          ? toIsoDateTime(new Date(editPurchase.purchaseDate))
+          : toIsoDateTime(new Date()),
         idSupplier: editPurchase.idSupplier,
         idPurchaser: editPurchase.idPurchaser,
         details: editDetails.map((d) => ({

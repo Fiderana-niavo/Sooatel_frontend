@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { Briefcase, Building, Clock } from "lucide-react";
-import { JobTitlesModal, JobTitleService, type JobTitle } from "@/features/job-titles";
+import { JobTitlesModal, JobRequirementsModal, JobTitleService, type JobTitle } from "@/features/job-titles";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
 export function SettingsPage() {
   const [isJobTitlesModalOpen, setIsJobTitlesModalOpen] = useState(false);
+  const [isJobRequirementsModalOpen, setIsJobRequirementsModalOpen] = useState(false);
   const [jobTitles, setJobTitles] = useState<JobTitle[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
@@ -96,6 +97,19 @@ export function SettingsPage() {
           </p>
         </div>
 
+        <div
+          onClick={() => setIsJobRequirementsModalOpen(true)}
+          className="bg-card border border-border/50 rounded-[2rem] p-6 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] hover:border-amber-500/30 transition-all cursor-pointer group"
+        >
+          <div className="p-3 bg-amber-500/10 text-amber-500 rounded-xl w-fit mb-4 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300">
+            <Clock className="size-6" />
+          </div>
+          <h3 className="text-lg font-bold mb-2">Besoins en Personnel</h3>
+          <p className="text-muted-foreground text-sm">
+            Configurez les besoins hebdomadaires (effectifs requis) pour générer les plannings automatiquement.
+          </p>
+        </div>
+
                 <div className="bg-card border border-border/50 rounded-[2rem] p-6 opacity-60 grayscale cursor-not-allowed">
           <div className="p-3 bg-secondary/10 text-secondary rounded-xl w-fit mb-4">
             <Building className="size-6" />
@@ -124,6 +138,12 @@ export function SettingsPage() {
         onAdd={handleAddJobTitle}
         onEdit={handleEditJobTitle}
         onDelete={promptDeleteJobTitle}
+      />
+
+      <JobRequirementsModal
+        isOpen={isJobRequirementsModalOpen}
+        onClose={() => setIsJobRequirementsModalOpen(false)}
+        jobTitles={jobTitles}
       />
 
       <ConfirmDialog

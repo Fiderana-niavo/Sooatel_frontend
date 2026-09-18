@@ -1,3 +1,4 @@
+import { toIsoDate, toIsoDateTime } from "@/utils/date";
 import type { SaleRecord, SalePayload } from "../types";
 
 export const mapSaleRecordToFormData = (
@@ -6,8 +7,8 @@ export const mapSaleRecordToFormData = (
 ): SalePayload => {
   return {
     saleDate: saleToEdit.saleDate
-      ? new Date(saleToEdit.saleDate).toISOString().slice(0, 16)
-      : new Date().toISOString().split("T")[0],
+      ? toIsoDateTime(new Date(saleToEdit.saleDate))
+      : toIsoDate(new Date()),
     idSaler: saleToEdit.saler?.idEmployee || connectedUserId || "",
     invoiceNumber: saleToEdit.invoice?.invoiceNumber || "",
     tableNumber: saleToEdit.tableNumber ?? (saleToEdit as any).table_number ?? undefined,
@@ -20,7 +21,7 @@ export const mapSaleRecordToFormData = (
       unitPrice: Number(item.unitPrice)
     })) || [],
     comment: saleToEdit.comment || "",
-    deliveryDate: saleToEdit.deliveryDate ? new Date(saleToEdit.deliveryDate).toISOString().slice(0, 16) : "",
+    deliveryDate: saleToEdit.deliveryDate ? toIsoDateTime(new Date(saleToEdit.deliveryDate)) : "",
     payment: undefined
   };
 };

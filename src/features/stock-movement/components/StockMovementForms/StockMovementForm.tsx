@@ -1,3 +1,4 @@
+import { toIsoDateTime } from "@/utils/date";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { X, ArrowDownCircle, ArrowUpCircle, Loader2 } from "lucide-react";
@@ -38,7 +39,7 @@ const emptyForm = (direction: number): StockMovementDto => ({
   quantity: "" as unknown as number,
   direction,
   reason: "",
-  movementDate: new Date().toISOString().slice(0, 16),
+  movementDate: toIsoDateTime(new Date()),
 });
 
 export function StockMovementForm({ initial, onClose, onSave }: Props) {
@@ -50,8 +51,8 @@ export function StockMovementForm({ initial, onClose, onSave }: Props) {
           direction: initial.direction ?? DIRECTION_OUT,
           reason: initial.reason ?? "",
           movementDate: initial.movementDate
-            ? new Date(initial.movementDate).toISOString().slice(0, 16)
-            : new Date().toISOString().slice(0, 16),
+            ? toIsoDateTime(new Date(initial.movementDate))
+            : toIsoDateTime(new Date()),
         }
       : emptyForm(DIRECTION_OUT)
   );

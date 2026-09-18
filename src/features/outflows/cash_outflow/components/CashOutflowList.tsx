@@ -1,3 +1,4 @@
+import { toIsoDateTime } from "@/utils/date";
 import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Search } from "lucide-react";
 import { CashOutflowService } from "../services/cash-outflow.service";
@@ -27,7 +28,7 @@ export function CashOutflowList() {
   const emptyForm: CashOutflowDto = {
     ref: "",
     amount: "" as unknown as number,
-    outflowDate: new Date().toISOString().slice(0, 16),
+    outflowDate: toIsoDateTime(new Date()),
     reason: "",
     invoiceReference: "",
     idProcessedBy: user?.idEmployee || "",
@@ -72,7 +73,7 @@ export function CashOutflowList() {
       setFormData({
         ref: outflow.ref,
         amount: outflow.amount,
-        outflowDate: outflow.outflowDate ? new Date(outflow.outflowDate).toISOString().slice(0, 16) : "",
+        outflowDate: outflow.outflowDate ? toIsoDateTime(new Date(outflow.outflowDate)) : "",
         reason: outflow.reason || "",
         invoiceReference: outflow.invoiceReference || "",
         idProcessedBy: outflow.idProcessedBy,

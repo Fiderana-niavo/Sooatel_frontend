@@ -1,3 +1,4 @@
+import { toIsoDateTime } from "@/utils/date";
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
@@ -59,7 +60,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             <label className="text-sm font-medium mb-1 block">Date du paiement</label>
             <Input
               type="datetime-local"
-              max={new Date().toISOString().slice(0, 16)}
+              max={toIsoDateTime(new Date())}
               min={saleDate}
               value={paymentDate}
               onChange={(e) => onPaymentDateChange(e.target.value)}

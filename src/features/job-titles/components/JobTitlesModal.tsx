@@ -100,10 +100,8 @@ export function JobTitlesModal({ isOpen, onClose, jobTitles, onAdd, onEdit, onDe
               </div>
             ) : (
               jobTitles.map((job) => (
-                <div
-                  key={job.idJobTitle}
-                  className="flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors group"
-                >
+                <div key={job.idJobTitle} className="space-y-2">
+                  <div className="flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors group">
                   {editingId === job.idJobTitle ? (
                     <div className="flex-1 flex items-center gap-2 mr-4">
                       <Input
@@ -164,6 +162,7 @@ export function JobTitlesModal({ isOpen, onClose, jobTitles, onAdd, onEdit, onDe
                       </>
                     )}
                   </div>
+                </div>
                 </div>
               ))
             )}

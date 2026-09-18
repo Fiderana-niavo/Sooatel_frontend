@@ -30,7 +30,7 @@ export const setupAxiosInterceptors = () => {
           ) {
             try {
               const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
-              
+
               // We use fetch here to completely bypass any axios interceptors and avoid loops
               const response = await fetch(`${BASE}/auth/refresh`, {
                 method: "POST",

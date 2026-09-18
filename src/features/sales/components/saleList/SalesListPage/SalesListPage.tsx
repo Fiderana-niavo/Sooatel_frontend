@@ -1,3 +1,4 @@
+import { toIsoDate, toIsoDateTime } from "@/utils/date";
 import React, { useState, useEffect, useCallback } from "react";
 import { SaleService } from "../../../services/sale.service";
 import { PaymentService } from "../../../../payments/services/payment.service";
@@ -25,7 +26,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
   const [menuFilter, setMenuFilter] = useState<string | number>("");
   const [menuOptions, setMenuOptions] = useState<{ value: string; label: string }[]>([{ value: "", label: "Tous les produits" }]);
   const [paymentMethods, setPaymentMethods] = useState<{ idPaymentMethod: string; methodName: string }[]>([]);
-  const [payModal, setPayModal] = useState<{ isOpen: boolean; saleId: string; balanceDue: number; methodId: string; paymentCode: string; amount: string; paymentDate: string; isPartial: boolean; saleDate: string }>({ isOpen: false, saleId: "", balanceDue: 0, methodId: "", paymentCode: "", amount: "", paymentDate: new Date().toISOString().slice(0, 16), isPartial: false, saleDate: "" });
+  const [payModal, setPayModal] = useState<{ isOpen: boolean; saleId: string; balanceDue: number; methodId: string; paymentCode: string; amount: string; paymentDate: string; isPartial: boolean; saleDate: string }>({ isOpen: false, saleId: "", balanceDue: 0, methodId: "", paymentCode: "", amount: "", paymentDate: toIsoDateTime(new Date()), isPartial: false, saleDate: "" });
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedSale, setSelectedSale] = useState<SaleRecord | null>(null);
@@ -196,9 +197,9 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
       methodId: paymentMethods[0]?.idPaymentMethod || "",
       paymentCode: "",
       amount: String(balanceDue),
-      paymentDate: new Date().toISOString().split('T')[0],
+      paymentDate: toIsoDate(new Date()),
       isPartial: false,
-      saleDate: sale.saleDate ? new Date(sale.saleDate).toISOString().slice(0, 16) : ""
+      saleDate: sale.saleDate ? toIsoDateTime(new Date(sale.saleDate)) : ""
     });
   };
 
@@ -216,7 +217,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         paymentCode: payModal.paymentCode || undefined
       });
       showSnackbar("Paiement enregistré avec succès.", "success");
-      setPayModal({ isOpen: false, saleId: "", balanceDue: 0, methodId: "", paymentCode: "", amount: "", paymentDate: new Date().toISOString().slice(0, 16), isPartial: false, saleDate: "" });
+      setPayModal({ isOpen: false, saleId: "", balanceDue: 0, methodId: "", paymentCode: "", amount: "", paymentDate: toIsoDateTime(new Date()), isPartial: false, saleDate: "" });
       setSheetOpen(false);
       fetchSales();
     } catch (err: any) {

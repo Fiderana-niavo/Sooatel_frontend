@@ -1,3 +1,4 @@
+import { toIsoDate } from "@/utils/date";
 import React, { useState, useEffect, useCallback } from "react";
 import type { Metric, DashboardSummary, TopProductsResult, ProductDetail } from "../types/dashboard";
 import { CaDashboardService, BenefitDashboardService } from "../services/dashboard.service";
@@ -14,7 +15,7 @@ const getDefaultDates = (): { start: string; end: string } => {
   const end = new Date();
   const start = new Date(end);
   start.setMonth(start.getMonth() - 1);
-  const fmt = (d: Date) => d.toISOString().split("T")[0];
+  const fmt = (d: Date) => toIsoDate(d);
   return { start: fmt(start), end: fmt(end) };
 };
 

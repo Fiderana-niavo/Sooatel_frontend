@@ -1,3 +1,4 @@
+import { toIsoDate } from "@/utils/date";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
@@ -56,8 +57,8 @@ export function EventsModal({ isOpen, onClose, data, onAdd, onEdit, onDelete }: 
   const startEdit = (item: any) => {
     setEditingId(item.idEvent);
     setEditEventName(item.eventName || "");
-    setEditStartDate(item.startDate ? new Date(item.startDate).toISOString().split('T')[0] : "");
-    setEditEndDate(item.endDate ? new Date(item.endDate).toISOString().split('T')[0] : "");
+    setEditStartDate(item.startDate ? toIsoDate(new Date(item.startDate)) : "");
+    setEditEndDate(item.endDate ? toIsoDate(new Date(item.endDate)) : "");
   };
 
   const cancelEdit = () => {

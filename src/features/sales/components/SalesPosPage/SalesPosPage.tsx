@@ -1,3 +1,4 @@
+import { toIsoDateTime } from "@/utils/date";
 import { useState, useEffect } from "react";
 import type { SalePayload, SaleItem, MenuItemRef, PaymentMethodRef } from "../../types";
 import type { SelectOptionDto } from "@/types/api.type";
@@ -27,7 +28,7 @@ interface SalesPosPageProps {
 export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }: SalesPosPageProps) {
   const connectedUser = useAppStore(state => state.connectedUser);
   const [formData, setFormData] = useState<SalePayload>({
-    saleDate: new Date().toISOString().slice(0, 16),
+    saleDate: toIsoDateTime(new Date()),
     idSaler: connectedUser?.idEmployee || "",
     invoiceNumber: "",
     tableNumber: undefined,
@@ -181,7 +182,7 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
 
       // Reset form on success
       setFormData({
-        saleDate: new Date().toISOString().slice(0, 16),
+        saleDate: toIsoDateTime(new Date()),
         idSaler: connectedUser?.idEmployee || "",
         invoiceNumber: "",
         tableNumber: undefined,

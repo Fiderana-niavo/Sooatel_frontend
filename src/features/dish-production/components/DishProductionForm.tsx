@@ -1,3 +1,4 @@
+import { toIsoDateTime } from "@/utils/date";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { X, ChefHat, Loader2 } from "lucide-react";
@@ -19,7 +20,7 @@ const emptyForm = (): DishProductionDto => ({
   idItem: "",
   quantity: "" as unknown as number,
   notes: "",
-  productionDate: new Date().toISOString().slice(0, 16),
+  productionDate: toIsoDateTime(new Date()),
 });
 
 export function DishProductionForm({ initial, onClose, onSave }: Props) {
@@ -30,8 +31,8 @@ export function DishProductionForm({ initial, onClose, onSave }: Props) {
           quantity: initial.quantity ?? ("" as unknown as number),
           notes: initial.notes ?? "",
           productionDate: initial.productionDate
-            ? new Date(initial.productionDate).toISOString().slice(0, 16)
-            : new Date().toISOString().slice(0, 16),
+            ? toIsoDateTime(new Date(initial.productionDate))
+            : toIsoDateTime(new Date()),
         }
       : emptyForm()
   );

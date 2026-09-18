@@ -1,3 +1,4 @@
+import { toIsoDate } from "@/utils/date";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
@@ -50,7 +51,7 @@ export function SupplierProductPriceForm({
           {priceActionType === 'change' && (
             <div className="space-y-2">
               <label className="text-sm font-medium">Date d'application *</label>
-              <Input name="changeDate" type="date" required defaultValue={new Date().toISOString().split('T')[0]} />
+              <Input name="changeDate" type="date" required defaultValue={toIsoDate(new Date())} />
             </div>
           )}
           <DialogFooter>

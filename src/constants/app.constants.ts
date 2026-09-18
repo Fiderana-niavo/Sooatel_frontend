@@ -1,10 +1,21 @@
 import {
   UtensilsCrossed, Package, Users, Building, BedDouble, BookOpen, AlertTriangle, TrendingUp, Contact, CalendarDays, HeartHandshake, Settings, ShieldCheck, LayoutDashboard, CreditCard, Boxes, ArrowRightLeft,
-  Box, Layers, MenuSquare, List, Ruler, Bed, Grid2x2, Banknote, PackageCheck, ChefHat, ClipboardList
+  Box, Layers, MenuSquare, List, Ruler, Bed, Grid2x2, Banknote, PackageCheck, ChefHat, ClipboardList, CalendarCheck, Settings2
 } from "lucide-react";
 
 // ============================================================================
-// 1. NAVIGATION SIDEBAR (Menu Latéral)
+// 1. CONSTANTES GLOBALES (Dates, Jours, etc.)
+// ============================================================================
+
+export const DAY_LABELS = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+export const DAY_LABELS_SHORT = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+export const MONTH_LABELS = [
+  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
+];
+
+// ============================================================================
+// 2. NAVIGATION SIDEBAR (Menu Latéral)
 // ============================================================================
 
 export type AppMode = "utopia" | "sooatel";
@@ -59,7 +70,11 @@ export const NAVIGATION_GROUPS = [
     scopes: ["utopia", "sooatel"], // Visible des deux côtés
     items: [
       { title: "Annuaire du Personnel", url: "/hr/directory", icon: Contact, permission: "hr.access" },
-      { title: "Plannings", url: "/hr/schedules", icon: CalendarDays, permission: "hr.schedule" },
+      { title: "Congés & Absences", url: "/hr/leaves", icon: HeartHandshake, permission: "hr.access" },
+      { title: "Congés à venir", url: "/hr/upcoming-leaves", icon: CalendarDays, permission: "hr.access" },
+      { title: "Types de Congés", url: "/hr/leave-types", icon: Settings2, permission: "hr.access" },
+      { title: "Équipes & Quarts", url: "/hr/planning", icon: CalendarDays, permission: "hr.schedule" },
+      { title: "Emploi du Temps", url: "/hr/timetable", icon: CalendarCheck, permission: "hr.schedule" },
       { title: "Bien-être de l'Équipe", url: "/hr/welfare", icon: HeartHandshake, permission: "hr.welfare" },
       { title: "Gestion des Utilisateurs", url: "/hr/users", icon: Users, permission: "employee.read" },
       { title: "Rôles et Permissions", url: "/hr/roles", icon: ShieldCheck, permission: "security.access" },

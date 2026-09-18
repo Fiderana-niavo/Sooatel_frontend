@@ -11,6 +11,7 @@ import { EmployeesPage } from "@/features/employees";
 import { LoginPage } from "@/features/auth";
 import { RolesPage } from "@/features/roles";
 import { PlanningPage } from "@/features/planning";
+
 import { SettingsPage } from "@/features/settings";
 import { HotelConfigPage } from "@/features/hotel-config";
 import { RestaurantCatalogPage } from "@/features/restaurant-catalog";
@@ -23,6 +24,9 @@ import type { SaleRecord } from "@/features/sales";
 import { PurchasesContainer } from "@/features/purchases";
 import { DeliveryListPage } from "@/features/delivery/components/DeliveryList/DeliveryListPage";
 import { InventoryPage } from "@/features/inventory/components/InventoryPage";
+import { LeavesPage } from "@/features/leaves/components/LeavesPage/LeavesPage";
+import UpcomingLeavesPage from "@/features/leaves/components/UpcomingLeavesPage/UpcomingLeavesPage";
+import { LeaveTypesPage } from "@/features/leaves/components/LeaveTypesPage/LeaveTypesPage";
 import { RecipesPage } from "@/features/recipes/components/RecipesPage";
 import { StockMovementPage } from "@/features/stock-movement";
 import { DishProductionPage } from "@/features/dish-production";
@@ -204,7 +208,7 @@ function App() {
                 <section className="bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[2rem] p-8 md:p-12 border border-border/50 flex-1 w-full max-w-5xl mx-auto space-y-10 relative overflow-hidden">
                   <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
 
-                  {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Plannings" && activeTab !== "Paramètres Globaux" && activeTab !== "Chambres & Évènements" && activeTab !== "Catalogue & Menus" && activeTab !== "Caisse & PDV" && activeTab !== "Historique des Ventes" && activeTab !== "Revenus" && activeTab !== "Tableau de bord" && activeTab !== "Mouvements de Caisse" && activeTab !== "Fournisseurs & Achats" && activeTab !== "Commandes Fournisseurs" && activeTab !== "Livraisons Fournisseurs" && activeTab !== "Recettes" && activeTab !== "Mouvements" && activeTab !== "Production de Plats" && activeTab !== "Inventaire Physique" && (
+                  {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Équipes & Quarts" && activeTab !== "Congés & Absences" && activeTab !== "Congés à venir" && activeTab !== "Types de Congés" && activeTab !== "Emploi du Temps" && activeTab !== "Paramètres Globaux" && activeTab !== "Chambres & Évènements" && activeTab !== "Catalogue & Menus" && activeTab !== "Caisse & PDV" && activeTab !== "Historique des Ventes" && activeTab !== "Revenus" && activeTab !== "Tableau de bord" && activeTab !== "Mouvements de Caisse" && activeTab !== "Fournisseurs & Achats" && activeTab !== "Commandes Fournisseurs" && activeTab !== "Livraisons Fournisseurs" && activeTab !== "Recettes" && activeTab !== "Mouvements" && activeTab !== "Production de Plats" && activeTab !== "Inventaire Physique" && (
                     <div>
                       <h2 className="text-2xl font-bold mb-2">Bienvenue sur {appMode === "utopia" ? "Utopia" : "Sooatel"}</h2>
                       <p className="text-muted-foreground m-0 text-lg">
@@ -225,12 +229,31 @@ function App() {
                         <RolesPage />
                       </ProtectedRoute>
                     </div>
-                  ) : activeTab === "Plannings" ? (
+                  ) : activeTab === "Congés & Absences" ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                      <ProtectedRoute permission="hr.access">
+                        <LeavesPage />
+                      </ProtectedRoute>
+                    </div>
+                  ) : activeTab === "Congés à venir" ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                      <ProtectedRoute permission="hr.access">
+                        <UpcomingLeavesPage />
+                      </ProtectedRoute>
+                    </div>
+                  ) : activeTab === "Types de Congés" ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      <ProtectedRoute permission="hr.access">
+                        <LeaveTypesPage />
+                      </ProtectedRoute>
+                    </div>
+                  ) : activeTab === "Équipes & Quarts" ? (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
                       <ProtectedRoute permission="hr.schedule">
                         <PlanningPage />
                       </ProtectedRoute>
                     </div>
+
                   ) : activeTab === "Paramètres Globaux" ? (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
                       <ProtectedRoute permission="settings.access">

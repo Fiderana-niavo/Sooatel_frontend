@@ -1,3 +1,4 @@
+import { toIsoDate } from "@/utils/date";
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { EmployeesTable } from "../EmployeesTable/EmployeesTable";
@@ -309,7 +310,7 @@ export function EmployeesPage({
       );
       setNewAssignmentDate(
         selectedEmployeeDetail.job.assignmentDate ||
-          new Date().toISOString().split("T")[0],
+          toIsoDate(new Date()),
       );
       setNewEndDate(selectedEmployeeDetail.job.endDate || "");
       setNewHasFixedSchedule(
@@ -318,7 +319,7 @@ export function EmployeesPage({
     } else {
       setNewJobId(initialJobId);
       setNewEmpTypeId(employmentTypes[0]?.idEmploymentType || "");
-      setNewAssignmentDate(new Date().toISOString().split("T")[0]);
+      setNewAssignmentDate(toIsoDate(new Date()));
       setNewEndDate("");
       setNewHasFixedSchedule(false);
     }
@@ -343,7 +344,7 @@ export function EmployeesPage({
           employmentTypes[0]?.idEmploymentType ||
           "",
       );
-      setNewAssignmentDate(new Date().toISOString().split("T")[0]);
+      setNewAssignmentDate(toIsoDate(new Date()));
       setNewEndDate("");
       setNewHasFixedSchedule(
         selectedEmployeeDetail.job.hasFixedSchedule || false,
@@ -351,7 +352,7 @@ export function EmployeesPage({
     } else {
       setNewJobId(initialJobId);
       setNewEmpTypeId(employmentTypes[0]?.idEmploymentType || "");
-      setNewAssignmentDate(new Date().toISOString().split("T")[0]);
+      setNewAssignmentDate(toIsoDate(new Date()));
       setNewEndDate("");
       setNewHasFixedSchedule(false);
     }
@@ -438,7 +439,7 @@ export function EmployeesPage({
 
   const openTerminateContractModal = (item: EmployeeListItem) => {
     setTerminateContractEmployee(item);
-    setContractEndDate(new Date().toISOString().split("T")[0]);
+    setContractEndDate(toIsoDate(new Date()));
   };
 
   const saveTerminateContract = async () => {
@@ -1438,7 +1439,7 @@ export function EmployeesPage({
               <Input
                 type="date"
                 value={contractEndDate}
-                max={new Date().toISOString().split("T")[0]}
+                max={toIsoDate(new Date())}
                 onChange={(e) => setContractEndDate(e.target.value)}
                 className="w-full"
               />

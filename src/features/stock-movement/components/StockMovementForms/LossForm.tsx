@@ -1,3 +1,4 @@
+import { toIsoDateTime } from "@/utils/date";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { X, Flame, AlertTriangle, Loader2 } from "lucide-react";
@@ -20,7 +21,7 @@ const emptyForm = (): LossDto => ({
   idItem: "",
   quantity: "" as unknown as number,
   reason: "",
-  movementDate: new Date().toISOString().slice(0, 16),
+  movementDate: toIsoDateTime(new Date()),
 });
 
 export function LossForm({ onClose, onSuccess, onError }: Props) {

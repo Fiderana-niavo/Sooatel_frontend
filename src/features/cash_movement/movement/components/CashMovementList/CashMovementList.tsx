@@ -1,3 +1,4 @@
+import { toIsoDateTime } from "@/utils/date";
 import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Search, Loader2 } from "lucide-react";
 import { CashMovementService } from "../../services/cash-movement.service";
@@ -35,7 +36,7 @@ export function CashMovementList({ direction }: { direction: number }) {
   const emptyForm: CashMovementDto = {
     ref: "",
     amount: "" as unknown as number,
-    movementDate: new Date().toISOString().slice(0, 16),
+    movementDate: toIsoDateTime(new Date()),
     reason: "",
     invoiceReference: "",
     direction: direction,
@@ -96,7 +97,7 @@ export function CashMovementList({ direction }: { direction: number }) {
       setFormData({
         ref: movement.ref,
         amount: movement.amount,
-        movementDate: movement.movementDate ? new Date(movement.movementDate).toISOString().slice(0, 16) : "",
+        movementDate: movement.movementDate ? toIsoDateTime(new Date(movement.movementDate)) : "",
         reason: movement.reason || "",
         invoiceReference: movement.invoiceReference || "",
         direction: movement.direction,
