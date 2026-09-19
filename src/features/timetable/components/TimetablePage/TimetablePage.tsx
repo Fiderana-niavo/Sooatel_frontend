@@ -18,6 +18,7 @@ import { toIsoDate, addDays, buildDayRange } from "@/utils/date";
 import { OverwriteWarningDialog } from "../list/OverwriteWarningDialog/OverwriteWarningDialog";
 import { EmployeeRequirementService } from "@/features/job-titles/services/employee-requirement.service";
 import { TimetableHeader, type Mode } from "../TimetableHeader/TimetableHeader";
+import { computeSlots } from "../../utils/slots.util";
 
 
 
@@ -104,62 +105,7 @@ export function TimetablePage() {
 
   // ─── Slots from requirements & generated rows ───────────────────────────
 
-  const slots = (requirementsQuery.data ?? []).reduce<
-    Array<{
-      idJobTitle: string | null;
-      jobTitle: string | null;
-      idShiftType: string | null;
-      shiftLabel: string | null;
-      requiredCount: number;
-    }>
-  >((acc, r) => {
-    const exists = acc.find(
-      (s) => s.idJobTitle === r.idJobTitle && s.idShiftType === r.idShiftType,
-    );
-    if (!exists) {
-      acc.push({
-        idJobTitle: r.idJobTitle,
-        jobTitle: r.jobTitle,
-        idShiftType: r.idShiftType,
-        shiftLabel: r.shiftLabel,
-        requiredCount: r.requiredCount,
-      });
-    }
-    return acc;
-  }, []);
-
-  // Synthesize slots from displayed rows (important for team generation)
-  const rowsBySlotAndDate = new Map<string, number>();
-  for (const r of displayedRows) {
-    const key = `${r.idShiftType ?? "custom"}__${r.idJobTitle ?? "any"}__${r.scheduleDate}`;
-    rowsBySlotAndDate.set(key, (rowsBySlotAndDate.get(key) ?? 0) + 1);
-  }
-
-  const maxCountPerSlot = new Map<string, number>();
-  for (const [key, count] of rowsBySlotAndDate.entries()) {
-    const [idShiftType, idJobTitle] = key.split("__");
-    const slotKey = `${idShiftType}__${idJobTitle}`;
-    const currentMax = maxCountPerSlot.get(slotKey) ?? 0;
-    if (count > currentMax) maxCountPerSlot.set(slotKey, count);
-  }
-
-  for (const r of displayedRows) {
-    const exists = slots.find(s => s.idJobTitle === r.idJobTitle && s.idShiftType === r.idShiftType);
-    const slotKey = `${r.idShiftType ?? "custom"}__${r.idJobTitle ?? "any"}`;
-    const needed = maxCountPerSlot.get(slotKey) ?? 1;
-
-    if (!exists) {
-      slots.push({
-        idJobTitle: r.idJobTitle,
-        jobTitle: r.jobTitle,
-        idShiftType: r.idShiftType,
-        shiftLabel: r.shiftLabel,
-        requiredCount: needed,
-      });
-    } else if (needed > exists.requiredCount) {
-      exists.requiredCount = needed;
-    }
-  }
+  const slots = computeSlots(requirementsQuery.data ?? [], displayedRows);
 
   // ─── Row change handler ─────────────────────────────────────────────────
 
