@@ -23,6 +23,28 @@ export const TeamService = {
     return res.data.payload;
   },
 
+  getMembers: async (idTeam: string): Promise<any[]> => {
+    const res = await axios.get<ApiResponse<any[]>>(`${BASE}/teams/${idTeam}/members`);
+    if (!res.data.ok) throw new Error(res.data.error);
+    return res.data.payload;
+  },
+
+  getAvailableEmployees: async (): Promise<any[]> => {
+    const res = await axios.get<ApiResponse<any[]>>(`${BASE}/teams/available-members`);
+    if (!res.data.ok) throw new Error(res.data.error);
+    return res.data.payload;
+  },
+
+  addMembers: async (idTeam: string, employeeIds: string[]): Promise<void> => {
+    const res = await axios.post<ApiResponse<void>>(`${BASE}/teams/${idTeam}/members`, { employeeIds });
+    if (!res.data.ok) throw new Error(res.data.error);
+  },
+
+  removeMember: async (idTeam: string, idEmployee: string): Promise<void> => {
+    const res = await axios.delete<ApiResponse<void>>(`${BASE}/teams/${idTeam}/members/${idEmployee}`);
+    if (!res.data.ok) throw new Error(res.data.error);
+  },
+
   delete: async (id: string): Promise<void> => {
     const res = await axios.delete<ApiResponse<void>>(`${BASE}/teams/${id}`);
     if (!res.data.ok) throw new Error(res.data.error);

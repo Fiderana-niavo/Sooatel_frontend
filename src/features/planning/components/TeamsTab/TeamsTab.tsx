@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus, Edit, Trash2, Search, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
+import { TeamMembersModal } from "../TeamMembersModal/TeamMembersModal";
 import type { Team } from "../../types/type";
 
 interface TeamsTabProps {
@@ -28,6 +29,7 @@ export function TeamsTab({
   onDelete 
 }: TeamsTabProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
 
   const filteredTeams = teams.filter(t => t.teamName.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -121,10 +123,13 @@ export function TeamsTab({
                     </div>
                   ) : (
                     <div className="flex justify-center gap-2">
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => onEdit(team)}>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-blue-500" onClick={() => setSelectedTeam(team)} title="Gérer les membres">
+                        <Users className="size-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => onEdit(team)} title="Modifier">
                         <Edit className="size-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(team.idTeam)}>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(team.idTeam)} title="Supprimer">
                         <Trash2 className="size-4" />
                       </Button>
                     </div>
@@ -143,6 +148,10 @@ export function TeamsTab({
           </tbody>
         </table>
       </div>
+
+      {selectedTeam && (
+        <TeamMembersModal team={selectedTeam} onClose={() => setSelectedTeam(null)} />
+      )}
     </div>
   );
 }

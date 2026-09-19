@@ -10,6 +10,7 @@ export interface EmployeeRequirement {
   idShiftType: string;
   shiftLabel: string | null;
   idJobTitle: string;
+  jobTitle?: string | null;
 }
 
 export interface CreateRequirementDto {

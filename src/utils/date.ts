@@ -22,12 +22,14 @@ export function getWeekDates(monday: Date): Date[] {
   });
 }
 
-export function toIsoDate(date: Date): string {
-  return date.toISOString().split("T")[0] as string;
+export function toIsoDate(date: Date | string): string {
+  const d = date instanceof Date ? date : new Date(date);
+  return d.toISOString().split("T")[0] as string;
 }
 
-export function toIsoDateTime(date: Date): string {
-  return date.toISOString().slice(0, 16);
+export function toIsoDateTime(date: Date | string): string {
+  const d = date instanceof Date ? date : new Date(date);
+  return d.toISOString().slice(0, 16);
 }
 
 export const formatDate = (dateStr: string): string => {
@@ -41,3 +43,20 @@ export const getDaysLeft = (dateStr: string): number => {
   start.setHours(0, 0, 0, 0);
   return Math.round((start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 };
+
+export function buildDayRange(startDate: string, endDate: string): string[] {
+  const days: string[] = [];
+  const cursor = new Date(startDate + "T00:00:00Z");
+  const end = new Date(endDate + "T00:00:00Z");
+  while (cursor <= end) {
+    days.push(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return days;
+}
+
+export function addDays(dateStr: string, n: number): string {
+  const d = new Date(dateStr + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}

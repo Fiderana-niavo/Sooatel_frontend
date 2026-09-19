@@ -31,7 +31,9 @@ import { RecipesPage } from "@/features/recipes/components/RecipesPage";
 import { StockMovementPage } from "@/features/stock-movement";
 import { DishProductionPage } from "@/features/dish-production";
 import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
+import { TimetablePage } from "@/features/timetable";
 import { useAppStore } from "@/store/app.store";
+
 
 function App() {
   const navigate = useNavigate();
@@ -251,6 +253,13 @@ function App() {
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
                       <ProtectedRoute permission="hr.schedule">
                         <PlanningPage />
+                      </ProtectedRoute>
+                    </div>
+
+                  ) : activeTab === "Emploi du Temps" ? (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      <ProtectedRoute permission="hr.schedule">
+                        <TimetablePage />
                       </ProtectedRoute>
                     </div>
 
