@@ -1,4 +1,4 @@
-import { RefreshCw, Loader2 } from "lucide-react";
+import { RefreshCw, Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import type { Team, ShiftType } from "@/features/planning/types/type";
 
 interface TeamRotationPanelProps {
@@ -35,6 +35,24 @@ export function TeamRotationPanel({
     } else {
       onSelectedTeamsChange([...selectedTeamIds, id]);
     }
+  };
+
+  const moveUp = (index: number) => {
+    if (index === 0) return;
+    const newSelected = [...selectedTeamIds];
+    const temp = newSelected[index];
+    newSelected[index] = newSelected[index - 1];
+    newSelected[index - 1] = temp;
+    onSelectedTeamsChange(newSelected);
+  };
+
+  const moveDown = (index: number) => {
+    if (index === selectedTeamIds.length - 1) return;
+    const newSelected = [...selectedTeamIds];
+    const temp = newSelected[index];
+    newSelected[index] = newSelected[index + 1];
+    newSelected[index + 1] = temp;
+    onSelectedTeamsChange(newSelected);
   };
 
   const canGenerate = selectedTeamIds.length > 0 && idRotationShift !== "";
@@ -92,6 +110,44 @@ export function TeamRotationPanel({
                   </div>
                 </label>
               ))}
+            </div>
+          )}
+
+          {selectedTeamIds.length > 0 && (
+            <div className="mt-4 p-4 bg-primary/5 rounded-xl border border-primary/20">
+              <p className="text-sm font-semibold text-primary mb-3">Ordre de rotation :</p>
+              <div className="space-y-2">
+                {selectedTeamIds.map((id, index) => {
+                  const team = teams.find((t) => t.idTeam === id);
+                  if (!team) return null;
+                  return (
+                    <div key={id} className="flex items-center gap-3 bg-background p-2 rounded-lg border shadow-sm">
+                      <span className="flex items-center justify-center size-6 rounded-full bg-primary/10 text-primary font-bold text-xs shrink-0">
+                        {index + 1}
+                      </span>
+                      <span className="flex-1 font-medium text-sm truncate">{team.teamName}</span>
+                      <div className="flex gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => moveUp(index)}
+                          disabled={index === 0}
+                          className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+                        >
+                          <ChevronUp className="size-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveDown(index)}
+                          disabled={index === selectedTeamIds.length - 1}
+                          className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+                        >
+                          <ChevronDown className="size-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

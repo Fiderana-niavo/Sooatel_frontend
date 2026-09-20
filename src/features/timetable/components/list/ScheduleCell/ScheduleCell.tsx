@@ -34,8 +34,6 @@ export function ScheduleCell({
       scheduleDate: date,
       idShiftType: row?.idShiftType ?? null,
       shiftLabel: row?.shiftLabel ?? null,
-      customStartTime: row?.customStartTime ?? null,
-      customEndTime: row?.customEndTime ?? null,
       isOnLeave: false,
     });
   };

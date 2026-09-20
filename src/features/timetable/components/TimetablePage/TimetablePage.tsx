@@ -4,6 +4,7 @@ import { TeamRotationPanel } from "../forms/TeamRotationPanel/TeamRotationPanel"
 import { ScheduleGrid } from "../list/ScheduleGrid/ScheduleGrid";
 import { SaveBar } from "../list/SaveBar/SaveBar";
 import { TimetableService } from "../../services/timetable.service";
+import { Copy } from "lucide-react";
 import { TeamService } from "@/features/planning/services/team.service";
 import { ShiftTypeService } from "@/features/planning/services/shift-type.service";
 
@@ -19,9 +20,7 @@ import { OverwriteWarningDialog } from "../list/OverwriteWarningDialog/Overwrite
 import { EmployeeRequirementService } from "@/features/job-titles/services/employee-requirement.service";
 import { TimetableHeader, type Mode } from "../TimetableHeader/TimetableHeader";
 import { computeSlots } from "../../utils/slots.util";
-
-
-
+import { CopyScheduleDialog } from "../forms/CopyScheduleDialog";
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export function TimetablePage() {
@@ -39,6 +38,7 @@ export function TimetablePage() {
 
   const [overwriteWarning, setOverwriteWarning] = useState<CheckExistingResult | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isCopyDialogOpen, setIsCopyDialogOpen] = useState(false);
 
   const [snackbar, setSnackbar] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
@@ -77,8 +77,6 @@ export function TimetablePage() {
     scheduleDate: s.scheduleDate,
     idShiftType: s.idShiftType,
     shiftLabel: s.shiftLabel,
-    customStartTime: s.customStartTime,
-    customEndTime: s.customEndTime,
     isOnLeave: false,
   }));
 
@@ -144,6 +142,58 @@ export function TimetablePage() {
     setIsDirty(true);
   };
 
+  const handleColumnSwap = (sourceDate: string, targetDate: string) => {
+    if (sourceDate === targetDate) return;
+
+    const base = isDirty ? [...generatedRows] : [...existingRows];
+
+    const newRows = base.map((row) => {
+      if (row.scheduleDate === sourceDate) {
+        return { ...row, scheduleDate: targetDate };
+      }
+      if (row.scheduleDate === targetDate) {
+        return { ...row, scheduleDate: sourceDate };
+      }
+      return row;
+    });
+
+    setGeneratedRows(newRows);
+    setIsDirty(true);
+    setSnackbar({ message: "Journées interverties ! N'oubliez pas de valider.", type: "success" });
+  };
+
+  // ─── Handlers ───────────────────────────────────────────────────────────
+
+  const handleCopy = (mappings: { sourceDate: string; targetDate: string }[]) => {
+    if (mappings.length === 0) return;
+
+    const base = isDirty ? [...generatedRows] : [...existingRows];
+    const targetDates = mappings.map(m => m.targetDate);
+    
+    // We remove any existing rows on the target dates so we can overwrite them with the copied ones
+    const newRows = base.filter((r) => !targetDates.includes(r.scheduleDate));
+
+    for (const mapping of mappings) {
+      const rowsToCopy = base.filter((r) => r.scheduleDate === mapping.sourceDate);
+      const copiedRows = rowsToCopy.map((r) => ({
+        ...r,
+        scheduleDate: mapping.targetDate,
+      }));
+      newRows.push(...copiedRows);
+    }
+
+    const latestTarget = mappings.reduce((max, curr) => curr.targetDate > max ? curr.targetDate : max, mappings[0].targetDate);
+    
+    // Keep original start date, but expand end date to show the newly pasted data
+    if (latestTarget > endDate) {
+      setEndDate(latestTarget);
+    }
+
+    setGeneratedRows(newRows);
+    setIsDirty(true);
+    setSnackbar({ message: "Plannings copiés ! N'oubliez pas de valider.", type: "success" });
+  };
+
   // ─── Generate by team ───────────────────────────────────────────────────
 
   const runGenerate = async () => {
@@ -195,8 +245,6 @@ export function TimetablePage() {
           idEmployee: r.idEmployee,
           scheduleDate: r.scheduleDate,
           idShiftType: r.idShiftType,
-          customStartTime: r.customStartTime,
-          customEndTime: r.customEndTime,
         })),
         overwrite: true, // always overwrite on validate — we already warned the user
         startDate,
@@ -250,14 +298,27 @@ export function TimetablePage() {
         </div>
       )}
 
+      {/* Grid */}
+      <div className="flex justify-end mb-2">
+        {displayedRows.length > 0 && (
+          <button
+            onClick={() => setIsCopyDialogOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors"
+          >
+            <Copy className="size-4" /> Copier le planning affiché
+          </button>
+        )}
+      </div>
+
       {/* Schedule grid */}
       <ScheduleGrid
-        days={days}
         slots={slots}
+        days={days}
         rows={displayedRows}
         availableByJobTitle={availableByJobTitle()}
         allEmployees={allEmployees}
         onRowChange={handleRowChange}
+        onColumnSwap={handleColumnSwap}
       />
 
       {/* Save bar */}
@@ -278,6 +339,16 @@ export function TimetablePage() {
           result={overwriteWarning}
           onConfirm={runGenerate}
           onCancel={() => setOverwriteWarning(null)}
+        />
+      )}
+
+      {isCopyDialogOpen && (
+        <CopyScheduleDialog
+          isOpen={isCopyDialogOpen}
+          onClose={() => setIsCopyDialogOpen(false)}
+          currentStartDate={startDate}
+          currentEndDate={endDate}
+          onCopy={handleCopy}
         />
       )}
 

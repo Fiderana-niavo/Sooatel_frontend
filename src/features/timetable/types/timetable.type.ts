@@ -6,8 +6,6 @@ export interface GeneratedScheduleRow {
   scheduleDate: string; // YYYY-MM-DD
   idShiftType: string | null;
   shiftLabel: string | null;
-  customStartTime: string | null;
-  customEndTime: string | null;
   isOnLeave: boolean;
 }
 
@@ -20,8 +18,6 @@ export interface ScheduleResponse {
   jobTitle: string | null;
   idShiftType: string | null;
   shiftLabel: string | null;
-  customStartTime: string | null;
-  customEndTime: string | null;
 }
 
 export interface AvailableEmployee {
@@ -33,8 +29,6 @@ export interface AvailableEmployee {
     dayOfWeek: number;
     idShiftType: string | null;
     shiftLabel: string | null;
-    customStartTime: string | null;
-    customEndTime: string | null;
   }>;
 }
 
@@ -56,8 +50,6 @@ export interface SaveScheduleDto {
   idEmployee: string;
   scheduleDate: string;
   idShiftType?: string | null;
-  customStartTime?: string | null;
-  customEndTime?: string | null;
 }
 
 export interface SaveSchedulesPayload {

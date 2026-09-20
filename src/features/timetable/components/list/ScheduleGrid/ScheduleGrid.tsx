@@ -13,8 +13,9 @@ interface ScheduleGridProps {
     idShiftType: string | null,
     idJobTitle: string | null,
     slotIndex: number,
-    row: GeneratedScheduleRow | null,
+    updatedRow: GeneratedScheduleRow | null,
   ) => void;
+  onColumnSwap?: (sourceDate: string, targetDate: string) => void;
 }
 
 export function ScheduleGrid({
@@ -24,6 +25,7 @@ export function ScheduleGrid({
   availableByJobTitle,
   allEmployees,
   onRowChange,
+  onColumnSwap,
 }: ScheduleGridProps) {
   const groupedRows = new Map<string, GeneratedScheduleRow[]>();
   for (const r of rows) {
@@ -59,8 +61,32 @@ export function ScheduleGrid({
               return (
                 <th
                   key={date}
-                  className={`text-center px-3 py-3 font-semibold text-xs uppercase tracking-wider ${isWeekend ? "bg-muted/80 text-muted-foreground" : "text-muted-foreground"
-                    }`}
+                  className={`text-center px-3 py-3 font-semibold text-xs uppercase tracking-wider ${isWeekend ? "bg-muted/80 text-muted-foreground" : "text-muted-foreground"} ${onColumnSwap ? "cursor-move hover:bg-muted transition-colors" : ""}`}
+                  draggable={!!onColumnSwap}
+                  onDragStart={(e) => {
+                    if (onColumnSwap) {
+                      e.dataTransfer.setData("application/json", JSON.stringify({ date }));
+                      e.dataTransfer.effectAllowed = "move";
+                    }
+                  }}
+                  onDragOver={(e) => {
+                    if (onColumnSwap) {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                    }
+                  }}
+                  onDrop={(e) => {
+                    if (onColumnSwap) {
+                      e.preventDefault();
+                      try {
+                        const source = JSON.parse(e.dataTransfer.getData("application/json"));
+                        onColumnSwap(source.date, date);
+                      } catch (err) {
+                        console.error("Drag parse error", err);
+                      }
+                    }
+                  }}
+                  title={onColumnSwap ? "Glisser-déposer pour échanger cette journée entière" : undefined}
                 >
                   <div>{DAY_LABELS_SHORT[dow]}</div>
                   <div className="text-foreground font-bold text-sm normal-case">
@@ -114,9 +140,15 @@ export function ScheduleGrid({
                           date={date}
                           availableEmployees={empsByJob}
                           allEmployees={allEmployees}
-                          onChange={(updated) =>
-                            onRowChange(date, slot.idShiftType, slot.idJobTitle, slotIdx, updated)
-                          }
+                          onChange={(updated) => {
+                            if (updated) {
+                              updated.idJobTitle = slot.idJobTitle;
+                              updated.jobTitle = slot.jobTitle;
+                              updated.idShiftType = slot.idShiftType;
+                              updated.shiftLabel = slot.shiftLabel;
+                            }
+                            onRowChange(date, slot.idShiftType, slot.idJobTitle, slotIdx, updated);
+                          }}
                         />
                       </td>
                     );

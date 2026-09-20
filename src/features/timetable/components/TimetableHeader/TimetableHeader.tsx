@@ -66,13 +66,15 @@ export function TimetableHeader({
           </div>
         )}
 
-        <div className="flex border-b border-border/50">
-          <button className={tabClass("team")} onClick={() => onModeChange("team")}>
-            <Users className="size-4" /> Par Équipe
-          </button>
-          <button className={tabClass("manual")} onClick={() => onModeChange("manual")}>
-            <LayoutGrid className="size-4" /> Manuel
-          </button>
+        <div className="flex items-center gap-4 border-b border-border/50 flex-1 justify-between">
+          <div className="flex">
+            <button className={tabClass("team")} onClick={() => onModeChange("team")}>
+              <Users className="size-4" /> Par Équipe
+            </button>
+            <button className={tabClass("manual")} onClick={() => onModeChange("manual")}>
+              <LayoutGrid className="size-4" /> Manuel
+            </button>
+          </div>
         </div>
       </div>
     </>
