@@ -6,9 +6,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/Sh
 import { formatCurrency } from "../../../../utils/formatters";
 import { PurchaseStatusBadge } from "../../../purchases/components/PurchaseList/PurchaseStatusBadge";
 import { PurchaseDetailSheet } from "../../../purchases/components/PurchaseList/PurchaseDetailSheet";
+import { SupplierPaymentForm } from "../../../purchases/components/PurchaseList/SupplierPaymentForm";
 import { DeliverySheet } from "../DeliverySheet/DeliverySheet";
 import { Button } from "@/components/ui/Button/button";
-import { CheckCircle2, AlertCircle, Edit2, Trash2 } from "lucide-react";
+import { CheckCircle2, AlertCircle, Edit2, Trash2, Banknote } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
@@ -21,6 +22,7 @@ interface DeliveryDetailSheetProps {
 
 export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDelivery, onClose }) => {
   const [selectedPurchaseId, setSelectedPurchaseId] = React.useState<string | null>(null);
+  const [showPaymentForm, setShowPaymentForm] = React.useState(false);
   const queryClient = useQueryClient();
   const [isValidating, setIsValidating] = React.useState(false);
   const [confirmAction, setConfirmAction] = React.useState<"validate" | "delete" | null>(null);
@@ -98,7 +100,7 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
 
   return (
     <>
-      <Sheet open={!!idDelivery} onOpenChange={(open) => !open && onClose()}>
+      <Sheet open={!!idDelivery} onOpenChange={(open) => !open && !selectedPurchaseId && onClose()}>
         <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
           <SheetHeader className="mb-6">
           <SheetTitle className="flex flex-col gap-4 pr-8">
@@ -116,6 +118,14 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
                     <Trash2 className="h-4 w-4 mr-2" />
                     Annuler
                   </Button>
+              </div>
+            )}
+            {delivery && delivery.status !== "Ouvert" && delivery.status !== "Annulé" && (delivery.balanceDue ?? delivery.totalAmount) > 0 && (
+              <div className="flex flex-wrap items-center gap-3">
+                <Button variant="outline" size="sm" onClick={() => setShowPaymentForm(true)} className="text-emerald-600 border-emerald-200 hover:bg-emerald-50">
+                  <Banknote className="h-4 w-4 mr-2" />
+                  Régler la livraison
+                </Button>
               </div>
             )}
           </SheetTitle>
@@ -200,14 +210,12 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
                         <td colSpan={3} className="px-4 py-3 text-right">Total de la livraison</td>
                         <td className="px-4 py-3 text-right text-lg text-primary">{formatCurrency(delivery.totalAmount)}</td>
                       </tr>
-                      {delivery.status !== "Ouvert" && (
-                        <tr>
+                      <tr>
                           <td colSpan={3} className="px-4 py-2 text-right text-muted-foreground">Reste à payer</td>
-                          <td className={`px-4 py-2 text-right text-md ${delivery.balanceDue <= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                            {formatCurrency(Math.max(0, delivery.balanceDue))}
+                          <td className={`px-4 py-2 text-right text-md font-semibold ${(delivery.balanceDue ?? delivery.totalAmount) <= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                            {formatCurrency(Math.max(0, delivery.balanceDue ?? delivery.totalAmount))}
                           </td>
                         </tr>
-                      )}
                     </tfoot>
                   </table>
                 </div>
@@ -313,6 +321,33 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
           type={snackbar.type}
           onClose={() => setSnackbar((prev) => ({ ...prev, isOpen: false }))}
         />
+      )}
+
+      {showPaymentForm && delivery && (
+        <ConfirmDialog
+          open
+          title="Nouveau Paiement"
+          onOpenChange={(open) => { if (!open) setShowPaymentForm(false); }}
+          onConfirm={() => {}}
+          hideConfirmButton
+          cancelText="Fermer"
+        >
+          <SupplierPaymentForm
+            idSupplier={idSupplier}
+            initialAllocation={{ 
+              allocationType: "DELIVERY", 
+              idDelivery: delivery.idDelivery, 
+              amount: Math.max(0, delivery.balanceDue ?? delivery.totalAmount) 
+            }}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: ["deliveryDetails", idDelivery] });
+              queryClient.invalidateQueries({ queryKey: ["deliveries"] });
+              queryClient.invalidateQueries({ queryKey: ["deliveryPaymentSummary", idDelivery] });
+              setShowPaymentForm(false);
+            }}
+            onCancel={() => setShowPaymentForm(false)}
+          />
+        </ConfirmDialog>
       )}
     </>
   );

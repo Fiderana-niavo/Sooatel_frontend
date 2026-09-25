@@ -473,12 +473,21 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
               {submitSuccess}
             </div>
           )}
+          
+          <div className="flex items-start gap-2 bg-blue-500/10 p-3 rounded-md border border-blue-500/20 text-blue-700 dark:text-blue-400 text-sm">
+            <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+            <p>
+              <strong>Note :</strong> Cette livraison sera enregistrée avec le statut <strong>"Ouverte" (Brouillon)</strong>. 
+              Le stock ne sera pas mis à jour et vous ne pourrez pas effectuer de paiement tant qu'elle ne sera pas validée définitivement.
+            </p>
+          </div>
+
           <Button
             onClick={handleSubmit}
             disabled={isPending || (isEditMode && !deliveryDetails)}
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
           >
-            {isPending ? "Enregistrement..." : (isEditMode ? "Enregistrer les modifications" : "Valider la réception")}
+            {isPending ? "Enregistrement..." : (isEditMode ? "Enregistrer les modifications" : "Enregistrer la réception")}
           </Button>
         </div>
       </SheetContent>

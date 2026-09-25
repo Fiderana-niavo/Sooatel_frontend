@@ -16,12 +16,11 @@ interface SaleDetailsProps {
   locationType: "restaurant" | "room";
   onLocationChange: (type: "restaurant" | "room") => void;
   comment: string;
-  deliveryDate: string;
   onChange: (field: string, value: any) => void;
 }
 
 export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
-  saleDate, invoiceNumber, tableNumber, chargeToRoom, idRoom, idSaler, salers, rooms, comment, deliveryDate, onChange, locationType, onLocationChange
+  saleDate, invoiceNumber, tableNumber, chargeToRoom, idRoom, idSaler, salers, rooms, comment, onChange, locationType, onLocationChange
 }) => {
   const handleLocationChange = (type: "restaurant" | "room") => {
     onLocationChange(type);
@@ -39,12 +38,12 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
   return (
     <div className="bg-card p-6 rounded-xl border border-border/50 shadow-sm space-y-4">
       <h3 className="text-lg font-semibold text-primary mb-4">Détails de la Vente</h3>
-      
+
       {/* Location Type Selector */}
       <div className="flex gap-4 mb-4">
         <label className="flex items-center space-x-2 cursor-pointer">
-          <input 
-            type="radio" 
+          <input
+            type="radio"
             name="locationType"
             checked={locationType === "restaurant"}
             onChange={() => handleLocationChange("restaurant")}
@@ -53,8 +52,8 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
           <span className="text-sm font-medium">Consommation au Restaurant</span>
         </label>
         <label className="flex items-center space-x-2 cursor-pointer">
-          <input 
-            type="radio" 
+          <input
+            type="radio"
             name="locationType"
             checked={locationType === "room"}
             onChange={() => handleLocationChange("room")}
@@ -67,18 +66,18 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">Numéro de Facture <span className="text-red-500">*</span></label>
-          <Input 
-            value={invoiceNumber} 
-            onChange={(e) => onChange("invoiceNumber", e.target.value)} 
-            placeholder="Ex: FAC-001" 
+          <Input
+            value={invoiceNumber}
+            onChange={(e) => onChange("invoiceNumber", e.target.value)}
+            placeholder="Ex: FAC-001"
           />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Date de Vente <span className="text-red-500">*</span></label>
-          <Input 
+          <Input
             type="datetime-local"
-            value={saleDate} 
-            onChange={(e) => onChange("saleDate", e.target.value)} 
+            value={saleDate}
+            onChange={(e) => onChange("saleDate", e.target.value)}
           />
         </div>
         <div className="flex-1">
@@ -90,17 +89,17 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
             placeholder="Sélectionner un vendeur..."
           />
         </div>
-        
+
         {locationType === "restaurant" ? (
           <div>
             <label className="block text-sm font-medium mb-1">
               Numéro de Table <span className="text-red-500">*</span>
             </label>
-            <Input 
+            <Input
               type="number"
-              value={tableNumber !== undefined && tableNumber !== null ? tableNumber : ""} 
-              onChange={(e) => onChange("tableNumber", e.target.value ? Number(e.target.value) : "")} 
-              placeholder="Ex: 12" 
+              value={tableNumber !== undefined && tableNumber !== null ? tableNumber : ""}
+              onChange={(e) => onChange("tableNumber", e.target.value ? Number(e.target.value) : "")}
+              placeholder="Ex: 12"
             />
           </div>
         ) : (
@@ -125,19 +124,10 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Date et heure de livraison (Optionnel)</label>
-          <Input 
-            type="datetime-local"
-            value={deliveryDate} 
-            onChange={(e) => onChange("deliveryDate", e.target.value)} 
-          />
-        </div>
-
-        <div className="md:col-span-2 flex flex-col justify-end mt-2">
-          <label className="flex items-center space-x-2 cursor-pointer p-2 bg-secondary/10 rounded-md border border-border/50 w-max">
-            <input 
-              type="checkbox" 
+        <div className="flex flex-col justify-end mt-2">
+          <label className="flex items-center space-x-2 cursor-pointer p-2 bg-secondary/10 rounded-md border border-border/50 w-full h-full">
+            <input
+              type="checkbox"
               checked={chargeToRoom}
               onChange={(e) => {
                 onChange("chargeToRoom", e.target.checked);
@@ -145,7 +135,7 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
                   onChange("idRoom", "");
                 }
               }}
-              className="w-4 h-4 text-primary rounded focus:ring-primary"
+              className="w-4 h-4 text-primary rounded focus:ring-primary flex-shrink-0"
             />
             <span className="text-sm font-medium">Payer à la caisse de l'hôtel (Imputer sur la chambre) ?</span>
           </label>

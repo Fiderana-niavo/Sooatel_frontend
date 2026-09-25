@@ -33,6 +33,7 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
 
   const [confirmAction, setConfirmAction] = useState<{ type: "validate" | "delete", id: string, idSupplier?: string } | null>(null);
   const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({ message: "", type: "info", isOpen: false });
+  const [deleteStrategy, setDeleteStrategy] = useState<"SUPPLIER_CREDIT" | "CORRECTION">("SUPPLIER_CREDIT");
 
   const showSnackbar = (message: string, type: SnackbarType = "info") => {
     setSnackbar({ message, type, isOpen: true });
@@ -71,6 +72,17 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
     enabled: !!validateSupplierId,
   });
 
+  const deleteDeliveryId = confirmAction?.type === "delete" ? confirmAction.id : null;
+  const deletePaymentSummaryResult = useQuery({
+    queryKey: ["deliveryPaymentSummary", deleteDeliveryId],
+    queryFn: async () => {
+      const res = await supplierPaymentService.getDeliverySummary(deleteDeliveryId!);
+      return res.data.payload;
+    },
+    enabled: !!deleteDeliveryId,
+  });
+  const deletePaymentSummary = deletePaymentSummaryResult.data;
+
   const handleConfirm = async () => {
     if (!confirmAction) return;
 
@@ -82,7 +94,7 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
         }
         showSnackbar("Livraison validée avec succès.", "success");
       } else if (confirmAction.type === "delete") {
-        await deliveryService.deleteDelivery(confirmAction.id);
+        await deliveryService.deleteDelivery(confirmAction.id, deleteStrategy);
         showSnackbar("Livraison supprimée avec succès.", "success");
       }
       refetch();
@@ -92,14 +104,32 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
       showSnackbar(msg, "error");
     } finally {
       setConfirmAction(null);
+      setDeleteStrategy("SUPPLIER_CREDIT");
     }
   };
+
+  const openDeliveriesResult = useQuery({
+    queryKey: ["deliveries-open-count"],
+    queryFn: () => deliveryService.getAllDeliveries({ status: 5, limit: 1 })
+  });
+  const openDeliveriesCount = openDeliveriesResult.data?.total ?? 0;
 
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-3xl font-bold text-foreground">Livraisons Fournisseurs</h1>
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto items-center">
+          <select 
+            value={filters.status === undefined ? "" : filters.status} 
+            onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value ? Number(e.target.value) : undefined }))}
+            className="bg-background border border-input rounded-md px-3 h-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+          >
+            <option value="">Tous les statuts</option>
+            <option value="5">Ouverte (Non validée)</option>
+            <option value="0">Validée (Livré)</option>
+            <option value="-3">Annulée</option>
+          </select>
+
           {hasSavedPaymentState && (
             <Button 
               variant="default" 
@@ -138,11 +168,30 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
               onClick={() => setFilters({})}
               className="text-muted-foreground"
             >
-              Afficher toutes les livraisons
+              Effacer les filtres
             </Button>
           )}
         </div>
       </div>
+
+      {openDeliveriesCount > 0 && (
+        <div 
+          onClick={() => setFilters(prev => ({ ...prev, status: 5 }))}
+          className="flex items-start gap-3 bg-amber-500/10 p-4 rounded-lg border border-amber-500/20 text-amber-700 dark:text-amber-400 cursor-pointer hover:bg-amber-500/20 transition-colors"
+        >
+          <div className="bg-amber-500/20 p-2 rounded-full flex-shrink-0 mt-0.5">
+            <CheckCircle2 className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-base mb-1">
+              {openDeliveriesCount} livraison{openDeliveriesCount > 1 ? "s" : ""} non validée{openDeliveriesCount > 1 ? "s" : ""}
+            </h3>
+            <p className="text-sm opacity-90">
+              Vous avez des livraisons en statut "Ouverte". Cliquez ici pour les filtrer, puis validez-les pour mettre à jour les stocks et autoriser les paiements.
+            </p>
+          </div>
+        </div>
+      )}
 
       {(filters.idPurchase || filters.status !== undefined) && (
         <div className="bg-primary/10 text-primary px-4 py-2 rounded-md text-sm">
@@ -263,6 +312,44 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
                 className="rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
               />
               Utiliser le crédit fournisseur disponible ({formatCurrency(balanceData.balance)}) pour régler cette livraison
+            </label>
+          </div>
+        )}
+        {confirmAction?.type === "delete" && deletePaymentSummary && deletePaymentSummary.totalPaid > 0 && (
+          <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/30 rounded-lg text-amber-800 dark:text-amber-400 text-sm space-y-3">
+            <p className="font-semibold">
+              Cette livraison a {formatCurrency(deletePaymentSummary.totalPaid)} de paiements associés.
+              Que souhaitez-vous faire avec ces paiements ?
+            </p>
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="deleteStrategy"
+                value="SUPPLIER_CREDIT"
+                checked={deleteStrategy === "SUPPLIER_CREDIT"}
+                onChange={() => setDeleteStrategy("SUPPLIER_CREDIT")}
+                className="mt-0.5"
+              />
+              <span>
+                <strong>Convertir en crédit fournisseur</strong>
+                <br />
+                <span className="text-xs opacity-80">Les paiements seront conservés et disponibles pour les prochaines livraisons.</span>
+              </span>
+            </label>
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="deleteStrategy"
+                value="CORRECTION"
+                checked={deleteStrategy === "CORRECTION"}
+                onChange={() => setDeleteStrategy("CORRECTION")}
+                className="mt-0.5"
+              />
+              <span>
+                <strong>Correction (annuler les paiements)</strong>
+                <br />
+                <span className="text-xs opacity-80">Les allocations seront supprimées. À utiliser uniquement en cas d'erreur de saisie.</span>
+              </span>
             </label>
           </div>
         )}

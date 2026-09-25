@@ -349,7 +349,7 @@ function App() {
                   ) : activeTab === "Gestion des Produits & Inventaire" ? (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
                       <ProtectedRoute permission="stock.manage">
-                        <InventoryCatalogPage />
+                        <InventoryCatalogPage onGoToDeliveries={() => setActiveTab("Livraisons Fournisseurs")} />
                       </ProtectedRoute>
                     </div>
                   ) : activeTab === "Inventaire Physique" ? (

@@ -243,11 +243,14 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
                         <div className="flex items-center gap-4 flex-1">
                           <div className="font-semibold text-foreground w-1/5 truncate">{item.ref}</div>
                           <div className="text-sm font-medium w-1/4 truncate">{item.label}</div>
-                          <div className="text-sm text-muted-foreground w-1/5 truncate">
+                          <div className="text-sm text-muted-foreground w-1/6 truncate">
                             {itemTypes.find(it => it.idProductType === item.idProductType)?.label || "-"}
                           </div>
-                          <div className="text-sm text-muted-foreground w-1/5 truncate">
+                          <div className="text-sm text-muted-foreground w-1/6 truncate">
                             {unitOfMeasures.find(u => u.idUnit === item.idUnit)?.label || "-"}
+                          </div>
+                          <div className="text-sm w-1/6">
+                            <span className="font-semibold text-primary">{item.quantity ?? 0}</span> en stock
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0 relative">

@@ -203,9 +203,8 @@ export function AppSidebar({ appMode, setAppMode, activeTab, setActiveTab }: App
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const hasPermission = useAppStore((s) => s.hasPermission);
-  const permissions = useAppStore((s) => s.permissions);
-  console.log("APP STORE PERMISSIONS:", permissions);
-  
+  // const permissions = useAppStore((s) => s.permissions);
+
   const canSwitchMode = hasPermission("hotel.access") && hasPermission("restaurant.access");
 
   return (

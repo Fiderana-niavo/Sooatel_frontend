@@ -37,7 +37,7 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
     items: [{ idMenu: "", quantity: 1, unitPrice: 0 }],
     payment: undefined,
     comment: "",
-    deliveryDate: ""
+    deliveryDate: "",
   });
 
   useEffect(() => {
@@ -159,9 +159,14 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
   const executeSubmit = async (overpaymentAction?: "REFUND" | "ADJUST", idPaymentMethodRefund?: string, idPaymentToAdjustParam?: string) => {
     setLoading(true);
     try {
+      const payloadToSubmit = {
+        ...formData,
+        deliveryDate: formData.deliveryDate,
+      };
+
       if (saleToEdit) {
         const payload = {
-          ...formData,
+          ...payloadToSubmit,
           overpaymentAction,
           idPaymentMethodRefund,
           idPaymentToAdjust: idPaymentToAdjustParam
@@ -175,7 +180,7 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
           else if (onClearEdit) onClearEdit();
         }
       } else {
-        await SaleService.createSale(formData);
+        await SaleService.createSale(payloadToSubmit);
         showSnackbar("Vente enregistrée avec succès ! (Status = Ouverte)", "success");
         if (onGoToHistory) onGoToHistory();
       }
@@ -191,7 +196,7 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
         items: [{ idMenu: "", quantity: 1, unitPrice: 0 }],
         payment: undefined,
         comment: "",
-        deliveryDate: ""
+        deliveryDate: "",
       });
     } catch (err: any) {
       const msg = err.response?.data?.error || err.response?.data?.message || "Une erreur est survenue lors de l'enregistrement de la vente.";
@@ -218,10 +223,6 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
               Historique
             </Button>
           )}
-          <Button onClick={handleSubmit} disabled={loading} size="lg" className="shadow-lg hover:shadow-xl transition-all">
-            <Save size={20} className="mr-2" />
-            {loading ? "Enregistrement..." : "Enregistrer"}
-          </Button>
         </div>
       </div>
 
@@ -245,7 +246,6 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
             rooms={rooms}
             locationType={locationType}
             comment={formData.comment || ""}
-            deliveryDate={formData.deliveryDate || ""}
             onLocationChange={setLocationType}
             onChange={handleDetailsChange}
           />
@@ -272,6 +272,23 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
             />
           </div>
         )}
+      </div>
+
+      <div className="flex justify-end items-center gap-4 pt-6 border-t border-border/30">
+        {onClearEdit && saleToEdit && (
+          <Button variant="outline" size="lg" onClick={onClearEdit}>
+            Annuler la modification
+          </Button>
+        )}
+        <Button
+          onClick={handleSubmit}
+          disabled={loading}
+          size="lg"
+          className="shadow-lg hover:shadow-xl transition-all font-semibold px-8"
+        >
+          <Save size={20} className="mr-2" />
+          {loading ? "Enregistrement..." : (saleToEdit ? "Enregistrer les modifications" : "Enregistrer la vente")}
+        </Button>
       </div>
       {snackbar.isOpen && (
         <Snackbar

@@ -7,11 +7,16 @@ import { EmployeeService } from "@/features/employees/services/employee.service"
 import type { CreatePurchaseDto } from "../../types/purchase.type";
 import { PurchaseInfoForm } from "./PurchaseInfoForm";
 import { PurchaseItemsForm } from "./PurchaseItemsForm";
+import { PurchaseDeliveryForm } from "./PurchaseDeliveryForm";
 import { Button } from "@/components/ui/Button/button";
 import { Save, ArrowLeft, AlertCircle } from "lucide-react";
 import { Snackbar, type SnackbarType } from "@/components/ui/Snackbar/snackbar";
 import { AddSuppliedItemModal } from "./AddSuppliedItemModal";
 import { formatCurrency } from "../../../../utils/formatters";
+
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
+import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
+import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
 
 export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries }: { onGoToList?: () => void, idPurchaseToEdit?: string, onGoToDeliveries?: (idPurchase: string) => void }) {
   const [purchaseData, setPurchaseData] = useState<CreatePurchaseDto>({
@@ -22,6 +27,7 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
   });
 
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({ message: "", type: "info", isOpen: false });
   const [submitError, setSubmitError] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -145,6 +151,21 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
           details: [{ idSuppliedItem: "", quantity: 1, unitPrice: 0 }]
         };
       }
+      if (field === "deliveryDone") {
+        return {
+          ...prev,
+          deliveryDone: value,
+          advanceAmount: value ? 0 : prev.advanceAmount,
+          idPaymentMethod: value ? undefined : prev.idPaymentMethod,
+          deliveryLines: value
+            ? prev.details.map((d) => ({
+                idSuppliedItem: d.idSuppliedItem,
+                quantity: d.quantity,
+                unitPrice: d.unitPrice,
+              }))
+            : prev.deliveryLines,
+        };
+      }
       return {
         ...prev,
         [field]: value
@@ -153,9 +174,19 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
   };
 
   const handleItemChange = (index: number, field: string, value: any) => {
-    const newDetails = [...purchaseData.details];
-    (newDetails[index] as any)[field] = value;
-    setPurchaseData(prev => ({ ...prev, details: newDetails }));
+    setPurchaseData((prev) => {
+      const newDetails = [...prev.details];
+      (newDetails[index] as any)[field] = value;
+      const newDeliveryLines = prev.deliveryLines ? [...prev.deliveryLines] : undefined;
+      if (newDeliveryLines && newDeliveryLines[index]) {
+        (newDeliveryLines[index] as any)[field] = value;
+      }
+      return {
+        ...prev,
+        details: newDetails,
+        deliveryLines: newDeliveryLines,
+      };
+    });
   };
 
   const handleAddItem = () => {
@@ -175,16 +206,38 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
 
   const isFormValid = purchaseData.idSupplier && purchaseData.idPurchaser && purchaseData.details.length > 0 && purchaseData.details.every(d => d.idSuppliedItem && d.quantity > 0 && d.unitPrice >= 0) && (!purchaseData.advanceAmount || purchaseData.advanceAmount <= 0 || purchaseData.idPaymentMethod);
 
+  const executeSubmit = () => {
+    if (idPurchaseToEdit) {
+      updateMutation.mutate(purchaseData);
+    } else {
+      createMutation.mutate(purchaseData);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isFormValid) {
-      if (idPurchaseToEdit) {
-        updateMutation.mutate(purchaseData);
-      } else {
-        createMutation.mutate(purchaseData);
-      }
-    } else {
+    if (!isFormValid) {
       showSnackbar("Veuillez remplir correctement tous les champs obligatoires.", "error");
+      return;
+    }
+
+    if (purchaseData.deliveryDone && !idPurchaseToEdit) {
+      const linesToCheck = (purchaseData.deliveryLines && purchaseData.deliveryLines.length > 0)
+        ? purchaseData.deliveryLines
+        : purchaseData.details;
+
+      const hasValidDeliveryQty = linesToCheck.some((l) => Number(l.quantity) > 0);
+      if (!hasValidDeliveryQty) {
+        showSnackbar(
+          "Pour une livraison directe, au moins une quantité reçue doit être supérieure à 0. Si aucune marchandise n'est reçue maintenant, veuillez décocher 'Livraison déjà effectuée ?'.",
+          "error"
+        );
+        return;
+      }
+
+      setConfirmOpen(true);
+    } else {
+      executeSubmit();
     }
   };
 
@@ -211,8 +264,6 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
           data={purchaseData}
           suppliers={supplierOptions}
           employees={employeeOptions}
-          paymentMethods={pmOptions}
-          isEditMode={!!idPurchaseToEdit}
           onChange={handleInfoChange}
         />
 
@@ -226,6 +277,73 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
             onRemove={handleRemoveItem}
             onAddNewProduct={() => setIsAddProductModalOpen(true)}
           />
+        )}
+
+        {/* Bottom Options: Delivery & Payment (Creation Only) */}
+        {!idPurchaseToEdit && (
+          <div className="bg-card p-6 rounded-xl border border-border/50 shadow-sm space-y-6">
+            <h3 className="text-lg font-semibold text-primary">Options de Livraison & Règlement</h3>
+
+            <div className="flex items-center gap-3 bg-primary/5 p-4 rounded-lg border border-primary/20">
+              <input
+                id="delivery-done-checkbox"
+                type="checkbox"
+                className="w-5 h-5 rounded border-border accent-primary cursor-pointer"
+                checked={!!purchaseData.deliveryDone}
+                onChange={(e) => handleInfoChange("deliveryDone", e.target.checked)}
+              />
+              <div>
+                <label htmlFor="delivery-done-checkbox" className="text-base font-semibold cursor-pointer select-none text-foreground">
+                  Livraison déjà effectuée ?
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  {purchaseData.deliveryDone
+                    ? "La commande sera confirmée. La livraison sera enregistrée en statut 'Ouverte'. Les paiements se feront après sa validation."
+                    : "Cochez cette case si les articles sont livrés sur place au moment de la commande."}
+                </p>
+              </div>
+            </div>
+
+            {!purchaseData.deliveryDone && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 rounded-lg border border-border/30 bg-muted/10">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Acompte / Avance (Optionnel)
+                  </label>
+                  <CurrencyInput
+                    placeholder="0"
+                    value={purchaseData.advanceAmount}
+                    onChange={(val) => handleInfoChange("advanceAmount", val)}
+                    currencySuffix="Ar"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Montant crédité sur la balance du fournisseur comme avance.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Méthode de paiement</label>
+                  <SearchableSelect
+                    value={purchaseData.idPaymentMethod || ""}
+                    onChange={(val) => handleInfoChange("idPaymentMethod", val)}
+                    options={pmOptions}
+                    placeholder="Sélectionner..."
+                    disabled={!purchaseData.advanceAmount || purchaseData.advanceAmount <= 0}
+                  />
+                </div>
+              </div>
+            )}
+
+            {purchaseData.deliveryDone && purchaseData.details.length > 0 && (
+              <PurchaseDeliveryForm
+                details={purchaseData.details}
+                deliveryLines={purchaseData.deliveryLines}
+                suppliedItems={suppliedItems || []}
+                onChangeDeliveryLines={(lines) =>
+                  setPurchaseData((prev) => ({ ...prev, deliveryLines: lines }))
+                }
+              />
+            )}
+          </div>
         )}
 
         {submitError && (
@@ -277,7 +395,6 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
           onSuccess={(newSuppliedItem) => {
             refetchSuppliedItems();
             setIsAddProductModalOpen(false);
-            // Optionally, automatically select the new item in the last added row or add a new row for it
             const newDetails = [...purchaseData.details];
             if (newDetails.length > 0 && !newDetails[newDetails.length - 1].idSuppliedItem) {
               newDetails[newDetails.length - 1].idSuppliedItem = newSuppliedItem.idSuppliedItem;
@@ -289,6 +406,20 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Validation de la commande"
+        description="La commande sera confirmée. La livraison sera enregistrée en statut 'Ouverte'. Les paiements se feront après sa validation depuis la liste des livraisons. Voulez-vous continuer ?"
+        confirmText="Oui, continuer"
+        cancelText="Annuler"
+        confirmButtonClassName="bg-primary text-primary-foreground hover:bg-primary/90"
+        onConfirm={() => {
+          setConfirmOpen(false);
+          executeSubmit();
+        }}
+      />
 
       {snackbar.isOpen && (
         <Snackbar

@@ -13,6 +13,7 @@ import { SupplierPaymentForm } from "./SupplierPaymentForm";
 interface PurchaseDetailSheetProps {
   idPurchase: string | null;
   onClose: () => void;
+  disableClose?: boolean;
   onGoToDelivery?: (idDelivery: string) => void;
   onConfirm?: (purchase: any) => void;
   onReceive?: (purchase: any) => void;
@@ -20,7 +21,7 @@ interface PurchaseDetailSheetProps {
   onCancel?: (purchase: any) => void;
 }
 
-export const PurchaseDetailSheet: React.FC<PurchaseDetailSheetProps> = ({ idPurchase, onClose, onGoToDelivery, onConfirm, onReceive, onEdit, onCancel }) => {
+export const PurchaseDetailSheet: React.FC<PurchaseDetailSheetProps> = ({ idPurchase, onClose, disableClose, onGoToDelivery, onConfirm, onReceive, onEdit, onCancel }) => {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [idPaymentToEdit, setIdPaymentToEdit] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -46,8 +47,21 @@ export const PurchaseDetailSheet: React.FC<PurchaseDetailSheetProps> = ({ idPurc
 
   const isLoading = isLoadingPurchase || isLoadingDetails || isLoadingDeliveries;
 
+  const disableCloseRef = React.useRef(disableClose);
+
+  React.useEffect(() => {
+    if (disableClose) {
+      disableCloseRef.current = true;
+    } else {
+      const timer = setTimeout(() => {
+        disableCloseRef.current = false;
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [disableClose]);
+
   return (
-    <Sheet open={!!idPurchase} onOpenChange={(open) => !open && onClose()}>
+    <Sheet open={!!idPurchase} onOpenChange={(open) => { if (!open && !disableCloseRef.current) onClose(); }}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader className="mb-6">
           <SheetTitle className="flex flex-col gap-4 pr-8">

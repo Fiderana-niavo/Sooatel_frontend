@@ -9,6 +9,7 @@ import { formatCurrency } from "@/utils/formatters";
 import { Trash2, AlertCircle, Loader2, Plus, ArrowRight, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { AllocationLabel } from "./AllocationLabel";
+import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
 
 interface Props {
   idSupplier: string;
@@ -199,16 +200,14 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
     return Number.MAX_SAFE_INTEGER;
   };
 
-  const handleAllocationAmountChange = (index: number, a: AllocationDto, value: string) => {
-    const numValue = Number(value);
-    if (isNaN(numValue)) return;
+  const handleAllocationAmountChange = (index: number, a: AllocationDto, value: number | undefined) => {
+    const numValue = value || 0;
     const max = getAllocationMax(a);
     updateAllocationAmount(index, Math.min(numValue, max));
   };
 
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value.replace(/[^\d]/g, "");
-    setAmount(rawValue ? parseInt(rawValue, 10) : "");
+  const handleAmountChange = (val: number | undefined) => {
+    setAmount(val === undefined ? "" : val);
   };
 
   return (
@@ -272,10 +271,9 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                   Auto-Répartir
                 </Button>
               </div>
-              <input
-                  type="text"
-                  value={amount ? amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "\u202F") : ""}
-                  onChange={handleAmountChange}
+              <CurrencyInput
+                value={amount === "" ? undefined : (amount as number)}
+                onChange={handleAmountChange}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -365,11 +363,10 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                   <span className="flex-1 text-sm truncate">
                     <AllocationLabel allocation={a} destinations={destinations} />
                   </span>
-                  <input
-                    type="text"
-                    value={a.amount ? a.amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "\u202F") : ""}
-                    onChange={(e) => handleAllocationAmountChange(i, a, e.target.value)}
-                    readOnly={a.allocationType === "SUPPLIER_CREDIT"}
+                  <CurrencyInput
+                    value={a.amount || undefined}
+                    onChange={(val) => handleAllocationAmountChange(i, a, val)}
+                    disabled={a.allocationType === "SUPPLIER_CREDIT"}
                     className={`w-32 rounded border border-border px-2 py-1 text-sm text-right focus:outline-none focus:ring-1 focus:ring-primary ${a.allocationType === "SUPPLIER_CREDIT"
                         ? "bg-muted cursor-not-allowed opacity-70"
                         : "bg-background"

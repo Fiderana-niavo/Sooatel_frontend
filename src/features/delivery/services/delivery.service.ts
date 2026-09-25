@@ -31,8 +31,8 @@ export const deliveryService = {
     return response.payload;
   },
 
-  deleteDelivery: async (id: string): Promise<void> => {
-    await axios.delete(`${BASE}/deliveries/${id}`);
+  deleteDelivery: async (id: string, strategy: "SUPPLIER_CREDIT" | "CORRECTION" = "SUPPLIER_CREDIT"): Promise<void> => {
+    await axios.delete(`${BASE}/deliveries/${id}`, { data: { strategy } });
   },
 
   validateDelivery: async (id: string): Promise<void> => {

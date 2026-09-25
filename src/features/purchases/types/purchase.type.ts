@@ -7,7 +7,7 @@ export interface EmployeeRef {
   lastname?: string;
 }
 import type { Supplier } from "@/features/suppliers/types/supplier.type";
-import type { Item } from "@/features/items/types";
+import type { Item } from "@/features/items/types/item.type";
 import type { SupplierProduct } from "@/features/suppliers/types/supplier.type";
 
 export interface SuppliedItem {
@@ -44,6 +44,12 @@ export interface Purchase {
   advanceAmount?: number;
 }
 
+export interface DeliveryLineDto {
+  idSuppliedItem: string;
+  quantity: number;
+  unitPrice: number;
+}
+
 export interface CreatePurchaseDto {
   purchaseDate: string;
   idSupplier: string;
@@ -55,6 +61,8 @@ export interface CreatePurchaseDto {
   }[];
   advanceAmount?: number;
   idPaymentMethod?: string;
+  deliveryDone?: boolean;
+  deliveryLines?: DeliveryLineDto[];
 }
 
 export const PURCHASE_STATUS_LABELS: Record<number, string> = {

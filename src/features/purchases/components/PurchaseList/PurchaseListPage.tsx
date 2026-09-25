@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { purchaseService } from "../../services/purchase.service";
 import { Button } from "@/components/ui/Button/button";
@@ -162,7 +162,12 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
 
       <PurchaseDetailSheet
         idPurchase={selectedPurchaseId}
-        onClose={() => setSelectedPurchaseId(null)}
+        disableClose={!!viewDeliveryId}
+        onClose={() => {
+          if (!viewDeliveryId) {
+            setSelectedPurchaseId(null);
+          }
+        }}
         onGoToDelivery={(idDelivery) => {
           setViewDeliveryId(idDelivery);
         }}

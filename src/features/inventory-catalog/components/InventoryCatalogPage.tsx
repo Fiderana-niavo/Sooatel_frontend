@@ -18,9 +18,11 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { Snackbar, type SnackbarType } from "@/components/ui/Snackbar/snackbar";
 import { INVENTORY_MODULES } from "@/constants/app.constants";
 
+import { deliveryService } from "@/features/delivery/services/delivery.service";
+import { CheckCircle2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-export function InventoryCatalogPage() {
+export function InventoryCatalogPage({ onGoToDeliveries }: { onGoToDeliveries?: () => void }) {
   const queryClient = useQueryClient();
 
   const [snackbar, setSnackbar] = useState<{
@@ -197,8 +199,36 @@ export function InventoryCatalogPage() {
     itemUnits: () => setIsItemUnitsOpen(true),
   };
 
+  const openDeliveriesResult = useQuery({
+    queryKey: ["deliveries-open-count"],
+    queryFn: () => deliveryService.getAllDeliveries({ status: 5, limit: 1 })
+  });
+  const openDeliveriesCount = openDeliveriesResult.data?.total ?? 0;
+
   return (
     <div className="w-full h-full flex flex-col space-y-8 animate-in fade-in duration-500">
+      {openDeliveriesCount > 0 && (
+        <div 
+          onClick={() => {
+            sessionStorage.setItem("deliveryFilter", JSON.stringify({ status: 5 }));
+            if (onGoToDeliveries) onGoToDeliveries();
+          }}
+          className="flex items-start gap-3 bg-amber-500/10 p-4 rounded-lg border border-amber-500/20 text-amber-700 dark:text-amber-400 cursor-pointer hover:bg-amber-500/20 transition-colors"
+        >
+          <div className="bg-amber-500/20 p-2 rounded-full flex-shrink-0 mt-0.5">
+            <CheckCircle2 className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-base mb-1">
+              {openDeliveriesCount} livraison{openDeliveriesCount > 1 ? "s" : ""} non validée{openDeliveriesCount > 1 ? "s" : ""}
+            </h3>
+            <p className="text-sm opacity-90">
+              Vous avez des livraisons en statut "Ouverte". Cliquez ici pour les vérifier et les valider pour mettre à jour les stocks et autoriser les paiements.
+            </p>
+          </div>
+        </div>
+      )}
+
       {INVENTORY_MODULES.map((section, idx) => (
         <div key={idx} className="space-y-4">
           <h2 className="text-xl font-bold text-secondary">{section.title}</h2>
