@@ -11,6 +11,47 @@ interface UsePaymentAllocationsProps {
   destinations: any;
 }
 
+function buildAllocations(
+  amount: number,
+  deliveries: DeliveryDestination[],
+  initialAllocation?: AllocationDto
+): AllocationDto[] {
+  if (amount <= 0) return [];
+
+  let available = amount;
+  const result: AllocationDto[] = [];
+
+  // If we have a principal delivery, fill it first
+  if (initialAllocation?.idDelivery) {
+    const principal = deliveries.find((d) => d.idDelivery === initialAllocation.idDelivery);
+    if (principal) {
+      const alloc = Math.min(principal.balanceDue, available);
+      if (alloc > 0) {
+        result.push({ allocationType: "DELIVERY", idDelivery: principal.idDelivery, amount: alloc });
+        available -= alloc;
+      }
+    }
+  }
+
+  // Fill other deliveries
+  for (const d of deliveries) {
+    if (available <= 0) break;
+    if (result.some((a) => a.idDelivery === d.idDelivery)) continue;
+    const alloc = Math.min(d.balanceDue, available);
+    if (alloc > 0) {
+      result.push({ allocationType: "DELIVERY", idDelivery: d.idDelivery, amount: alloc });
+      available -= alloc;
+    }
+  }
+
+  // Rest goes to credit
+  if (available > 0.009) {
+    result.push({ allocationType: "SUPPLIER_CREDIT", amount: Math.round(available * 100) / 100 });
+  }
+
+  return result;
+}
+
 export function usePaymentAllocations({
   initialAllocation,
   amount,
@@ -21,137 +62,59 @@ export function usePaymentAllocations({
     initialAllocation ? [initialAllocation] : []
   );
 
-  // Adjust initial deposit if it exceeds what's available
-    
+  // Auto-dispatch whenever amount or deliveries change
   useEffect(() => {
-    // No initial deposit adjustment needed anymore
-  }, [destinations, amount, allocations, initialAllocation, setAmount]);
+    const numAmount = Number(amount);
+    const deliveries: DeliveryDestination[] = destinations?.deliveries ?? [];
+    const newAllocations = buildAllocations(numAmount, deliveries, initialAllocation);
 
-  // Adjust supplier credit dynamically when 'amount' changes
-  useEffect(() => {
     setAllocations((prev) => {
-      const creditIndex = prev.findIndex((a) => a.allocationType === "SUPPLIER_CREDIT");
-      if (creditIndex === -1) return prev;
-
-      const others = prev.filter((a) => a.allocationType !== "SUPPLIER_CREDIT");
-      const sumOther = others.reduce((s, a) => s + (Number(a.amount) || 0), 0);
-      const newCreditAmount = Math.max(0, Number(amount) - sumOther);
-
-      if (newCreditAmount <= 0) return others; // Remove credit if 0
-      if (prev[creditIndex].amount === newCreditAmount) return prev;
-
-      const next = [...prev];
-      next[creditIndex] = { ...next[creditIndex], amount: newCreditAmount };
-      return next;
+      const isIdentical =
+        prev.length === newAllocations.length &&
+        prev.every(
+          (p, i) =>
+            p.allocationType === newAllocations[i].allocationType &&
+            p.idDelivery === newAllocations[i].idDelivery &&
+            p.amount === newAllocations[i].amount
+        );
+      return isIdentical ? prev : newAllocations;
     });
-  }, [amount]);
+  }, [amount, destinations]);
 
   const totalAllocated = allocations.reduce((s, a) => s + (Number(a.amount) || 0), 0);
   const remaining = Number(amount) - totalAllocated;
 
-  const updateAllocationAmount = (index: number, value: number) => {
-    setAllocations((prev) => {
-      const next = prev.map((a, i) => (i === index ? { ...a, amount: value } : a));
-      
-      const creditIndex = next.findIndex((a) => a.allocationType === "SUPPLIER_CREDIT");
-      if (creditIndex >= 0 && index !== creditIndex) {
-        const others = next.filter((a) => a.allocationType !== "SUPPLIER_CREDIT");
-        const sumOther = others.reduce((s, a) => s + (Number(a.amount) || 0), 0);
-        const newCreditAmount = Math.max(0, Number(amount) - sumOther);
-        
-        if (newCreditAmount <= 0) return others; // Remove credit if 0
-        
-        next[creditIndex] = { ...next[creditIndex], amount: newCreditAmount };
-      }
-      
-      return next;
-    });
-  };
-
   const removeAllocation = (index: number) => {
-    setAllocations((prev) => {
-      const next = prev.filter((_, i) => i !== index);
-      const creditIndex = next.findIndex((a) => a.allocationType === "SUPPLIER_CREDIT");
-      if (creditIndex >= 0) {
-        const others = next.filter((a) => a.allocationType !== "SUPPLIER_CREDIT");
-        const sumOther = others.reduce((s, a) => s + (Number(a.amount) || 0), 0);
-        const newCreditAmount = Math.max(0, Number(amount) - sumOther);
-        if (newCreditAmount <= 0) return others;
-        next[creditIndex] = { ...next[creditIndex], amount: newCreditAmount };
-      }
-      return next;
-    });
+    setAllocations((prev) => prev.filter((_, i) => i !== index));
   };
 
   const addDeliveryAllocation = (d: DeliveryDestination) => {
     if (allocations.find((a) => a.idDelivery === d.idDelivery)) return;
-    
-    setAllocations((prev) => {
-      const available = Math.max(0, Number(amount) - prev.reduce((s, a) => s + (Number(a.amount) || 0), 0));
-      const next = [
-        ...prev,
-        {
-          allocationType: "DELIVERY" as const,
-          idDelivery: d.idDelivery,
-          amount: Math.min(d.balanceDue, available),
-        },
-      ];
-      
-      const creditIndex = next.findIndex((a) => a.allocationType === "SUPPLIER_CREDIT");
-      if (creditIndex >= 0) {
-        const others = next.filter((a) => a.allocationType !== "SUPPLIER_CREDIT");
-        const sumOther = others.reduce((s, a) => s + (Number(a.amount) || 0), 0);
-        const newCreditAmount = Math.max(0, Number(amount) - sumOther);
-        if (newCreditAmount <= 0) return others;
-        next[creditIndex] = { ...next[creditIndex], amount: newCreditAmount };
-      }
-      return next;
-    });
-  };
-
-
-
-  const addCreditAllocation = () => {
-    if (allocations.find((a) => a.allocationType === "SUPPLIER_CREDIT")) return;
-    const rem = Number(amount) - allocations.reduce((s, a) => s + a.amount, 0);
+    const available = Math.max(0, Number(amount) - totalAllocated);
     setAllocations((prev) => [
       ...prev,
-      { allocationType: "SUPPLIER_CREDIT", amount: Math.max(0, rem) },
+      {
+        allocationType: "DELIVERY" as const,
+        idDelivery: d.idDelivery,
+        amount: Math.min(d.balanceDue, available),
+      },
     ]);
   };
 
+  const addCreditAllocation = () => {
+    if (allocations.find((a) => a.allocationType === "SUPPLIER_CREDIT")) return;
+    const rem = Number(amount) - totalAllocated;
+    if (rem <= 0) return;
+    setAllocations((prev) => [...prev, { allocationType: "SUPPLIER_CREDIT", amount: rem }]);
+  };
+
+  const updateAllocationAmount = (index: number, value: number) => {
+    setAllocations((prev) => prev.map((a, i) => (i === index ? { ...a, amount: value } : a)));
+  };
+
   const autoDispatch = () => {
-    let availableAmount = Number(amount);
-    if (availableAmount <= 0) return;
-
-    const newAllocations: AllocationDto[] = [];
-    
-    // 1. Prioritize deliveries
-    if (destinations?.deliveries) {
-      for (const d of destinations.deliveries) {
-        if (availableAmount <= 0) break;
-        const allocAmount = Math.min(d.balanceDue, availableAmount);
-        if (allocAmount > 0) {
-          newAllocations.push({
-            allocationType: "DELIVERY",
-            idDelivery: d.idDelivery,
-            amount: allocAmount,
-          });
-          availableAmount -= allocAmount;
-        }
-      }
-    }
-    
-
-    // 3. Supplier credit if remaining
-    if (availableAmount > 0) {
-       newAllocations.push({
-         allocationType: "SUPPLIER_CREDIT",
-         amount: availableAmount,
-       });
-    }
-
-    setAllocations(newAllocations);
+    const deliveries: DeliveryDestination[] = destinations?.deliveries ?? [];
+    setAllocations(buildAllocations(Number(amount), deliveries, initialAllocation));
   };
 
   return {

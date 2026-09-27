@@ -7,6 +7,7 @@ import { formatCurrency } from "../../../../utils/formatters";
 import { PurchaseStatusBadge } from "../../../purchases/components/PurchaseList/PurchaseStatusBadge";
 import { PurchaseDetailSheet } from "../../../purchases/components/PurchaseList/PurchaseDetailSheet";
 import { SupplierPaymentForm } from "../../../purchases/components/PurchaseList/SupplierPaymentForm";
+import { DeliveryPaymentBadge } from "./DeliveryPaymentBadge";
 import { DeliverySheet } from "../DeliverySheet/DeliverySheet";
 import { Button } from "@/components/ui/Button/button";
 import { CheckCircle2, AlertCircle, Edit2, Trash2, Banknote } from "lucide-react";
@@ -106,10 +107,17 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
           <SheetTitle className="flex flex-col gap-4 pr-8">
             <div className="flex justify-between items-center w-full">
               <span className="text-2xl font-bold">Détails de la Livraison</span>
-              {delivery && <PurchaseStatusBadge status={delivery.status} />}
+              <div className="flex items-center gap-2">
+                {delivery && <PurchaseStatusBadge status={delivery.status} />}
+                {paymentSummary && <DeliveryPaymentBadge status={paymentSummary.paymentStatus} />}
+              </div>
             </div>
             {delivery && delivery.status === "Ouvert" && (
               <div className="flex flex-wrap items-center gap-3">
+                  <Button variant="outline" size="sm" onClick={() => setConfirmAction("validate")} className="text-emerald-600 border-emerald-200 hover:bg-emerald-50">
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Valider
+                  </Button>
                   <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="text-amber-600 border-amber-200 hover:bg-amber-50">
                     <Edit2 className="h-4 w-4 mr-2" />
                     Modifier
@@ -135,20 +143,20 @@ export const DeliveryDetailSheet: React.FC<DeliveryDetailSheetProps> = ({ idDeli
             <div className="flex justify-center py-8 text-muted-foreground">Chargement des détails...</div>
           ) : delivery ? (
             <div className="space-y-6 px-2 pb-6">
-              <div className="grid grid-cols-2 gap-4 bg-muted/30 p-4 rounded-lg border border-border/50">
+              <div className="grid grid-cols-4 gap-4 bg-muted/30 p-4 rounded-lg border border-border/50">
                 <div>
-                  <p className="text-sm text-muted-foreground font-medium">Référence Livraison</p>
+                  <p className="text-sm text-muted-foreground font-medium">Référence</p>
                   <p className="font-semibold">{delivery.ref}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground font-medium">Date de Livraison</p>
+                  <p className="text-sm text-muted-foreground font-medium">Date</p>
                   <p className="font-semibold">{new Date(delivery.deliveryDate).toLocaleDateString()}</p>
                 </div>
 
                 {delivery.purchases && delivery.purchases.length > 0 && (
                   <>
                     <div>
-                      <p className="text-sm text-muted-foreground font-medium mb-1">Commandes Associées</p>
+                      <p className="text-sm text-muted-foreground font-medium mb-1">Commande</p>
                       <div className="flex gap-2 flex-wrap">
                         {delivery.purchases.map((p: any, index: number) => (
                           <span key={p.idPurchase || index} className="inline-flex items-center">

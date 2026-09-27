@@ -39,7 +39,7 @@ export interface DeliveryListRecord {
   totalAmount: number;
   status: string;
   balanceDue?: number;
-  purchaseRef?: string;
+  paymentStatus: string;
   idSupplier?: string;
   supplierName?: string;
 }

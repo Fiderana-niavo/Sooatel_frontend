@@ -7,6 +7,7 @@ import { Eye, CheckCircle2, Edit2, Trash2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { ActionDropdown } from "@/components/ui/ActionDropdown/ActionDropdown";
 import { DeliveryStatusBadge } from "./DeliveryStatusBadge";
+import { DeliveryPaymentBadge } from "./DeliveryPaymentBadge";
 import { DeliveryDetailSheet } from "./DeliveryDetailSheet";
 import { DeliverySheet } from "../DeliverySheet/DeliverySheet";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
@@ -205,12 +206,12 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
             <table className="w-full text-sm text-left">
               <thead className="bg-muted text-muted-foreground uppercase">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">Référence</th>
-                  <th className="px-6 py-4 font-semibold">Date</th>
-                  <th className="px-6 py-4 font-semibold">Fournisseur</th>
-                  <th className="px-6 py-4 font-semibold">Réf. Commande</th>
-                  <th className="px-6 py-4 font-semibold text-right">Total</th>
-                  <th className="px-6 py-4 font-semibold text-center">Statut</th>
+                  <th className="px-6 py-4 font-semibold text-center">Référence</th>
+                  <th className="px-6 py-4 font-semibold text-center">Date</th>
+                  <th className="px-6 py-4 font-semibold text-center">Fournisseur</th>
+                  <th className="px-6 py-4 font-semibold text-center">Total</th>
+                  <th className="px-6 py-4 font-semibold text-center">Statut Livraison</th>
+                  <th className="px-6 py-4 font-semibold text-center">Paiement</th>
                   <th className="px-6 py-4 font-semibold text-center">Actions</th>
                 </tr>
               </thead>
@@ -226,13 +227,23 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
                 ) : (
                   data?.records.map((delivery) => (
                     <tr key={delivery.idDelivery} className="hover:bg-muted/50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-foreground">{delivery.ref}</td>
-                      <td className="px-6 py-4">{new Date(delivery.deliveryDate).toLocaleDateString()}</td>
-                      <td className="px-6 py-4">{delivery.supplierName || "-"}</td>
-                      <td className="px-6 py-4">{delivery.purchaseRef || "-"}</td>
-                      <td className="px-6 py-4 text-right font-medium">{formatCurrency(delivery.totalAmount)}</td>
+                      <td className="px-6 py-4 font-medium text-foreground text-center">{delivery.ref}</td>
+                      <td className="px-6 py-4 text-center">{new Date(delivery.deliveryDate).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 text-center">{delivery.supplierName || "-"}</td>
+                      <td className="px-6 py-4 font-medium text-center">{formatCurrency(delivery.totalAmount)}</td>
                       <td className="px-6 py-4 text-center">
-                        <DeliveryStatusBadge status={delivery.status} />
+                        <div className="flex justify-center">
+                          <DeliveryStatusBadge status={delivery.status} />
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <div className="flex justify-center">
+                          {delivery.status === "Validé" ? (
+                            <DeliveryPaymentBadge status={delivery.paymentStatus} />
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-center">
                         <div className="flex justify-center">

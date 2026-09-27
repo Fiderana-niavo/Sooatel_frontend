@@ -6,9 +6,8 @@ import { supplierPaymentService } from "../../services/supplier-payment.service"
 import type { AllocationDto } from "../../types/supplier-payment.type";
 import { purchaseService } from "../../services/purchase.service";
 import { formatCurrency } from "@/utils/formatters";
-import { Trash2, AlertCircle, Loader2, Plus, ArrowRight, Wand2 } from "lucide-react";
+import { AlertCircle, Loader2, ArrowRight, Wand2, Coins } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
-import { AllocationLabel } from "./AllocationLabel";
 import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
 
 interface Props {
@@ -33,10 +32,9 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
   const [notes, setNotes] = useState("");
   const [isCreditAppliedLocally, setIsCreditAppliedLocally] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [amount, setAmount] = useState<string | number>(
-    initialAllocation?.amount || ""
-  );
+  const [amount, setAmount] = useState<string | number>("");
+  const [isEditLoaded, setIsEditLoaded] = useState(!idPaymentToEdit);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const savedStr = sessionStorage.getItem("supplierPaymentSavedState");
@@ -54,10 +52,6 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
       sessionStorage.removeItem("supplierPaymentSavedState");
     }
   }, [idSupplier]);
-
-  // Flag to know if edit data is loaded
-  const [isEditLoaded, setIsEditLoaded] = useState(!idPaymentToEdit);
-  const [error, setError] = useState<string | null>(null);
 
   const pmQuery = useQuery({
     queryKey: ["payment-methods"],
@@ -105,11 +99,6 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
     setAllocations,
     totalAllocated,
     remaining,
-    updateAllocationAmount,
-    removeAllocation,
-    addDeliveryAllocation,
-    addCreditAllocation,
-    autoDispatch,
   } = usePaymentAllocations({ initialAllocation, amount, setAmount, destinations });
 
   useEffect(() => {
@@ -117,15 +106,10 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
       const p = editQuery.data;
       setAmount(p.amount);
       setIdPaymentMethod(p.idPaymentMethod || "");
-      if (p.paymentDate) {
-        setPaymentDate(toIsoDate(new Date(p.paymentDate)));
-      }
+      if (p.paymentDate) setPaymentDate(toIsoDate(new Date(p.paymentDate)));
       setNotes(p.notes || "");
       if (p.allocations) {
-        setAllocations(p.allocations.map((a: any) => ({
-          ...a,
-          amount: Number(a.amount)
-        })));
+        setAllocations(p.allocations.map((a: any) => ({ ...a, amount: Number(a.amount) })));
       }
       setIsEditLoaded(true);
     }
@@ -162,7 +146,7 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
       if (isCreditAppliedLocally) {
         await supplierPaymentService.applySupplierCredit(idSupplier, {});
       }
-      
+
       if (hasPaymentAmount) {
         const dto = {
           idSupplier,
@@ -178,37 +162,31 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
           await supplierPaymentService.createPayment(dto);
         }
       }
-      
+
       queryClient.invalidateQueries({ queryKey: ["deliveries"] });
       queryClient.invalidateQueries({ queryKey: ["purchases"] });
       queryClient.invalidateQueries({ queryKey: ["payment-destinations", idSupplier] });
       queryClient.invalidateQueries({ queryKey: ["supplierBalance", idSupplier] });
       queryClient.invalidateQueries({ queryKey: ["supplier-payments"] });
-      
+
       onSuccess();
     } catch (err: any) {
-      setError(err.response?.data?.message || err.response?.data?.error || "Erreur lors de l'enregistrement.");
+      const apiMsg = err.response?.data?.message;
+      const apiErr = err.response?.data?.error;
+      setError(
+        (apiMsg && apiMsg !== "Request failed" ? apiMsg : null) ||
+        (apiErr && apiErr !== "Request failed" ? apiErr : null) ||
+        (typeof err.response?.data === "string" ? err.response.data : null) ||
+        err.message ||
+        "Erreur lors de l'enregistrement."
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getAllocationMax = (a: AllocationDto) => {
-    if (a.allocationType === "DELIVERY") {
-      return destinations?.deliveries.find((d) => d.idDelivery === a.idDelivery)?.balanceDue || 0;
-    }
-    return Number.MAX_SAFE_INTEGER;
-  };
-
-  const handleAllocationAmountChange = (index: number, a: AllocationDto, value: number | undefined) => {
-    const numValue = value || 0;
-    const max = getAllocationMax(a);
-    updateAllocationAmount(index, Math.min(numValue, max));
-  };
-
-  const handleAmountChange = (val: number | undefined) => {
-    setAmount(val === undefined ? "" : val);
-  };
+  const deliveryAllocations = allocations.filter((a) => a.allocationType === "DELIVERY");
+  const creditAllocation = allocations.find((a) => a.allocationType === "SUPPLIER_CREDIT");
 
   return (
     <div className="space-y-5 py-2">
@@ -217,24 +195,51 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
       )}
       {isEditLoaded && (
         <>
+          {/* Delivery-specific banner when coming from a delivery */}
+          {initialAllocation?.idDelivery && (() => {
+            const principalDelivery = destinations?.deliveries?.find(
+              (d: any) => d.idDelivery === initialAllocation.idDelivery
+            );
+            const balanceDue = principalDelivery?.balanceDue ?? initialAllocation.amount;
+            const ref = principalDelivery?.ref ?? "cette livraison";
+            return (
+              <div className="rounded-lg p-3 text-sm border bg-primary/5 border-primary/20 text-foreground">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold">{ref}</span>
+                  {principalDelivery?.deliveryDate && (
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(principalDelivery.deliveryDate).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-1 flex items-center justify-between">
+                  <span className="text-muted-foreground text-xs">Reste à payer pour cette livraison</span>
+                  <span className="font-bold text-amber-600 text-base">{formatCurrency(balanceDue)}</span>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Credit / Debt info banners */}
           {balanceData && (balanceData.debit > 0 || balanceData.credit > 0) && (
-            <div className="flex flex-col gap-2 mb-4">
+            <div className="flex flex-col gap-2">
               {balanceData.debit > 0 && (
-                <div className="rounded-lg p-3 text-sm border flex items-center justify-between bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4" />
-                    <span>Dette totale (Reste à payer) : <strong>{formatCurrency(isCreditAppliedLocally ? Math.max(0, balanceData.debit - balanceData.credit) : balanceData.debit)}</strong></span>
+                <div className="rounded-md px-2.5 py-1.5 text-xs border flex items-center justify-between bg-red-50 border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400">
+                  <div className="flex items-center gap-1.5">
+                    <AlertCircle className="h-3 w-3" />
+                    <span>Dette totale fournisseur</span>
                   </div>
+                  <span className="font-semibold">{formatCurrency(balanceData.debit)}</span>
                 </div>
               )}
               {balanceData.credit > 0 && (
                 <div className="rounded-lg p-3 text-sm border flex items-center justify-between bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-900/30 dark:text-emerald-400">
                   <div className="flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4" />
+                    <Coins className="h-4 w-4" />
                     <span>
                       {isCreditAppliedLocally
-                        ? <>Crédit appliqué à ce paiement : <strong>{formatCurrency(balanceData.credit)}</strong></>
-                        : <>Crédit fournisseur disponible : <strong>{formatCurrency(balanceData.credit)}</strong></>}
+                        ? <>Crédit appliqué : <strong>{formatCurrency(balanceData.credit)}</strong></>
+                        : <>Crédit disponible : <strong>{formatCurrency(balanceData.credit)}</strong></>}
                     </span>
                   </div>
                   {!idPaymentToEdit && !isCreditAppliedLocally && (
@@ -246,7 +251,7 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                       className="h-7 text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border-emerald-300 dark:bg-emerald-800 dark:text-emerald-100 dark:border-emerald-700"
                     >
                       <Wand2 className="h-3 w-3 mr-1" />
-                      Utiliser ce crédit
+                      Utiliser
                     </Button>
                   )}
                 </div>
@@ -254,26 +259,42 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
             </div>
           )}
 
+          {/* Unvalidated deliveries warning */}
+          {destinations?.unvalidatedDeliveriesCount && destinations.unvalidatedDeliveriesCount > 0 ? (
+            <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 text-sm text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/30 flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p><strong>{destinations.unvalidatedDeliveriesCount} livraison(s)</strong> en attente de validation non incluses.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.setItem("activeTab", "Livraisons Fournisseurs");
+                    sessionStorage.setItem("deliveryFilter", JSON.stringify({ status: 5, openSupplierPaymentFor: idSupplier }));
+                    sessionStorage.setItem("supplierPaymentSavedState", JSON.stringify({
+                      idSupplier, amount, idPaymentMethod, paymentDate, notes, isCreditAppliedLocally
+                    }));
+                    if (onGoToDeliveries) {
+                      onGoToDeliveries();
+                    } else {
+                      window.location.reload();
+                    }
+                  }}
+                  className="mt-1 inline-flex items-center gap-1 font-medium underline hover:text-amber-800 dark:hover:text-amber-300 cursor-pointer"
+                >
+                  Voir les livraisons non validées
+                  <ArrowRight className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          ) : null}
 
+          {/* Amount + payment method + date */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1 col-span-2">
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-sm font-semibold text-foreground">Montant total (Ar)</label>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs bg-primary/5 text-primary border-primary/20 hover:bg-primary/10"
-                  onClick={autoDispatch}
-                  disabled={Number(amount) <= 0 || !destinations}
-                  type="button"
-                >
-                  <Wand2 className="mr-1.5 h-3 w-3" />
-                  Auto-Répartir
-                </Button>
-              </div>
+              <label className="text-sm font-semibold text-foreground">Montant total (Ar)</label>
               <CurrencyInput
                 value={amount === "" ? undefined : (amount as number)}
-                onChange={handleAmountChange}
+                onChange={(val) => setAmount(val === undefined ? "" : val)}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -311,125 +332,59 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
             </div>
           </div>
 
-          {destinations?.unvalidatedDeliveriesCount && destinations.unvalidatedDeliveriesCount > 0 ? (
-            <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 text-sm text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/30 flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <div className="flex-1">
-                <p><strong>{destinations.unvalidatedDeliveriesCount} livraison(s)</strong> en attente de validation.</p>
-                <p className="mt-1">Elles n'apparaissent pas ici. Si vous souhaitez les payer, vous devez d'abord les valider.</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    localStorage.setItem("activeTab", "Livraisons Fournisseurs");
-                    sessionStorage.setItem("deliveryFilter", JSON.stringify({ status: 5, openSupplierPaymentFor: idSupplier }));
-                    sessionStorage.setItem("supplierPaymentSavedState", JSON.stringify({
-                      idSupplier, amount, idPaymentMethod, paymentDate, notes, isCreditAppliedLocally
-                    }));
-                    if (onGoToDeliveries) {
-                      onGoToDeliveries();
-                    } else {
-                      window.location.reload();
-                    }
-                  }}
-                  className="mt-2 inline-flex items-center gap-1 font-medium underline hover:text-amber-800 dark:hover:text-amber-300 cursor-pointer"
-                >
-                  Voir les livraisons non validées
-                  <ArrowRight className="h-3 w-3" />
-                </button>
+          {/* Auto-dispatch recap — only shown when amount > 0 and allocations exist */}
+          {Number(amount) > 0 && allocations.length > 0 && (
+            <div className="rounded-lg border border-border bg-muted/20 overflow-hidden">
+              <div className="px-3 py-2 border-b border-border/60 bg-muted/40">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Répartition automatique</span>
               </div>
-            </div>
-          ) : null}
-
-          <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm space-y-1">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Total paiement</span>
-              <span className="font-medium">{formatCurrency(Number(amount) || 0)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Total affecté</span>
-              <span className="font-medium">{formatCurrency(totalAllocated)}</span>
-            </div>
-            <div className={`flex justify-between font-semibold border-t border-border/50 pt-1 ${Math.abs(remaining) > 0.01 ? "text-destructive" : "text-emerald-600 dark:text-emerald-400"}`}>
-              <span>Reste à affecter</span>
-              <span>{formatCurrency(remaining)}</span>
-            </div>
-          </div>
-
-          {allocations.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-semibold">Répartition</h4>
-              {allocations.map((a, i) => (
-                <div key={i} className="flex items-center gap-2 rounded-lg border border-border bg-card p-2">
-                  <span className="flex-1 text-sm truncate">
-                    <AllocationLabel allocation={a} destinations={destinations} />
-                  </span>
-                  <CurrencyInput
-                    value={a.amount || undefined}
-                    onChange={(val) => handleAllocationAmountChange(i, a, val)}
-                    disabled={a.allocationType === "SUPPLIER_CREDIT"}
-                    className={`w-32 rounded border border-border px-2 py-1 text-sm text-right focus:outline-none focus:ring-1 focus:ring-primary ${a.allocationType === "SUPPLIER_CREDIT"
-                        ? "bg-muted cursor-not-allowed opacity-70"
-                        : "bg-background"
-                      }`}
-                  />
-                  <button type="button" onClick={() => removeAllocation(i)} className="text-muted-foreground hover:text-destructive">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {destQuery.isLoading ? (
-            <div className="flex justify-center py-4"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
-          ) : (
-            <div className="space-y-3">
-              {destinations?.deliveries && destinations.deliveries.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold mb-2 text-foreground">Livraisons à payer</h4>
-                  <div className="space-y-1">
-                    {destinations.deliveries.map((d) => {
-                      const added = allocations.some((a) => a.idDelivery === d.idDelivery);
+              <div className="divide-y divide-border/40">
+                {destQuery.isLoading ? (
+                  <div className="flex justify-center py-3"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+                ) : (
+                  <>
+                    {deliveryAllocations.map((a, i) => {
+                      const delivery = destinations?.deliveries?.find((d: any) => d.idDelivery === a.idDelivery);
+                      const isPrincipal = initialAllocation?.idDelivery === a.idDelivery;
                       return (
-                        <div key={d.idDelivery} className="flex items-center justify-between text-sm rounded border border-border/50 px-3 py-2 bg-background">
+                        <div key={i} className={`flex items-center justify-between px-3 py-2 text-sm ${isPrincipal ? "bg-primary/5" : ""}`}>
                           <div>
-                            <span className="font-medium">{d.ref}</span>
-                            {d.purchaseRef && (
+                            <span className={isPrincipal ? "font-bold" : "font-medium"}>
+                              {delivery?.ref ?? "Livraison"}
+                            </span>
+                            {delivery?.purchaseRef && (
+                              <span className="text-xs text-muted-foreground ml-2">(Cmd {delivery.purchaseRef})</span>
+                            )}
+                            {delivery?.deliveryDate && (
                               <span className="text-xs text-muted-foreground ml-2">
-                                (Commande {d.purchaseRef})
+                                {new Date(delivery.deliveryDate).toLocaleDateString()}
                               </span>
                             )}
-                            <span className="text-muted-foreground ml-2">
-                              {new Date(d.deliveryDate).toLocaleDateString()}
-                            </span>
+                            {delivery && (
+                              <span className="text-xs text-muted-foreground ml-2">
+                                — solde : {formatCurrency(delivery.balanceDue)}
+                              </span>
+                            )}
                           </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-amber-600 font-medium">{formatCurrency(d.balanceDue)}</span>
-                            <button
-                              type="button"
-                              onClick={() => addDeliveryAllocation(d)}
-                              disabled={added}
-                              className="text-primary hover:text-primary/70 disabled:opacity-40"
-                            >
-                              <Plus className="h-4 w-4" />
-                            </button>
-                          </div>
+                          <span className="font-semibold text-primary">{formatCurrency(a.amount)}</span>
                         </div>
                       );
                     })}
-                  </div>
-                </div>
-              )}
-
-              {remaining > 0 && !allocations.find((a) => a.allocationType === "SUPPLIER_CREDIT") && (
-                <button
-                  type="button"
-                  onClick={addCreditAllocation}
-                  className="text-sm text-amber-600 hover:underline flex items-center gap-1"
-                >
-                  <Plus className="h-4 w-4" /> Ajouter au crédit fournisseur ({formatCurrency(remaining)})
-                </button>
-              )}
+                    {creditAllocation && (
+                      <div className="flex items-center justify-between px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
+                        <span className="font-medium">Crédit fournisseur</span>
+                        <span className="font-semibold">{formatCurrency(creditAllocation.amount)}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+              <div className="flex justify-between px-3 py-2 border-t border-border/60 bg-muted/40 text-xs font-semibold text-muted-foreground">
+                <span>Total réparti</span>
+                <span className={Math.abs(remaining) > 0.01 ? "text-destructive" : "text-emerald-600 dark:text-emerald-400"}>
+                  {formatCurrency(totalAllocated)} / {formatCurrency(Number(amount))}
+                </span>
+              </div>
             </div>
           )}
 

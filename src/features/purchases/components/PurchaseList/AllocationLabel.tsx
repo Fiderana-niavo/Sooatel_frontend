@@ -11,7 +11,7 @@ export const AllocationLabel = ({ allocation, destinations }: Props) => {
     const d = destinations?.deliveries.find((d: any) => d.idDelivery === allocation.idDelivery);
     return d ? (
       <>
-        Livraison {d.ref} {d.purchaseRef && `(${d.purchaseRef})`} <span className="text-xs text-muted-foreground">({formatCurrency(d.balanceDue)})</span>
+        Livraison {d.ref} {d.purchaseRef && `(${d.purchaseRef})`} <span className="text-xs text-muted-foreground">(Solde dû : {formatCurrency(d.balanceDue)})</span>
       </>
     ) : (
       <>Livraison</>

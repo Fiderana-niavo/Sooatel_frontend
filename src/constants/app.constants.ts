@@ -53,7 +53,7 @@ export const NAVIGATION_GROUPS = [
       { title: "Gestion des Produits & Inventaire", url: "/inventory/catalog", icon: Box, permission: "stock.manage" },
       { title: "Niveaux de Stock", url: "/inventory/stock", icon: Boxes, permission: "stock.read" },
       { title: "Recettes", url: "/inventory/recipes", icon: BookOpen, permission: "stock.manage" },
-      { title: "Fournisseurs & Achats", url: "/inventory/suppliers", icon: Package, permission: "supplier.read" },
+      { title: "Fournisseurs & Achats", url: "/inventory/suppliers", icon: Package, permission: "supplier.manage" },
       { title: "Commandes Fournisseurs", url: "/inventory/purchases", icon: Package, permission: "stock.manage" },
       { title: "Livraisons Fournisseurs", url: "/inventory/deliveries", icon: PackageCheck, permission: "stock.manage" },
       { title: "Mouvements", url: "/inventory/movements", icon: ArrowRightLeft, permission: "stock.read" },
