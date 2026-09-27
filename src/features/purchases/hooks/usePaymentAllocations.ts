@@ -7,7 +7,6 @@ import {
 interface UsePaymentAllocationsProps {
   initialAllocation?: AllocationDto;
   amount: string | number;
-  setAmount: (amount: string | number) => void;
   destinations: any;
 }
 
@@ -55,7 +54,6 @@ function buildAllocations(
 export function usePaymentAllocations({
   initialAllocation,
   amount,
-  setAmount,
   destinations,
 }: UsePaymentAllocationsProps) {
   const [allocations, setAllocations] = useState<AllocationDto[]>(

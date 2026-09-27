@@ -1,12 +1,13 @@
-import { toIsoDate } from "@/utils/date";
+﻿import { toIsoDate } from "@/utils/date";
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePaymentAllocations } from "../../hooks/usePaymentAllocations";
+import { usePaymentLines } from "../../hooks/usePaymentLines";
 import { supplierPaymentService } from "../../services/supplier-payment.service";
 import type { AllocationDto } from "../../types/supplier-payment.type";
 import { purchaseService } from "../../services/purchase.service";
 import { formatCurrency } from "@/utils/formatters";
-import { AlertCircle, Loader2, ArrowRight, Wand2, Coins } from "lucide-react";
+import { AlertCircle, Loader2, ArrowRight, Wand2, Coins, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
 
@@ -27,7 +28,6 @@ interface PaymentMethodRef {
 export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentToEdit, onSuccess, onCancel, onGoToDeliveries }: Props) {
   const queryClient = useQueryClient();
 
-  const [idPaymentMethod, setIdPaymentMethod] = useState("");
   const [paymentDate, setPaymentDate] = useState(toIsoDate(new Date()));
   const [notes, setNotes] = useState("");
   const [isCreditAppliedLocally, setIsCreditAppliedLocally] = useState(false);
@@ -43,12 +43,11 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
         const saved = JSON.parse(savedStr);
         if (saved.idSupplier === idSupplier) {
           if (saved.amount) setAmount(saved.amount);
-          if (saved.idPaymentMethod) setIdPaymentMethod(saved.idPaymentMethod);
           if (saved.paymentDate) setPaymentDate(saved.paymentDate);
           if (saved.notes) setNotes(saved.notes);
           if (saved.isCreditAppliedLocally) setIsCreditAppliedLocally(saved.isCreditAppliedLocally);
         }
-      } catch (e) {}
+      } catch (e) { }
       sessionStorage.removeItem("supplierPaymentSavedState");
     }
   }, [idSupplier]);
@@ -94,30 +93,56 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
     enabled: !!idPaymentToEdit,
   });
 
+  const numAmount = Number(amount);
+
   const {
     allocations,
     setAllocations,
     totalAllocated,
-    remaining,
-  } = usePaymentAllocations({ initialAllocation, amount, setAmount, destinations });
+    remaining: remainingAlloc,
+  } = usePaymentAllocations({ initialAllocation, amount, destinations });
+
+  const {
+    lines,
+    setLines,
+    totalCovered,
+    remaining: remainingPayment,
+    addLine,
+    removeLine,
+    updateLine,
+    autoFill,
+  } = usePaymentLines({ totalAmount: numAmount, paymentMethods });
 
   useEffect(() => {
     if (editQuery.data && !isEditLoaded) {
       const p = editQuery.data;
       setAmount(p.amount);
-      setIdPaymentMethod(p.idPaymentMethod || "");
       if (p.paymentDate) setPaymentDate(toIsoDate(new Date(p.paymentDate)));
       setNotes(p.notes || "");
       if (p.allocations) {
-        setAllocations(p.allocations.map((a: any) => ({ ...a, amount: Number(a.amount) })));
+        setAllocations(p.allocations.map((a: AllocationDto) => ({ ...a, amount: Number(a.amount) })));
+      }
+      if (p.paymentLines && p.paymentLines.length > 0) {
+        setLines(p.paymentLines.map((l: { idPaymentMethod: string; amount: number }) => ({
+          idPaymentMethod: l.idPaymentMethod,
+          amount: Number(l.amount),
+        })));
+      } else if (p.idPaymentMethod) {
+        setLines([{ idPaymentMethod: p.idPaymentMethod, amount: Number(p.amount) }]);
       }
       setIsEditLoaded(true);
     }
-  }, [editQuery.data, isEditLoaded, setAllocations]);
+  }, [editQuery.data, isEditLoaded, setAllocations, setLines]);
+
+  useEffect(() => {
+    if (numAmount > 0 && lines.length === 0) {
+      autoFill();
+    }
+  }, [numAmount]);
 
   const handleApplyCredit = () => {
     if (!destQuery.data || destQuery.data.deliveries.length === 0) {
-      setError("Pas de dette à payer pour le moment.");
+      setError("Pas de dette Ã  payer pour le moment.");
       return;
     }
     setIsCreditAppliedLocally(true);
@@ -125,18 +150,23 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
 
   const handleSubmit = async () => {
     setError(null);
-    const hasPaymentAmount = Number(amount) > 0;
+    const hasPaymentAmount = numAmount > 0;
 
     if (!hasPaymentAmount && !isCreditAppliedLocally) {
-      setError("Veuillez saisir un montant ou utiliser un crédit.");
+      setError("Veuillez saisir un montant ou utiliser un crÃ©dit.");
       return;
     }
 
     if (hasPaymentAmount) {
-      if (!idPaymentMethod) { setError("Veuillez sélectionner un mode de paiement."); return; }
+      if (lines.length === 0) { setError("Veuillez ajouter au moins un mode de paiement."); return; }
+      if (lines.some((l) => !l.idPaymentMethod)) { setError("Chaque ligne de paiement doit avoir un mode sÃ©lectionnÃ©."); return; }
+      if (Math.abs(remainingPayment) > 0.01) {
+        setError(`La somme des modes de paiement (${formatCurrency(totalCovered)}) ne correspond pas au montant total (${formatCurrency(numAmount)}).`);
+        return;
+      }
       if (allocations.length === 0) { setError("Veuillez ajouter au moins une allocation."); return; }
-      if (Math.abs(remaining) > 0.01) {
-        setError(`Le montant alloué (${formatCurrency(totalAllocated)}) ne correspond pas au montant du paiement (${formatCurrency(Number(amount))}). Reste : ${formatCurrency(remaining)}.`);
+      if (Math.abs(remainingAlloc) > 0.01) {
+        setError(`Le montant allouÃ© (${formatCurrency(totalAllocated)}) ne correspond pas au montant du paiement (${formatCurrency(numAmount)}).`);
         return;
       }
     }
@@ -150,8 +180,8 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
       if (hasPaymentAmount) {
         const dto = {
           idSupplier,
-          amount: Number(amount),
-          idPaymentMethod,
+          amount: numAmount,
+          paymentLines: lines.map((l) => ({ idPaymentMethod: l.idPaymentMethod, amount: Number(l.amount) })),
           paymentDate,
           notes: notes || undefined,
           allocations: allocations.map((a) => ({ ...a, amount: Number(a.amount) })),
@@ -170,14 +200,14 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
       queryClient.invalidateQueries({ queryKey: ["supplier-payments"] });
 
       onSuccess();
-    } catch (err: any) {
-      const apiMsg = err.response?.data?.message;
-      const apiErr = err.response?.data?.error;
+    } catch (err: unknown) {
+      const apiError = err as { response?: { data?: { message?: string; error?: string } }; message?: string };
+      const apiMsg = apiError.response?.data?.message;
+      const apiErr = apiError.response?.data?.error;
       setError(
         (apiMsg && apiMsg !== "Request failed" ? apiMsg : null) ||
         (apiErr && apiErr !== "Request failed" ? apiErr : null) ||
-        (typeof err.response?.data === "string" ? err.response.data : null) ||
-        err.message ||
+        apiError.message ||
         "Erreur lors de l'enregistrement."
       );
     } finally {
@@ -187,6 +217,8 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
 
   const deliveryAllocations = allocations.filter((a) => a.allocationType === "DELIVERY");
   const creditAllocation = allocations.find((a) => a.allocationType === "SUPPLIER_CREDIT");
+  const linesBalanceOk = lines.length > 0 && Math.abs(remainingPayment) <= 0.01;
+  const linesHasRemainder = numAmount > 0 && Math.abs(remainingPayment) > 0.01;
 
   return (
     <div className="space-y-5 py-2">
@@ -195,10 +227,9 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
       )}
       {isEditLoaded && (
         <>
-          {/* Delivery-specific banner when coming from a delivery */}
           {initialAllocation?.idDelivery && (() => {
             const principalDelivery = destinations?.deliveries?.find(
-              (d: any) => d.idDelivery === initialAllocation.idDelivery
+              (d: { idDelivery: string }) => d.idDelivery === initialAllocation.idDelivery
             );
             const balanceDue = principalDelivery?.balanceDue ?? initialAllocation.amount;
             const ref = principalDelivery?.ref ?? "cette livraison";
@@ -213,14 +244,13 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                   )}
                 </div>
                 <div className="mt-1 flex items-center justify-between">
-                  <span className="text-muted-foreground text-xs">Reste à payer pour cette livraison</span>
+                  <span className="text-muted-foreground text-xs">Reste Ã  payer pour cette livraison</span>
                   <span className="font-bold text-amber-600 text-base">{formatCurrency(balanceDue)}</span>
                 </div>
               </div>
             );
           })()}
 
-          {/* Credit / Debt info banners */}
           {balanceData && (balanceData.debit > 0 || balanceData.credit > 0) && (
             <div className="flex flex-col gap-2">
               {balanceData.debit > 0 && (
@@ -238,8 +268,8 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                     <Coins className="h-4 w-4" />
                     <span>
                       {isCreditAppliedLocally
-                        ? <>Crédit appliqué : <strong>{formatCurrency(balanceData.credit)}</strong></>
-                        : <>Crédit disponible : <strong>{formatCurrency(balanceData.credit)}</strong></>}
+                        ? <>CrÃ©dit appliquÃ© : <strong>{formatCurrency(balanceData.credit)}</strong></>
+                        : <>CrÃ©dit disponible : <strong>{formatCurrency(balanceData.credit)}</strong></>}
                     </span>
                   </div>
                   {!idPaymentToEdit && !isCreditAppliedLocally && (
@@ -259,7 +289,6 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
             </div>
           )}
 
-          {/* Unvalidated deliveries warning */}
           {destinations?.unvalidatedDeliveriesCount && destinations.unvalidatedDeliveriesCount > 0 ? (
             <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 text-sm text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/30 flex items-start gap-2">
               <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
@@ -271,7 +300,7 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                     localStorage.setItem("activeTab", "Livraisons Fournisseurs");
                     sessionStorage.setItem("deliveryFilter", JSON.stringify({ status: 5, openSupplierPaymentFor: idSupplier }));
                     sessionStorage.setItem("supplierPaymentSavedState", JSON.stringify({
-                      idSupplier, amount, idPaymentMethod, paymentDate, notes, isCreditAppliedLocally
+                      idSupplier, amount, paymentDate, notes, isCreditAppliedLocally
                     }));
                     if (onGoToDeliveries) {
                       onGoToDeliveries();
@@ -281,14 +310,14 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                   }}
                   className="mt-1 inline-flex items-center gap-1 font-medium underline hover:text-amber-800 dark:hover:text-amber-300 cursor-pointer"
                 >
-                  Voir les livraisons non validées
+                  Voir les livraisons non validÃ©es
                   <ArrowRight className="h-3 w-3" />
                 </button>
               </div>
             </div>
           ) : null}
 
-          {/* Amount + payment method + date */}
+          {/* Amount + date + notes */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1 col-span-2">
               <label className="text-sm font-semibold text-foreground">Montant total (Ar)</label>
@@ -299,19 +328,6 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
               />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium">Mode de paiement</label>
-              <select
-                value={idPaymentMethod}
-                onChange={(e) => setIdPaymentMethod(e.target.value)}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="">-- Sélectionner --</option>
-                {paymentMethods.map((pm) => (
-                  <option key={pm.value} value={pm.value}>{pm.label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-1">
               <label className="text-sm font-medium">Date</label>
               <input
                 type="date"
@@ -320,23 +336,87 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
-            <div className="space-y-1 col-span-2">
+            <div className="space-y-1">
               <label className="text-sm font-medium">Notes (Optionnel)</label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                rows={2}
+                rows={1}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                placeholder="Ex: Virement bancaire, numéro de chèque, etc."
+                placeholder="Chèque, virement"
               />
             </div>
           </div>
 
-          {/* Auto-dispatch recap — only shown when amount > 0 and allocations exist */}
-          {Number(amount) > 0 && allocations.length > 0 && (
+          {/* Payment Lines */}
+          {numAmount > 0 && (
+            <div className="rounded-lg border border-border bg-muted/20 overflow-hidden">
+              <div className="px-3 py-2 border-b border-border/60 bg-muted/40 flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Modes de paiement
+                </span>
+                {lines.length < paymentMethods.length && (
+                  <Button type="button" size="sm" variant="ghost" onClick={addLine} className="h-6 px-2 text-xs gap-1">
+                    <Plus className="h-3 w-3" />
+                    Ajouter
+                  </Button>
+                )}
+              </div>
+
+              <div className="divide-y divide-border/40">
+                {lines.map((line, idx) => (
+                  <div key={idx} className="flex items-center gap-2 px-3 py-2">
+                    <select
+                      value={line.idPaymentMethod}
+                      onChange={(e) => updateLine(idx, { idPaymentMethod: e.target.value })}
+                      className="flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="">-- Mode --</option>
+                      {paymentMethods.map((pm) => (
+                        <option
+                          key={pm.value}
+                          value={pm.value}
+                          disabled={lines.some((l, i) => i !== idx && l.idPaymentMethod === pm.value)}
+                        >
+                          {pm.label}
+                        </option>
+                      ))}
+                    </select>
+                    <CurrencyInput
+                      value={line.amount}
+                      onChange={(val) => updateLine(idx, { amount: val ?? 0 })}
+                      className="w-36 rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    {lines.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeLine(idx)}
+                        className="text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-between px-3 py-2 border-t border-border/60 bg-muted/40 text-xs font-semibold text-muted-foreground">
+                <span>Total couvert</span>
+                <span className={linesHasRemainder ? "text-destructive" : linesBalanceOk ? "text-emerald-600 dark:text-emerald-400" : ""}>
+                  {formatCurrency(totalCovered)} / {formatCurrency(numAmount)}
+                  {linesHasRemainder && (
+                    <span className="ml-2 font-normal">(reste {formatCurrency(Math.abs(remainingPayment))})</span>
+                  )}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Allocation recap */}
+          {numAmount > 0 && allocations.length > 0 && (
             <div className="rounded-lg border border-border bg-muted/20 overflow-hidden">
               <div className="px-3 py-2 border-b border-border/60 bg-muted/40">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Répartition automatique</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">RÃ©partition automatique</span>
               </div>
               <div className="divide-y divide-border/40">
                 {destQuery.isLoading ? (
@@ -344,7 +424,7 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                 ) : (
                   <>
                     {deliveryAllocations.map((a, i) => {
-                      const delivery = destinations?.deliveries?.find((d: any) => d.idDelivery === a.idDelivery);
+                      const delivery = destinations?.deliveries?.find((d: { idDelivery: string }) => d.idDelivery === a.idDelivery);
                       const isPrincipal = initialAllocation?.idDelivery === a.idDelivery;
                       return (
                         <div key={i} className={`flex items-center justify-between px-3 py-2 text-sm ${isPrincipal ? "bg-primary/5" : ""}`}>
@@ -362,7 +442,7 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                             )}
                             {delivery && (
                               <span className="text-xs text-muted-foreground ml-2">
-                                — solde : {formatCurrency(delivery.balanceDue)}
+                                â€” solde : {formatCurrency(delivery.balanceDue)}
                               </span>
                             )}
                           </div>
@@ -372,7 +452,7 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                     })}
                     {creditAllocation && (
                       <div className="flex items-center justify-between px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
-                        <span className="font-medium">Crédit fournisseur</span>
+                        <span className="font-medium">CrÃ©dit fournisseur</span>
                         <span className="font-semibold">{formatCurrency(creditAllocation.amount)}</span>
                       </div>
                     )}
@@ -380,9 +460,9 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                 )}
               </div>
               <div className="flex justify-between px-3 py-2 border-t border-border/60 bg-muted/40 text-xs font-semibold text-muted-foreground">
-                <span>Total réparti</span>
-                <span className={Math.abs(remaining) > 0.01 ? "text-destructive" : "text-emerald-600 dark:text-emerald-400"}>
-                  {formatCurrency(totalAllocated)} / {formatCurrency(Number(amount))}
+                <span>Total rÃ©parti</span>
+                <span className={Math.abs(remainingAlloc) > 0.01 ? "text-destructive" : "text-emerald-600 dark:text-emerald-400"}>
+                  {formatCurrency(totalAllocated)} / {formatCurrency(numAmount)}
                 </span>
               </div>
             </div>

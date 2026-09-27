@@ -1,3 +1,8 @@
+export interface PaymentLineDto {
+  idPaymentMethod: string;
+  amount: number;
+}
+
 export interface AllocationDto {
   allocationType: "DELIVERY" | "SUPPLIER_CREDIT";
   idDelivery?: string;
@@ -7,7 +12,7 @@ export interface AllocationDto {
 export interface CreateSupplierPaymentDto {
   idSupplier: string;
   amount: number;
-  idPaymentMethod: string;
+  paymentLines: PaymentLineDto[];
   paymentDate?: string;
   notes?: string;
   allocations: AllocationDto[];
