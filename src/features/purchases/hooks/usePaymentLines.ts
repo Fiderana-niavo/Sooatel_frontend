@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { PaymentLineDto } from "../types/supplier-payment.type";
 
 interface PaymentMethodRef {
@@ -16,6 +16,13 @@ export function usePaymentLines({ totalAmount, paymentMethods }: UsePaymentLines
 
   const totalCovered = lines.reduce((s, l) => s + (Number(l.amount) || 0), 0);
   const remaining = totalAmount - totalCovered;
+
+  // Si on n'a qu'une seule ligne de paiement, son montant doit toujours correspondre au montant total
+  useEffect(() => {
+    if (lines.length === 1 && lines[0].amount !== totalAmount) {
+      setLines((prev) => [{ ...prev[0], amount: totalAmount }]);
+    }
+  }, [totalAmount]);
 
   const addLine = () => {
     const usedMethodIds = new Set(lines.map((l) => l.idPaymentMethod));

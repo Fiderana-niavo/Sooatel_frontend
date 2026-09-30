@@ -69,34 +69,40 @@ export const PurchaseDetailSheet: React.FC<PurchaseDetailSheetProps> = ({ idPurc
               <span className="text-2xl font-bold">Détails de la commande</span>
               {purchase && <PurchaseStatusBadge status={purchase.status} />}
             </div>
-            {purchase && (
-              <div className="flex flex-wrap items-center gap-3">
-                {(purchase.status === "Créé" || purchase.status === "Brouillon") && onConfirm && (
-                  <Button variant="outline" size="sm" onClick={() => onConfirm(purchase)} className="text-blue-600 border-blue-200 hover:bg-blue-50">
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Confirmer
-                  </Button>
-                )}
-                {purchase.status !== "Annulé" && purchase.status !== "Livré" && purchase.status !== 0 && onReceive && (
-                  <Button variant="outline" size="sm" onClick={() => onReceive(purchase)} className="text-emerald-600 border-emerald-200 hover:bg-emerald-50">
-                    <PackageCheck className="h-4 w-4 mr-2" />
-                    Réception
-                  </Button>
-                )}
-                {purchase.status !== "Annulé" && purchase.status !== "Livré" && purchase.status !== 0 && onEdit && (
-                  <Button variant="outline" size="sm" onClick={() => onEdit(purchase)} className="text-amber-600 border-amber-200 hover:bg-amber-50">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Modifier
-                  </Button>
-                )}
-                {purchase.status !== "Annulé" && purchase.status !== "Livré" && purchase.status !== 0 && onCancel && (
-                  <Button variant="outline" size="sm" onClick={() => onCancel(purchase)} className="text-red-600 border-red-200 hover:bg-red-50">
-                    <Ban className="h-4 w-4 mr-2" />
-                    Annuler
-                  </Button>
-                )}
-              </div>
-            )}
+            {purchase && (() => {
+              const isConfirmed = purchase.lifecycleStatus === 0 || purchase.lifecycleStatus === "0" || purchase.lifecycleStatus === "Confirmé";
+              const isCancelled = purchase.lifecycleStatus === -3 || purchase.lifecycleStatus === "-3" || purchase.lifecycleStatus === "Annulé";
+              const isFullyDelivered = purchase.status === 0 || purchase.status === "0" || purchase.status === "Livré";
+
+              return (
+                <div className="flex flex-wrap items-center gap-3">
+                  {!isConfirmed && !isCancelled && onConfirm && (
+                    <Button variant="outline" size="sm" onClick={() => onConfirm(purchase)} className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Confirmer
+                    </Button>
+                  )}
+                  {!isCancelled && !isFullyDelivered && onReceive && (
+                    <Button variant="outline" size="sm" onClick={() => onReceive(purchase)} className="text-emerald-600 border-emerald-200 hover:bg-emerald-50">
+                      <PackageCheck className="h-4 w-4 mr-2" />
+                      Réception
+                    </Button>
+                  )}
+                  {!isCancelled && !isFullyDelivered && onEdit && (
+                    <Button variant="outline" size="sm" onClick={() => onEdit(purchase)} className="text-amber-600 border-amber-200 hover:bg-amber-50">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Modifier
+                    </Button>
+                  )}
+                  {!isCancelled && !isFullyDelivered && onCancel && (
+                    <Button variant="outline" size="sm" onClick={() => onCancel(purchase)} className="text-red-600 border-red-200 hover:bg-red-50">
+                      <Ban className="h-4 w-4 mr-2" />
+                      Annuler
+                    </Button>
+                  )}
+                </div>
+              );
+            })()}
           </SheetTitle>
         </SheetHeader>
 

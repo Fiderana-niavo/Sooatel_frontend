@@ -118,7 +118,11 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
       if (onGoToList) onGoToList();
     },
     onError: (error: any) => {
-      showSnackbar(error.response?.data?.error || error.response?.data?.message || "Erreur lors de la création de la commande", "error");
+      const respData = error.response?.data;
+      const msg = (respData?.message && respData.message !== "Request failed" ? respData.message : null) 
+               || (respData?.error && respData.error !== "Request failed" ? respData.error : null) 
+               || "Erreur lors de la création de la commande";
+      showSnackbar(msg, "error");
     }
   });
 
@@ -132,7 +136,10 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
       if (onGoToList) onGoToList();
     },
     onError: (error: any) => {
-      const msg = error.response?.data?.error || error.response?.data?.message || "Erreur lors de la modification de la commande";
+      const respData = error.response?.data;
+      const msg = (respData?.message && respData.message !== "Request failed" ? respData.message : null) 
+               || (respData?.error && respData.error !== "Request failed" ? respData.error : null) 
+               || "Erreur lors de la modification de la commande";
       if (msg.includes("livraison en cours")) {
         setSubmitError(msg);
       } else {
@@ -246,7 +253,7 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
   const pmOptions = paymentMethods || [];
 
   return (
-    <div className="p-6 space-y-6 bg-background min-h-screen">
+    <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" onClick={onGoToList}>
@@ -260,29 +267,30 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <PurchaseInfoForm
-          data={purchaseData}
-          suppliers={supplierOptions}
-          employees={employeeOptions}
-          onChange={handleInfoChange}
-        />
-
-        {purchaseData.idSupplier && (
-          <PurchaseItemsForm
-            items={purchaseData.details}
-            suppliedItems={suppliedItems || []}
-            totalAmount={totalAmount}
-            onChange={handleItemChange}
-            onAdd={handleAddItem}
-            onRemove={handleRemoveItem}
-            onAddNewProduct={() => setIsAddProductModalOpen(true)}
+        <div className="rounded-sm border border-border mb-6">
+          <PurchaseInfoForm
+            data={purchaseData}
+            suppliers={supplierOptions}
+            employees={employeeOptions}
+            onChange={handleInfoChange}
           />
-        )}
 
-        {/* Bottom Options: Delivery & Payment (Creation Only) */}
-        {!idPurchaseToEdit && (
-          <div className="bg-card p-6 rounded-xl border border-border/50 shadow-sm space-y-6">
-            <h3 className="text-lg font-semibold text-primary">Options de Livraison & Règlement</h3>
+          {purchaseData.idSupplier && (
+            <PurchaseItemsForm
+              items={purchaseData.details}
+              suppliedItems={suppliedItems || []}
+              totalAmount={totalAmount}
+              onChange={handleItemChange}
+              onAdd={handleAddItem}
+              onRemove={handleRemoveItem}
+              onAddNewProduct={() => setIsAddProductModalOpen(true)}
+            />
+          )}
+
+          {/* Bottom Options: Delivery & Payment (Creation Only) */}
+          {!idPurchaseToEdit && (
+            <div className="border-t border-border p-6 space-y-6">
+              <h3 className="text-lg font-semibold text-foreground">Options de Livraison & Règlement</h3>
 
             <div className="flex items-center gap-3 bg-primary/5 p-4 rounded-lg border border-primary/20">
               <input
@@ -345,6 +353,7 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
             )}
           </div>
         )}
+      </div>
 
         {submitError && (
           <div className="flex flex-col gap-2 bg-red-500/10 px-4 py-3 rounded-md mb-6">

@@ -12,8 +12,8 @@ interface PurchaseInfoFormProps {
 
 export const PurchaseInfoForm: React.FC<PurchaseInfoFormProps> = ({ data, suppliers, employees, onChange }) => {
   return (
-    <div className="bg-card p-6 rounded-xl border border-border/50 shadow-sm space-y-4">
-      <h3 className="text-lg font-semibold text-primary mb-4">Informations Générales</h3>
+    <div className="p-6 space-y-6">
+      <h3 className="text-lg font-semibold text-foreground">Informations Générales</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>

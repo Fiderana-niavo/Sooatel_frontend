@@ -1,4 +1,4 @@
-﻿import { toIsoDate } from "@/utils/date";
+import { toIsoDate } from "@/utils/date";
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePaymentAllocations } from "../../hooks/usePaymentAllocations";
@@ -142,7 +142,7 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
 
   const handleApplyCredit = () => {
     if (!destQuery.data || destQuery.data.deliveries.length === 0) {
-      setError("Pas de dette Ã  payer pour le moment.");
+      setError("Pas de dette à payer pour le moment.");
       return;
     }
     setIsCreditAppliedLocally(true);
@@ -153,20 +153,20 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
     const hasPaymentAmount = numAmount > 0;
 
     if (!hasPaymentAmount && !isCreditAppliedLocally) {
-      setError("Veuillez saisir un montant ou utiliser un crÃ©dit.");
+      setError("Veuillez saisir un montant ou utiliser un crédit.");
       return;
     }
 
     if (hasPaymentAmount) {
       if (lines.length === 0) { setError("Veuillez ajouter au moins un mode de paiement."); return; }
-      if (lines.some((l) => !l.idPaymentMethod)) { setError("Chaque ligne de paiement doit avoir un mode sÃ©lectionnÃ©."); return; }
+      if (lines.some((l) => !l.idPaymentMethod)) { setError("Chaque ligne de paiement doit avoir un mode sélectionné."); return; }
       if (Math.abs(remainingPayment) > 0.01) {
         setError(`La somme des modes de paiement (${formatCurrency(totalCovered)}) ne correspond pas au montant total (${formatCurrency(numAmount)}).`);
         return;
       }
       if (allocations.length === 0) { setError("Veuillez ajouter au moins une allocation."); return; }
       if (Math.abs(remainingAlloc) > 0.01) {
-        setError(`Le montant allouÃ© (${formatCurrency(totalAllocated)}) ne correspond pas au montant du paiement (${formatCurrency(numAmount)}).`);
+        setError(`Le montant alloué (${formatCurrency(totalAllocated)}) ne correspond pas au montant du paiement (${formatCurrency(numAmount)}).`);
         return;
       }
     }
@@ -232,6 +232,10 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
               (d: { idDelivery: string }) => d.idDelivery === initialAllocation.idDelivery
             );
             const balanceDue = principalDelivery?.balanceDue ?? initialAllocation.amount;
+            const adjustedBalanceDue = isCreditAppliedLocally && balanceData
+              ? Math.max(0, balanceDue - balanceData.credit)
+              : balanceDue;
+            
             const ref = principalDelivery?.ref ?? "cette livraison";
             return (
               <div className="rounded-lg p-3 text-sm border bg-primary/5 border-primary/20 text-foreground">
@@ -244,8 +248,8 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                   )}
                 </div>
                 <div className="mt-1 flex items-center justify-between">
-                  <span className="text-muted-foreground text-xs">Reste Ã  payer pour cette livraison</span>
-                  <span className="font-bold text-amber-600 text-base">{formatCurrency(balanceDue)}</span>
+                  <span className="text-muted-foreground text-xs">Reste à payer pour cette livraison</span>
+                  <span className="font-bold text-amber-600 text-base">{formatCurrency(adjustedBalanceDue)}</span>
                 </div>
               </div>
             );
@@ -259,7 +263,9 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                     <AlertCircle className="h-3 w-3" />
                     <span>Dette totale fournisseur</span>
                   </div>
-                  <span className="font-semibold">{formatCurrency(balanceData.debit)}</span>
+                  <span className="font-semibold">
+                    {formatCurrency(isCreditAppliedLocally ? Math.max(0, balanceData.debit - balanceData.credit) : balanceData.debit)}
+                  </span>
                 </div>
               )}
               {balanceData.credit > 0 && (
@@ -268,8 +274,8 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                     <Coins className="h-4 w-4" />
                     <span>
                       {isCreditAppliedLocally
-                        ? <>CrÃ©dit appliquÃ© : <strong>{formatCurrency(balanceData.credit)}</strong></>
-                        : <>CrÃ©dit disponible : <strong>{formatCurrency(balanceData.credit)}</strong></>}
+                        ? <>Crédit appliqué : <strong>{formatCurrency(balanceData.credit)}</strong></>
+                        : <>Crédit disponible : <strong>{formatCurrency(balanceData.credit)}</strong></>}
                     </span>
                   </div>
                   {!idPaymentToEdit && !isCreditAppliedLocally && (
@@ -310,7 +316,7 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                   }}
                   className="mt-1 inline-flex items-center gap-1 font-medium underline hover:text-amber-800 dark:hover:text-amber-300 cursor-pointer"
                 >
-                  Voir les livraisons non validÃ©es
+                  Voir les livraisons non validées
                   <ArrowRight className="h-3 w-3" />
                 </button>
               </div>
@@ -416,7 +422,7 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
           {numAmount > 0 && allocations.length > 0 && (
             <div className="rounded-lg border border-border bg-muted/20 overflow-hidden">
               <div className="px-3 py-2 border-b border-border/60 bg-muted/40">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">RÃ©partition automatique</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Répartition automatique</span>
               </div>
               <div className="divide-y divide-border/40">
                 {destQuery.isLoading ? (
@@ -442,7 +448,7 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                             )}
                             {delivery && (
                               <span className="text-xs text-muted-foreground ml-2">
-                                â€” solde : {formatCurrency(delivery.balanceDue)}
+                                — solde : {formatCurrency(delivery.balanceDue)}
                               </span>
                             )}
                           </div>
@@ -452,7 +458,7 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                     })}
                     {creditAllocation && (
                       <div className="flex items-center justify-between px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
-                        <span className="font-medium">CrÃ©dit fournisseur</span>
+                        <span className="font-medium">Crédit fournisseur</span>
                         <span className="font-semibold">{formatCurrency(creditAllocation.amount)}</span>
                       </div>
                     )}
@@ -460,7 +466,7 @@ export function SupplierPaymentForm({ idSupplier, initialAllocation, idPaymentTo
                 )}
               </div>
               <div className="flex justify-between px-3 py-2 border-t border-border/60 bg-muted/40 text-xs font-semibold text-muted-foreground">
-                <span>Total rÃ©parti</span>
+                <span>Total réparti</span>
                 <span className={Math.abs(remainingAlloc) > 0.01 ? "text-destructive" : "text-emerald-600 dark:text-emerald-400"}>
                   {formatCurrency(totalAllocated)} / {formatCurrency(numAmount)}
                 </span>

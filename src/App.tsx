@@ -207,7 +207,7 @@ function App() {
                   </div>
                 </div>
 
-                <section className="bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[2rem] p-8 md:p-12 border border-border/50 flex-1 w-full max-w-5xl mx-auto space-y-10 relative overflow-hidden">
+                <section className="bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-xl p-8 md:p-12 border border-border/50 flex-1 w-full max-w-5xl mx-auto space-y-10 relative overflow-hidden">
                   <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
 
                   {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Équipes & Quarts" && activeTab !== "Congés & Absences" && activeTab !== "Congés à venir" && activeTab !== "Types de Congés" && activeTab !== "Emploi du Temps" && activeTab !== "Paramètres Globaux" && activeTab !== "Chambres & Évènements" && activeTab !== "Catalogue & Menus" && activeTab !== "Caisse & PDV" && activeTab !== "Historique des Ventes" && activeTab !== "Revenus" && activeTab !== "Tableau de bord" && activeTab !== "Mouvements de Caisse" && activeTab !== "Fournisseurs & Achats" && activeTab !== "Commandes Fournisseurs" && activeTab !== "Livraisons Fournisseurs" && activeTab !== "Recettes" && activeTab !== "Mouvements" && activeTab !== "Production de Plats" && activeTab !== "Inventaire Physique" && (

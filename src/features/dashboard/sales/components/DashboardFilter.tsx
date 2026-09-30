@@ -58,6 +58,7 @@ export const DashboardFilter: React.FC<Props> = ({
             <input
               type="date"
               value={startDate}
+              max={endDate}
               onChange={(e) => onStartDateChange(e.target.value)}
               className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
             />

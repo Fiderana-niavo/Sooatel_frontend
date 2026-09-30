@@ -33,9 +33,9 @@ export const PurchaseItemsForm: React.FC<PurchaseItemsFormProps> = ({
   };
 
   return (
-    <div className="bg-card p-6 rounded-xl border border-border/50 shadow-sm space-y-4">
+    <div className="p-6 space-y-4 pt-0">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-primary">Détails de la Commande</h3>
+        <h3 className="text-lg font-semibold text-foreground">Détails de la Commande</h3>
         <div className="flex gap-2">
           <Button type="button" variant="outline" size="sm" onClick={onAddNewProduct} className="text-primary border-primary/50 hover:bg-primary/10">
             <LinkIcon size={16} className="mr-2" /> Lier un nouveau produit
@@ -50,7 +50,7 @@ export const PurchaseItemsForm: React.FC<PurchaseItemsFormProps> = ({
         {items.map((item, index) => {
           const lineTotal = item.quantity * item.unitPrice;
           return (
-            <div key={index} className="flex flex-col md:flex-row gap-4 items-start md:items-center p-4 bg-muted/20 rounded-lg border border-border/30">
+            <div key={index} className="flex flex-col md:flex-row gap-4 items-start md:items-center p-4 bg-muted/20 rounded-md border border-border/30">
               <div className="flex-1 w-full">
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Produit du Fournisseur</label>
                 <SearchableSelect

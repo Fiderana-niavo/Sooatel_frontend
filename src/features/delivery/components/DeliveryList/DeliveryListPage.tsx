@@ -118,12 +118,23 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h1 className="text-3xl font-bold text-foreground">Livraisons Fournisseurs</h1>
+        <h1 className="text-3xl font-bold text-foreground tracking-tight">Livraisons Fournisseurs</h1>
         <div className="flex flex-wrap gap-2 w-full md:w-auto items-center">
+          {filters.returnToPurchases && onGoToPurchases && (
+            <Button
+              variant="outline"
+              onClick={onGoToPurchases}
+              className="h-9 px-3 shadow-sm"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Retour
+            </Button>
+          )}
+
           <select 
             value={filters.status === undefined ? "" : filters.status} 
             onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value ? Number(e.target.value) : undefined }))}
-            className="bg-background border border-input rounded-md px-3 h-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+            className="bg-background border border-input rounded-md px-3 h-9 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
           >
             <option value="">Tous les statuts</option>
             <option value="5">Ouverte (Non validée)</option>
@@ -131,43 +142,33 @@ export function DeliveryListPage({ onGoToPurchases }: { onGoToPurchases?: () => 
             <option value="-3">Annulée</option>
           </select>
 
-          {hasSavedPaymentState && (
+          {hasSavedPaymentState ? (
             <Button 
               variant="default" 
               onClick={() => {
                 setPaymentDialogOpen(true);
                 setHasSavedPaymentState(false);
               }} 
-              className="w-full md:w-auto font-semibold shadow-md animate-in fade-in zoom-in duration-300"
+              className="h-9 shadow-sm animate-in fade-in zoom-in duration-300"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Reprendre le paiement en cours
+              Reprendre le paiement
             </Button>
-          )}
-          {!hasSavedPaymentState && (
+          ) : (
             <Button 
-              variant="outline" 
+              variant="default" 
               onClick={() => setPaymentDialogOpen(true)} 
-              className="border-primary text-primary hover:bg-primary/10 w-full md:w-auto"
+              className="h-9 shadow-sm"
             >
-              Faire un paiement / acompte
+              Paiement / Acompte
             </Button>
           )}
-          {filters.returnToPurchases && onGoToPurchases && (
-            <Button
-              variant="outline"
-              onClick={onGoToPurchases}
-              className="text-primary border-primary hover:bg-primary/10"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Retour à la commande
-            </Button>
-          )}
+
           {(filters.idPurchase || filters.status !== undefined) && (
             <Button 
-              variant="outline" 
+              variant="ghost" 
               onClick={() => setFilters({})}
-              className="text-muted-foreground"
+              className="h-9 px-3 text-muted-foreground"
             >
               Effacer les filtres
             </Button>
