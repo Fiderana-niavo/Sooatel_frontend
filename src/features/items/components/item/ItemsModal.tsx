@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
+import Pagination from "@/components/ui/Pagination/pagination";
 import { Package, Edit, Trash2, Plus, X, Check, Search, Eye, MoreVertical, PowerOff, Power } from "lucide-react";
 import type { Item, CreateItemDto } from "../../types/item.type";
 import type { ItemType } from "../../../item-types/types";
@@ -43,6 +44,8 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
   const [editDescription, setEditDescription] = useState("");
 
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const handleAdd = () => {
     if (newRef.trim() && newLabel.trim() && newIdProductType && newIdUnit) {
@@ -108,7 +111,10 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
     } as any);
   };
 
-  const filteredData = data.filter((r) => r.label?.toLowerCase().includes(search.toLowerCase()));
+  const filteredData = data.filter((r) => r.label?.toLowerCase().includes(search.toLowerCase()) || r.ref?.toLowerCase().includes(search.toLowerCase()));
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const paginatedData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
@@ -131,7 +137,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
               </div>
               <div className="relative hidden md:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <Input placeholder="Rechercher par référence..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 w-64 bg-background" />
+                <Input placeholder="Rechercher par référence..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} className="pl-9 w-64 bg-background" />
               </div>
             </div>
           </DialogHeader>
@@ -197,12 +203,12 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
           </div>
 
           <div className="space-y-3">
-            {filteredData.length === 0 ? (
+            {paginatedData.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
                 Aucun article trouvé.
               </div>
             ) : (
-              filteredData.map((item: any) => (
+              paginatedData.map((item: any) => (
                 <div key={item.idItem} className="p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors group">
                   {editingId === item.idItem ? (
                     <div className="space-y-3">
@@ -298,6 +304,15 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
               ))
             )}
           </div>
+          {totalPages > 1 && (
+            <div className="mt-4 flex justify-center shrink-0">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
         </div>
 
         <DialogFooter className="p-4 bg-muted/10 border-t shrink-0">

@@ -160,7 +160,10 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
     try {
       await SaleService.adjustPayment(idSale, idPayment, newAmount);
       const updated = await SaleService.getSaleById(idSale);
-      if (updated) setSelectedSale(updated);
+      if (updated) {
+        setSelectedSale(updated);
+        setManagePaymentDialog(prev => prev.sale?.idSale === idSale ? { ...prev, sale: updated } : prev);
+      }
       fetchSales();
     } catch (err: any) {
       const msg = resolveError(err, "Erreur lors de la modification du paiement.");
@@ -173,7 +176,10 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
     try {
       await SaleService.refundPayment(idSale, amount, idPaymentMethod, reason);
       const updated = await SaleService.getSaleById(idSale);
-      if (updated) setSelectedSale(updated);
+      if (updated) {
+        setSelectedSale(updated);
+        setManagePaymentDialog(prev => prev.sale?.idSale === idSale ? { ...prev, sale: updated } : prev);
+      }
       fetchSales();
     } catch (err: any) {
       const msg = resolveError(err, "Erreur lors du remboursement.");
@@ -233,7 +239,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
 
   return (
     <div className="flex flex-col gap-6">
-      <SalesListFilters 
+      <SalesListFilters
         showCancelled={showCancelled}
         onToggleCancelled={() => { setShowCancelled(!showCancelled); setPage(1); }}
         dateFilter={dateFilter}
@@ -278,7 +284,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         loading={actionLoading}
       />
 
-      <PaymentModal 
+      <PaymentModal
         open={payModal.isOpen}
         onOpenChange={(open) => !open && setPayModal(p => ({ ...p, isOpen: false }))}
         balanceDue={payModal.balanceDue}
@@ -319,7 +325,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         loading={actionLoading}
       />
 
-      <CancelSaleModal 
+      <CancelSaleModal
         open={cancelOverpaymentDialog.isOpen}
         onOpenChange={(open) => {
           if (!open) {

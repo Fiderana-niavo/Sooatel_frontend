@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
+import Pagination from "@/components/ui/Pagination/pagination";
 import { List, Edit, Trash2, Plus, X, Check, Search } from "lucide-react";
 import type { MenuCategory } from "../types";
 
@@ -23,6 +24,8 @@ export function MenuCategorysModal({ isOpen, onClose, data, onAdd, onEdit, onDel
   const [editDescription, setEditDescription] = useState("");
 
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const handleAdd = () => {
     if (newLabel.trim()) {
@@ -59,6 +62,9 @@ export function MenuCategorysModal({ isOpen, onClose, data, onAdd, onEdit, onDel
     r.label?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const paginatedData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
       <DialogContent className="max-w-4xl rounded-[2rem] p-0 overflow-hidden bg-card border shadow-2xl">
@@ -83,7 +89,7 @@ export function MenuCategorysModal({ isOpen, onClose, data, onAdd, onEdit, onDel
                 <Input
                   placeholder="Rechercher..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
                   className="pl-9 w-64 bg-background"
                 />
               </div>
@@ -110,12 +116,12 @@ export function MenuCategorysModal({ isOpen, onClose, data, onAdd, onEdit, onDel
           </div>
 
           <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
-            {filteredData.length === 0 ? (
+            {paginatedData.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
                 Aucune catégorie.
               </div>
             ) : (
-              filteredData.map((item: any) => (
+              paginatedData.map((item: any) => (
                 <div key={item.idCategory} className="p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors group">
                   {editingId === item.idCategory ? (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
@@ -142,6 +148,15 @@ export function MenuCategorysModal({ isOpen, onClose, data, onAdd, onEdit, onDel
               ))
             )}
           </div>
+          {totalPages > 1 && (
+            <div className="mt-4 flex justify-center shrink-0">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
         </div>
 
         <DialogFooter className="p-4 bg-muted/10 border-t">

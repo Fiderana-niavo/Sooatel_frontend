@@ -20,6 +20,7 @@ interface Props {
 
 export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, payments, isOpen, canManage, onAdjust, onRefund, onClose }) => {
   const [loading, setLoading] = useState(false);
+  const [localPayments, setLocalPayments] = useState<PaymentRecord[]>(payments);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodRef[]>([]);
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const [editAmount, setEditAmount] = useState<number | "">("");
@@ -32,6 +33,10 @@ export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, paymen
   const [refundReason, setRefundReason] = useState("");
 
   const [snackbar, setSnackbar] = useState<{ message: string; type: "success" | "error"; isOpen: boolean }>({ message: "", type: "success", isOpen: false });
+
+  useEffect(() => {
+    setLocalPayments(payments);
+  }, [payments]);
 
   useEffect(() => {
     if (isOpen) {
@@ -131,7 +136,7 @@ export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, paymen
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {payments.map(p => {
+                    {localPayments.map(p => {
                       const isEditing = editingPaymentId === p.idPayment;
                       const isJournalized = !!p.idCashMovement;
                       const isSystemRefund = p.paymentCode?.includes("suite modification") || p.paymentCode?.includes("suite à l'annulation");
@@ -146,7 +151,7 @@ export const PaymentManagementDialog: React.FC<Props> = ({ invoiceNumber, paymen
                             <td className="p-3 whitespace-nowrap text-xs">
                               {new Date(p.paymentDate).toLocaleString("fr-FR", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                             </td>
-                            <td className="p-3">{p.paymentMethod?.methodName || "-"}</td>
+                            <td className="p-3">{p.paymentMethod?.label || p.paymentMethod?.methodName || "-"}</td>
                             <td className="p-3 text-right">
                               {isEditing ? (
                                 <input
