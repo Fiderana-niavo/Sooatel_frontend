@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
+import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
 import { Coffee, Edit, Trash2, Plus, X, Check, Filter, Search } from "lucide-react";
 import type { MenuItem } from "../types";
 import type { MenuCategory } from "../../menu-categories/types";
@@ -147,7 +148,7 @@ export function MenuItemsModal({ isOpen, onClose, data, items, categories, selec
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Prix (Ar)</label>
-                <Input type="number" placeholder="0" value={newSalePrice} onChange={(e) => setNewSalePrice(e.target.value)} className="bg-background" />
+                <CurrencyInput placeholder="0" value={newSalePrice ? Number(newSalePrice) : undefined} onChange={(val) => setNewSalePrice(val !== undefined ? String(val) : "")} className="bg-background" />
               </div>
               <Button onClick={handleAdd} disabled={!newIdItem || !newSalePrice || !newIdCategory} className="gap-2 rounded-xl h-10 w-full">
                 <Plus className="size-4" /> Ajouter
@@ -173,7 +174,7 @@ export function MenuItemsModal({ isOpen, onClose, data, items, categories, selec
                         <option value="">Catégorie...</option>
                         {categories.map((c) => <option key={c.idCategory} value={c.idCategory}>{c.label}</option>)}
                       </select>
-                      <Input type="number" value={editSalePrice} onChange={(e) => setEditSalePrice(e.target.value)} className="h-9" placeholder="Prix" />
+                      <CurrencyInput value={editSalePrice ? Number(editSalePrice) : undefined} onChange={(val) => setEditSalePrice(val !== undefined ? String(val) : "")} className="h-9" placeholder="Prix" />
                       <div className="flex justify-end gap-1">
                         <Button size="icon" variant="ghost" onClick={saveEdit} className="text-green-600"><Check className="size-4" /></Button>
                         <Button size="icon" variant="ghost" onClick={cancelEdit}><X className="size-4" /></Button>

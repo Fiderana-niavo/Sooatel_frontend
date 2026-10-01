@@ -79,10 +79,10 @@ export const PurchaseItemsForm: React.FC<PurchaseItemsFormProps> = ({
               </div>
               <div className="w-full md:w-36">
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Prix Unitaire (Ar)</label>
-                <Input 
-                  type="number"
+                <Input
+                  type="text"
                   readOnly
-                  value={item.unitPrice}
+                  value={formatCurrency(item.unitPrice)}
                   className="text-right bg-muted text-muted-foreground"
                 />
               </div>

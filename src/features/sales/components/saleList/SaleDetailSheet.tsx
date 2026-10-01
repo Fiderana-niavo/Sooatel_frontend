@@ -163,14 +163,15 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
               )}
             </div>
 
-            <div className="flex flex-wrap gap-2 pt-2">
+            <div className="flex flex-col gap-4 pt-4 mt-2 border-t border-border/40">
+              <div className="grid grid-cols-3 gap-2">
               <Can permission="sales.pos">
                 {sale.status === 5 && (
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => onEdit(sale)}
-                    className="flex items-center gap-2"
+                    className="w-full justify-start gap-2 h-auto py-2 px-3 whitespace-normal text-left text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                   >
                     <Edit size={14} /> Modifier
                   </Button>
@@ -188,7 +189,7 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
                       "Voulez-vous rouvrir cette vente ? Elle repassera au statut Ouverte.",
                       () => { setConfirmDialog(p => ({ ...p, isOpen: false })); onReopen(sale.idSale); }
                     )}
-                    className="flex items-center gap-2 border-blue-500/40 text-blue-600 hover:bg-blue-500/10"
+                    className="w-full justify-start gap-2 h-auto py-2 px-3 whitespace-normal text-left text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                   >
                     <RotateCcw size={14} /> Rouvrir
                   </Button>
@@ -203,7 +204,7 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
                       "Voulez-vous fermer manuellement cette vente ?",
                       () => { setConfirmDialog(p => ({ ...p, isOpen: false })); onClose(sale.idSale); }
                     )}
-                    className="flex items-center gap-2 border-zinc-500/40 text-zinc-600 hover:bg-zinc-500/10"
+                    className="w-full justify-start gap-2 h-auto py-2 px-3 whitespace-normal text-left text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                   >
                     <Lock size={14} /> Fermer
                   </Button>
@@ -214,7 +215,7 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
                     size="sm"
                     disabled={loading}
                     onClick={() => { setConfirmDialog(p => ({ ...p, isOpen: false })); onPay(sale); }}
-                    className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                    className="w-full justify-start gap-2 h-auto py-2 px-3 whitespace-normal text-left bg-emerald-600 hover:bg-emerald-700 text-white border-transparent shadow-sm"
                   >
                     <Banknote size={14} /> Payer
                   </Button>
@@ -225,11 +226,15 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
                     size="sm"
                     disabled={loading}
                     onClick={() => setPaymentManagementDialog({ isOpen: true })}
-                    className="flex items-center gap-2 border-indigo-500/40 text-indigo-600 hover:bg-indigo-500/10"
+                    className="w-full justify-start gap-2 h-auto py-2 px-3 whitespace-normal text-left text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
                   >
                     <Banknote size={14} /> Modifier le paiement
                   </Button>
                 )}
+              </Can>
+              </div>
+              <Can permission="sale.manage">
+              <div className="grid grid-cols-3 gap-2 pt-3 mt-1 border-t border-dashed border-border/30">
                 {sale.status !== -3 && (
                   <Button
                     variant="outline"
@@ -240,7 +245,7 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
                       "Voulez-vous annuler cette vente ? Cette action sera enregistrée dans les logs.",
                       () => { setConfirmDialog(p => ({ ...p, isOpen: false })); onCancel(sale.idSale); }
                     )}
-                    className="flex items-center gap-2 border-orange-500/40 text-orange-600 hover:bg-orange-500/10"
+                    className="w-full justify-start gap-2 h-auto py-2 px-3 whitespace-normal text-left text-orange-600 hover:bg-orange-50 hover:text-orange-700"
                   >
                     <XCircle size={14} /> Annuler la vente
                   </Button>
@@ -254,10 +259,11 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
                     "Cette action est irréversible. La vente sera définitivement supprimée mais tracée dans les logs.",
                     () => { setConfirmDialog(p => ({ ...p, isOpen: false })); onDelete(sale.idSale); }
                   )}
-                  className="flex items-center gap-2 border-red-500/40 text-red-600 hover:bg-red-500/10"
+                  className="w-full justify-start gap-2 h-auto py-2 px-3 whitespace-normal text-left text-red-600 hover:bg-red-50 hover:text-red-700"
                 >
                   <Trash2 size={14} /> Supprimer
                 </Button>
+              </div>
               </Can>
             </div>
           </div>

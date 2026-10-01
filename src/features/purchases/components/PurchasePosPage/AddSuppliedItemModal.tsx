@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
+import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
 import { ItemService } from "@/features/items";
 import { createSupplierProduct, createSuppliedItem, getSupplierProducts } from "@/features/suppliers/services/supplier.service";

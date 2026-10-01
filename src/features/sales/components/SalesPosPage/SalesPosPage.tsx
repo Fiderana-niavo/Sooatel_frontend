@@ -62,6 +62,7 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
   const [journalConfirm, setJournalConfirm] = useState<{ isOpen: boolean; paymentId: string }>({ isOpen: false, paymentId: "" });
   const [locationType, setLocationType] = useState<"restaurant" | "room">("restaurant");
   const [idPaymentToAdjust, setIdPaymentToAdjust] = useState<string>("");
+  const [overpaymentMode, setOverpaymentMode] = useState<"REFUND" | "ADJUST" | null>(null);
 
   const showSnackbar = (message: string, type: SnackbarType = "info") => {
     setSnackbar({ message, type, isOpen: true });
@@ -135,6 +136,7 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
 
     if (saleToEdit && balanceDue < 0) {
       setOverpaymentDialog({ isOpen: true, balanceDue: Math.abs(balanceDue) });
+      setOverpaymentMode(null);
       return;
     }
 
@@ -315,61 +317,85 @@ export default function SalesPosPage({ onGoToHistory, saleToEdit, onClearEdit }:
             Le nouveau total de la vente est inférieur au montant que le client a déjà payé (Différence : <strong className="text-foreground">{Math.abs(overpaymentDialog.balanceDue).toLocaleString("fr-FR")} Ar</strong>). Que souhaitez-vous faire ?
           </div>
           <div className="flex flex-col gap-3 mt-4">
-            <div className="border border-orange-200 bg-orange-50/50 rounded-xl p-4 flex flex-col gap-2">
-              <span className="font-bold text-base text-foreground">Rembourser le client</span>
-              <span className="font-normal text-muted-foreground text-xs whitespace-normal">Enregistrer un paiement négatif pour lui rendre la différence et équilibrer la caisse.</span>
-              <select
-                className="w-full mt-2 p-2 rounded-md border border-input bg-background"
-                value={refundMethodId}
-                onChange={e => setRefundMethodId(e.target.value)}
-              >
-                <option value="">-- Choisir le mode de remboursement --</option>
-                {paymentMethods.map(pm => (
-                  <option key={pm.idPaymentMethod} value={pm.idPaymentMethod}>{pm.methodName}</option>
-                ))}
-              </select>
-              <Button
-                variant="default"
-                className="w-full mt-2"
-                disabled={!refundMethodId}
-                onClick={() => { setOverpaymentDialog(p => ({ ...p, isOpen: false })); executeSubmit("REFUND", refundMethodId); setRefundMethodId(""); }}
-              >
-                Confirmer le remboursement
-              </Button>
+            <div 
+              className={`border rounded-xl p-4 flex flex-col gap-2 cursor-pointer transition-colors ${overpaymentMode === 'REFUND' ? 'border-orange-400 bg-orange-100/50 shadow-sm' : 'border-border bg-card hover:bg-orange-50/30'}`}
+              onClick={() => setOverpaymentMode('REFUND')}
+            >
+              <div className="flex items-center gap-2">
+                <input type="radio" checked={overpaymentMode === 'REFUND'} readOnly className="mt-0.5 text-orange-600 focus:ring-orange-600 cursor-pointer" />
+                <span className="font-bold text-base text-foreground">Rembourser le client</span>
+              </div>
+              <span className="font-normal text-muted-foreground text-xs whitespace-normal pl-6">Enregistrer un paiement négatif pour lui rendre la différence et équilibrer la caisse.</span>
+              
+              {overpaymentMode === 'REFUND' && (
+                <div className="pl-6 flex flex-col gap-2 mt-2">
+                  <select
+                    className="w-full p-2 rounded-md border border-input bg-background"
+                    value={refundMethodId}
+                    onChange={e => setRefundMethodId(e.target.value)}
+                  >
+                    <option value="">-- Choisir le mode de remboursement --</option>
+                    {paymentMethods.map(pm => (
+                      <option key={pm.idPaymentMethod} value={pm.idPaymentMethod}>{pm.methodName}</option>
+                    ))}
+                  </select>
+                  <Button
+                    variant="default"
+                    className="w-full mt-2"
+                    disabled={!refundMethodId}
+                    onClick={(e) => { e.stopPropagation(); setOverpaymentDialog(p => ({ ...p, isOpen: false })); executeSubmit("REFUND", refundMethodId); setRefundMethodId(""); }}
+                  >
+                    Confirmer le remboursement
+                  </Button>
+                </div>
+              )}
             </div>
-            <div className="border border-orange-200 bg-orange-50/50 rounded-xl p-4 flex flex-col gap-2 mt-2">
-              <span className="font-bold text-base text-foreground">Ajuster (Erreur de frappe)</span>
-              <span className="font-normal text-muted-foreground text-xs whitespace-normal">Le paiement précédent était une erreur. Réduire simplement le montant d'un paiement existant.</span>
-              <select
-                className="w-full mt-2 p-2 rounded-md border border-input bg-background"
-                value={idPaymentToAdjust}
-                onChange={e => setIdPaymentToAdjust(e.target.value)}
-              >
-                <option value="">-- Choisir le paiement à réduire --</option>
-                {saleToEdit?.invoice?.payments?.filter(p => Number(p.amount) > 0 && p.paymentCode !== "Remboursement manuel").map(p => (
-                  <option key={p.idPayment} value={p.idPayment}>
-                    {new Date(p.paymentDate).toLocaleString('fr-FR')} - {Number(p.amount).toLocaleString('fr-FR')} Ar ({p.paymentMethod?.methodName})
-                  </option>
-                ))}
-              </select>
-              <Button
-                variant="outline"
-                className="w-full mt-2 border-orange-200 text-orange-900 hover:bg-orange-100 transition-colors"
-                disabled={!idPaymentToAdjust}
-                onClick={() => { 
-                  const payment = saleToEdit?.invoice?.payments?.find((p: any) => p.idPayment === idPaymentToAdjust);
-                  if ((payment as any)?.idCashMovement || (payment as any)?.cashMovement) {
-                    setOverpaymentDialog(p => ({ ...p, isOpen: false }));
-                    setJournalConfirm({ isOpen: true, paymentId: idPaymentToAdjust });
-                  } else {
-                    setOverpaymentDialog(p => ({ ...p, isOpen: false }));
-                    executeSubmit("ADJUST", undefined, idPaymentToAdjust);
-                    setIdPaymentToAdjust("");
-                  }
-                }}
-              >
-                Confirmer l'ajustement
-              </Button>
+
+            <div 
+              className={`border rounded-xl p-4 flex flex-col gap-2 cursor-pointer transition-colors ${overpaymentMode === 'ADJUST' ? 'border-orange-400 bg-orange-100/50 shadow-sm' : 'border-border bg-card hover:bg-orange-50/30'}`}
+              onClick={() => setOverpaymentMode('ADJUST')}
+            >
+              <div className="flex items-center gap-2">
+                <input type="radio" checked={overpaymentMode === 'ADJUST'} readOnly className="mt-0.5 text-orange-600 focus:ring-orange-600 cursor-pointer" />
+                <span className="font-bold text-base text-foreground">Ajuster (Erreur de frappe)</span>
+              </div>
+              <span className="font-normal text-muted-foreground text-xs whitespace-normal pl-6">Le paiement précédent était une erreur. Réduire simplement le montant d'un paiement existant.</span>
+              
+              {overpaymentMode === 'ADJUST' && (
+                <div className="pl-6 flex flex-col gap-2 mt-2">
+                  <select
+                    className="w-full p-2 rounded-md border border-input bg-background"
+                    value={idPaymentToAdjust}
+                    onChange={e => setIdPaymentToAdjust(e.target.value)}
+                  >
+                    <option value="">-- Choisir le paiement à réduire --</option>
+                    {saleToEdit?.invoice?.payments?.filter(p => Number(p.amount) > 0 && p.paymentCode !== "Remboursement manuel").map(p => (
+                      <option key={p.idPayment} value={p.idPayment}>
+                        {new Date(p.paymentDate).toLocaleString('fr-FR')} - {Number(p.amount).toLocaleString('fr-FR')} Ar{p.paymentMethod?.methodName ? ` (${p.paymentMethod.methodName})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    variant="outline"
+                    className="w-full mt-2 border-orange-200 text-orange-900 hover:bg-orange-100 transition-colors"
+                    disabled={!idPaymentToAdjust}
+                    onClick={(e) => { 
+                      e.stopPropagation();
+                      const payment = saleToEdit?.invoice?.payments?.find((p: any) => p.idPayment === idPaymentToAdjust);
+                      if ((payment as any)?.idCashMovement || (payment as any)?.cashMovement) {
+                        setOverpaymentDialog(p => ({ ...p, isOpen: false }));
+                        setJournalConfirm({ isOpen: true, paymentId: idPaymentToAdjust });
+                      } else {
+                        setOverpaymentDialog(p => ({ ...p, isOpen: false }));
+                        executeSubmit("ADJUST", undefined, idPaymentToAdjust);
+                        setIdPaymentToAdjust("");
+                      }
+                    }}
+                  >
+                    Confirmer l'ajustement
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </DialogContent>

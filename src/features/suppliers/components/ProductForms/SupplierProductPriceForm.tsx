@@ -2,6 +2,7 @@ import { toIsoDate } from "@/utils/date";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
+import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
 import { RefreshCw, AlertCircle } from "lucide-react";
 import type { SupplierProduct } from "../../types/supplier.type";
 
@@ -13,6 +14,8 @@ interface SupplierProductPriceFormProps {
   onSave: (e: React.FormEvent<HTMLFormElement>) => void;
 }
 
+import { useState } from "react";
+
 export function SupplierProductPriceForm({
   open,
   onOpenChange,
@@ -20,6 +23,7 @@ export function SupplierProductPriceForm({
   priceActionType,
   onSave
 }: SupplierProductPriceFormProps) {
+  const [price, setPrice] = useState<number | undefined>(undefined);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
@@ -46,7 +50,8 @@ export function SupplierProductPriceForm({
         <form onSubmit={onSave} className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Nouveau Prix (Ar) *</label>
-            <Input name="price" type="number" step="0.01" required autoFocus />
+            <CurrencyInput value={price} onChange={setPrice} required autoFocus />
+            <input type="hidden" name="price" value={price ?? ""} />
           </div>
           {priceActionType === 'change' && (
             <div className="space-y-2">

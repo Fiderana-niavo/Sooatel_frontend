@@ -1,6 +1,7 @@
 import { toIsoDateTime } from "@/utils/date";
 import React, { useState } from "react";
 import { Input } from "@/components/ui/Inputs/input";
+import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
 import { Button } from "@/components/ui/Button/button";
 import type { SalePayment, PaymentMethodRef } from "../../sales/types";
 import { CalendarDays } from "lucide-react";
@@ -63,13 +64,11 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
       <div className="space-y-4 flex-1">
         <div>
           <label className="block text-sm font-medium mb-1">Montant Payé <span className="text-red-500">*</span></label>
-          <Input
-            type="number"
-            min="0"
-            value={payment.amount === 0 ? "" : payment.amount}
-            onChange={(e) => {
-              const val = Number(e.target.value);
-              onChange("amount", val < 0 ? 0 : val);
+          <CurrencyInput
+            value={payment.amount === 0 ? undefined : payment.amount}
+            onChange={(val) => {
+              const num = val ?? 0;
+              onChange("amount", num < 0 ? 0 : num);
             }}
             className="text-lg font-bold"
           />

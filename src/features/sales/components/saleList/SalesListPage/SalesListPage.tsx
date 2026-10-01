@@ -10,6 +10,8 @@ import { PaymentModal } from "../SalesListModals/PaymentModal";
 import { CancelSaleModal } from "../SalesListModals/CancelSaleModal";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
 import { InputDialog } from "@/components/ui/InputDialog/InputDialog";
+import { PaymentManagementDialog } from "../../../../payments/components/PaymentManagementDialog";
+import { useAppStore } from "@/store/app.store";
 import type { SaleRecord } from "../../../types";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
@@ -27,6 +29,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
   const [menuOptions, setMenuOptions] = useState<{ value: string; label: string }[]>([{ value: "", label: "Tous les produits" }]);
   const [paymentMethods, setPaymentMethods] = useState<{ idPaymentMethod: string; methodName: string }[]>([]);
   const [payModal, setPayModal] = useState<{ isOpen: boolean; saleId: string; balanceDue: number; methodId: string; paymentCode: string; amount: string; paymentDate: string; isPartial: boolean; saleDate: string }>({ isOpen: false, saleId: "", balanceDue: 0, methodId: "", paymentCode: "", amount: "", paymentDate: toIsoDateTime(new Date()), isPartial: false, saleDate: "" });
+  const [managePaymentDialog, setManagePaymentDialog] = useState<{ isOpen: boolean; sale: SaleRecord | null }>({ isOpen: false, sale: null });
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedSale, setSelectedSale] = useState<SaleRecord | null>(null);
@@ -82,8 +85,9 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
 
   const handleCancel = async (id: string, overpaymentAction?: "REFUND" | "ADJUST", idPaymentMethodRefund?: string) => {
     if (!overpaymentAction) {
-      if (selectedSale?.idSale === id && selectedSale.invoice) {
-        const totalPaid = Number(selectedSale.invoice.totalAmount) - Number(selectedSale.invoice.balanceDue);
+      const saleToCancel = sales.find(s => s.idSale === id);
+      if (saleToCancel && saleToCancel.invoice) {
+        const totalPaid = Number(saleToCancel.invoice.totalAmount) - Number(saleToCancel.invoice.balanceDue);
         if (totalPaid > 0) {
           setCancelOverpaymentDialog({ isOpen: true, saleId: id, totalPaid });
           return;
@@ -250,6 +254,12 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         showCancelled={showCancelled}
         onSaleClick={(sale) => { setSelectedSale(sale); setSheetOpen(true); }}
         onEditSale={handleEdit}
+        onClose={handleClose}
+        onReopen={(id) => setReopenDialog({ isOpen: true, saleId: id })}
+        onCancel={handleCancel}
+        onPay={handleOpenPayModal}
+        onDelete={handleDelete}
+        onManagePayment={(sale) => setManagePaymentDialog({ isOpen: true, sale })}
       />
 
       <SaleDetailSheet
@@ -286,6 +296,16 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         actionLoading={actionLoading}
         onConfirm={handlePay}
         saleDate={payModal.saleDate}
+      />
+
+      <PaymentManagementDialog
+        invoiceNumber={managePaymentDialog.sale?.invoice?.invoiceNumber}
+        payments={managePaymentDialog.sale?.invoice?.payments || []}
+        isOpen={managePaymentDialog.isOpen}
+        canManage={useAppStore.getState().hasPermission('sale.manage')}
+        onClose={() => setManagePaymentDialog({ isOpen: false, sale: null })}
+        onAdjust={(idPayment, newAmount) => managePaymentDialog.sale ? handleAdjustPayment(managePaymentDialog.sale.idSale, idPayment, newAmount) : Promise.resolve()}
+        onRefund={(amount, methodId, reason) => managePaymentDialog.sale ? handleRefundPayment(managePaymentDialog.sale.idSale, amount, methodId, reason) : Promise.resolve()}
       />
 
       <InputDialog

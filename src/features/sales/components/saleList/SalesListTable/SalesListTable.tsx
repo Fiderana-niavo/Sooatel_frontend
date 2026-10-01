@@ -1,5 +1,5 @@
 import React from "react";
-import { Loader2, AlertTriangle, Eye, Edit } from "lucide-react";
+import { Loader2, AlertTriangle, Eye, Edit, Lock, RotateCcw, XCircle, Banknote, Trash2 } from "lucide-react";
 import Pagination from "@/components/ui/Pagination/pagination";
 import { ActionDropdown } from "@/components/ui/ActionDropdown/ActionDropdown";
 import { SaleStatusBadge, PaymentStatusBadge } from "../SaleStatusBadge";
@@ -14,6 +14,12 @@ interface SalesListTableProps {
   onPageChange: (val: number) => void;
   onSaleClick: (sale: SaleRecord) => void;
   onEditSale: (sale: SaleRecord) => void;
+  onDelete?: (id: string) => void;
+  onManagePayment?: (sale: SaleRecord) => void;
+  onClose?: (id: string) => void;
+  onReopen?: (id: string) => void;
+  onCancel?: (id: string) => void;
+  onPay?: (sale: SaleRecord) => void;
   showCancelled: boolean;
 }
 
@@ -25,6 +31,12 @@ export const SalesListTable: React.FC<SalesListTableProps> = ({
   onPageChange,
   onSaleClick,
   onEditSale,
+  onDelete,
+  onManagePayment,
+  onClose,
+  onReopen,
+  onCancel,
+  onPay,
   showCancelled
 }) => {
   if (loading) {
@@ -101,6 +113,44 @@ export const SalesListTable: React.FC<SalesListTableProps> = ({
                           icon: <Edit className="size-4" />,
                           hidden: showCancelled || sale.status === -3 || sale.status === 0,
                           onClick: () => onEditSale(sale)
+                        },
+                        {
+                          label: "Fermer",
+                          icon: <Lock className="size-4" />,
+                          hidden: sale.status !== 5 || !onClose,
+                          onClick: () => onClose?.(sale.idSale)
+                        },
+                        {
+                          label: "Rouvrir",
+                          icon: <RotateCcw className="size-4" />,
+                          hidden: sale.status !== 0 || !onReopen,
+                          onClick: () => onReopen?.(sale.idSale)
+                        },
+                        {
+                          label: "Payer",
+                          icon: <Banknote className="size-4" />,
+                          hidden: sale.status === -3 || !onPay || Number(sale.invoice?.balanceDue ?? sale.totalAmount) <= 0,
+                          onClick: () => onPay?.(sale)
+                        },
+                        {
+                          label: "Modifier le paiement",
+                          icon: <Banknote className="size-4" />,
+                          hidden: sale.status === -3 || !sale.invoice?.payments || sale.invoice.payments.length === 0 || !onManagePayment,
+                          onClick: () => onManagePayment?.(sale)
+                        },
+                        {
+                          label: "Annuler",
+                          icon: <XCircle className="size-4" />,
+                          hidden: sale.status === -3 || !onCancel,
+                          onClick: () => onCancel?.(sale.idSale),
+                          className: "text-orange-600"
+                        },
+                        {
+                          label: "Supprimer",
+                          icon: <Trash2 className="size-4" />,
+                          hidden: !onDelete,
+                          onClick: () => onDelete?.(sale.idSale),
+                          className: "text-red-600"
                         }
                       ]}
                     />

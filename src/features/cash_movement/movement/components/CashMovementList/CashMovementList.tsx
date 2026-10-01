@@ -9,6 +9,7 @@ import axios from "axios";
 import { Button } from "@/components/ui/Button/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { Input } from "@/components/ui/Inputs/input";
+import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
@@ -281,10 +282,9 @@ export function CashMovementList({ direction }: { direction: number }) {
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium">Montant *</label>
-              <Input
-                type="number"
-                value={formData.amount === ("" as unknown as number) ? "" : formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value === "" ? ("" as unknown as number) : Number(e.target.value) })}
+              <CurrencyInput
+                value={formData.amount === ("" as unknown as number) ? undefined : formData.amount}
+                onChange={(val) => setFormData({ ...formData, amount: val === undefined ? ("" as unknown as number) : val })}
                 placeholder="0.00"
               />
             </div>

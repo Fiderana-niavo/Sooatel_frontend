@@ -3,6 +3,7 @@ import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
+import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
 
 interface PaymentModalProps {
   open: boolean;
@@ -82,12 +83,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             {isPartial && (
               <div className="pl-6">
                 <label className="text-xs text-muted-foreground mb-1 block">Montant à encaisser (Ar)</label>
-                <Input
-                  type="number"
-                  min="0"
+                <CurrencyInput
                   max={balanceDue}
-                  value={amount}
-                  onChange={(e) => onAmountChange(e.target.value)}
+                  value={amount ? Number(amount) : undefined}
+                  onChange={(val) => onAmountChange(val !== undefined ? String(val) : "")} 
                   placeholder="Entrez le montant..."
                   className="w-full"
                 />
