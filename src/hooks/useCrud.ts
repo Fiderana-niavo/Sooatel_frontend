@@ -36,7 +36,7 @@ export function useCrud<T, C = any, U = any>(
       setData((prev) => [...prev, created]);
       showSnackbar("Ajout réussi.", "success");
     } catch (error: any) {
-      const msg = error.response?.data?.error || error.message || "Erreur lors de l'ajout.";
+      const msg = error.response?.data?.message || error.response?.data?.error || error.message || "Erreur lors de l'ajout.";
       showSnackbar(msg, "error");
     }
   };
@@ -55,7 +55,7 @@ export function useCrud<T, C = any, U = any>(
       );
       showSnackbar("Modification réussie.", "success");
     } catch (error: any) {
-      const msg = error.response?.data?.error || error.message || "Erreur lors de la modification.";
+      const msg = error.response?.data?.message || error.response?.data?.error || error.message || "Erreur lors de la modification.";
       showSnackbar(msg, "error");
     }
   };
@@ -77,7 +77,7 @@ export function useCrud<T, C = any, U = any>(
       );
       showSnackbar("Suppression réussie.", "success");
     } catch (error: any) {
-      const msg = error.response?.data?.error || error.message || "Erreur lors de la suppression.";
+      const msg = error.response?.data?.message || error.response?.data?.error || error.message || "Erreur lors de la suppression.";
       showSnackbar(msg, "error");
     } finally {
       setIsDeleting(false);
