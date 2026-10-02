@@ -115,7 +115,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
 
   return (
     <Dialog open={isOpen}>
-      <DialogContent onInteractOutside={(e) => e.preventDefault()} className="max-w-5xl rounded-xl p-0 overflow-hidden bg-card border shadow-2xl">
+      <DialogContent onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()} className="max-w-5xl rounded-xl p-0 overflow-hidden bg-card border shadow-2xl">
         <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
           <DialogHeader>
             <div className="flex items-center justify-between">
@@ -165,11 +165,11 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Stock Min.</label>
-                <Input type="number" placeholder="ex : 5" value={newMinStock} onChange={(e) => setNewMinStock(e.target.value)} className="bg-background" />
+                <Input type="text" inputMode="numeric" placeholder="ex : 5" value={newMinStock} onChange={(e) => setNewMinStock(e.target.value)} className="bg-background" />
               </div>
               <div className="space-y-1.5 md:col-span-1">
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Re-commande</label>
-                <Input type="number" placeholder="Qté..." value={newReorderQuantity} onChange={(e) => setNewReorderQuantity(e.target.value)} className="bg-background" />
+                <Input type="text" inputMode="numeric" placeholder="Qté..." value={newReorderQuantity} onChange={(e) => setNewReorderQuantity(e.target.value)} className="bg-background" />
               </div>
               <div className="space-y-1.5 md:col-span-2">
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Description</label>
@@ -232,11 +232,11 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
                       <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
                         <div className="space-y-1">
                           <label className="text-[10px] font-semibold text-muted-foreground uppercase">Stock Min.</label>
-                          <Input type="number" value={editMinStock} onChange={(e) => setEditMinStock(e.target.value)} className="h-9" placeholder="0" />
+                          <Input type="text" inputMode="numeric" value={editMinStock} onChange={(e) => setEditMinStock(e.target.value)} className="h-9" placeholder="-" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-semibold text-muted-foreground uppercase">Re-commande</label>
-                          <Input type="number" value={editReorderQuantity} onChange={(e) => setEditReorderQuantity(e.target.value)} className="h-9" placeholder="Qté" />
+                          <Input type="text" inputMode="numeric" value={editReorderQuantity} onChange={(e) => setEditReorderQuantity(e.target.value)} className="h-9" placeholder="-" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-semibold text-muted-foreground uppercase">Description</label>
