@@ -17,7 +17,6 @@ export interface Item {
 }
 
 export interface CreateItemDto {
-  ref: string;
   label: string;
   isProduced?: boolean;
   minimumStockLevel: number;

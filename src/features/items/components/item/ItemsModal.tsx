@@ -21,7 +21,6 @@ interface ItemsModalProps {
 
 export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, onAdd, onEdit, onDelete }: ItemsModalProps) {
   const [newLabel, setNewLabel] = useState("");
-  const [newRef, setNewRef] = useState("");
   const [newIdProductType, setNewIdProductType] = useState("");
   const [newIdUnit, setNewIdUnit] = useState("");
   const [newMinStock, setNewMinStock] = useState("");
@@ -48,9 +47,8 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
   const itemsPerPage = 10;
 
   const handleAdd = () => {
-    if (newRef.trim() && newLabel.trim() && newIdProductType && newIdUnit) {
+    if (newLabel.trim() && newIdProductType && newIdUnit) {
       onAdd({
-        ref: newRef.trim(),
         label: newLabel.trim(),
         idProductType: newIdProductType,
         idUnit: newIdUnit,
@@ -61,7 +59,6 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
         status: 0,
         description: newDescription.trim() || undefined,
       });
-      setNewRef("");
       setNewLabel("");
       setNewIdProductType("");
       setNewIdUnit("");
@@ -146,11 +143,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
         <div className="p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar max-h-[calc(95vh-150px)]">
           <div className="bg-muted/10 p-5 rounded-2xl border border-border/50 shrink-0">
             <h4 className="text-sm font-semibold mb-4 text-foreground">Ajouter un Article</h4>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-              <div className="space-y-1.5 md:col-span-1">
-                <label className="text-xs font-semibold text-muted-foreground uppercase">Réf.</label>
-                <Input placeholder="Ex: ART-01..." value={newRef} onChange={(e) => setNewRef(e.target.value)} className="bg-background" />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               <div className="space-y-1.5 md:col-span-2">
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Nom (Label)</label>
                 <Input placeholder="Ex: Farine de blé..." value={newLabel} onChange={(e) => setNewLabel(e.target.value)} className="bg-background" />
