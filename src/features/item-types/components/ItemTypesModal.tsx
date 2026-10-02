@@ -66,7 +66,7 @@ export function ItemTypesModal({ isOpen, onClose, data, onAdd, onEdit, onDelete 
   const paginatedData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
+    <Dialog open={isOpen}>
       <DialogContent onInteractOutside={(e) => e.preventDefault()} className="max-w-4xl rounded-[2rem] p-0 overflow-hidden bg-card border shadow-2xl">
         <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
           <DialogHeader>
