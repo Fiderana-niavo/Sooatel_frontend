@@ -205,34 +205,55 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
                 <div key={item.idItem} className="p-4 rounded-lg border bg-card hover:bg-muted/30 transition-colors group">
                   {editingId === item.idItem ? (
                     <div className="space-y-3">
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
-                        <Input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} className="h-9" placeholder="Nom" />
-                        <select value={editIdProductType} onChange={(e) => setEditIdProductType(e.target.value)} className="w-full bg-background border border-input rounded-md px-3 h-9 text-sm">
-                          <option value="">Type...</option>
-                          {itemTypes.map(it => <option key={it.idProductType} value={it.idProductType}>{it.label}</option>)}
-                        </select>
-                        <select value={editIdUnit} onChange={(e) => setEditIdUnit(e.target.value)} className="w-full bg-background border border-input rounded-md px-3 h-9 text-sm">
-                          <option value="">Unité...</option>
-                          {unitOfMeasures.map(u => <option key={u.idUnit} value={u.idUnit}>{u.symbol}</option>)}
-                        </select>
-                        <div className="flex justify-end gap-1">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-semibold text-muted-foreground uppercase">Nom</label>
+                          <Input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} className="h-9" placeholder="Nom" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-semibold text-muted-foreground uppercase">Type</label>
+                          <select value={editIdProductType} onChange={(e) => setEditIdProductType(e.target.value)} className="w-full bg-background border border-input rounded-md px-3 h-9 text-sm">
+                            <option value="">Type...</option>
+                            {itemTypes.map(it => <option key={it.idProductType} value={it.idProductType}>{it.label}</option>)}
+                          </select>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-semibold text-muted-foreground uppercase">Unité</label>
+                          <select value={editIdUnit} onChange={(e) => setEditIdUnit(e.target.value)} className="w-full bg-background border border-input rounded-md px-3 h-9 text-sm">
+                            <option value="">Unité...</option>
+                            {unitOfMeasures.map(u => <option key={u.idUnit} value={u.idUnit}>{u.symbol}</option>)}
+                          </select>
+                        </div>
+                        <div className="flex justify-end gap-1 pb-0.5">
                           <Button size="icon" variant="ghost" onClick={saveEdit} className="text-green-600"><Check className="size-4" /></Button>
                           <Button size="icon" variant="ghost" onClick={cancelEdit}><X className="size-4" /></Button>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
-                        <Input type="number" value={editMinStock} onChange={(e) => setEditMinStock(e.target.value)} className="h-9" placeholder="Stock Min." />
-                        <Input type="number" value={editReorderQuantity} onChange={(e) => setEditReorderQuantity(e.target.value)} className="h-9" placeholder="Re-commande" />
-                        <Input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="h-9" placeholder="Description" />
-                        <div className="md:col-span-2 flex items-center gap-2">
-                          <label className="flex items-center gap-1.5 text-xs bg-background border px-2 py-1.5 rounded-md cursor-pointer hover:bg-muted/50">
-                            <input type="checkbox" checked={editIsPerishable} onChange={(e) => setEditIsPerishable(e.target.checked)} />
-                            Périssable
-                          </label>
-                          <label className="flex items-center gap-1.5 text-xs bg-background border px-2 py-1.5 rounded-md cursor-pointer hover:bg-muted/50">
-                            <input type="checkbox" checked={editIsProduced} onChange={(e) => setEditIsProduced(e.target.checked)} />
-                            Produit interne
-                          </label>
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-semibold text-muted-foreground uppercase">Stock Min.</label>
+                          <Input type="number" value={editMinStock} onChange={(e) => setEditMinStock(e.target.value)} className="h-9" placeholder="0" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-semibold text-muted-foreground uppercase">Re-commande</label>
+                          <Input type="number" value={editReorderQuantity} onChange={(e) => setEditReorderQuantity(e.target.value)} className="h-9" placeholder="Qté" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-semibold text-muted-foreground uppercase">Description</label>
+                          <Input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="h-9" placeholder="Description" />
+                        </div>
+                        <div className="md:col-span-2 space-y-1">
+                          <label className="text-[10px] font-semibold text-muted-foreground uppercase">Options</label>
+                          <div className="flex items-center gap-2 h-9">
+                            <label className="flex items-center gap-1.5 text-xs bg-background border px-2 py-1.5 rounded-md cursor-pointer hover:bg-muted/50 h-full">
+                              <input type="checkbox" checked={editIsPerishable} onChange={(e) => setEditIsPerishable(e.target.checked)} />
+                              Périssable
+                            </label>
+                            <label className="flex items-center gap-1.5 text-xs bg-background border px-2 py-1.5 rounded-md cursor-pointer hover:bg-muted/50 h-full">
+                              <input type="checkbox" checked={editIsProduced} onChange={(e) => setEditIsProduced(e.target.checked)} />
+                              Produit interne
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </div>
