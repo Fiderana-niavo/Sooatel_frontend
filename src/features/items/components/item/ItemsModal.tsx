@@ -189,7 +189,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
                 </div>
               </div>
 
-              <Button onClick={handleAdd} disabled={!newRef.trim() || !newLabel.trim() || !newIdProductType || !newIdUnit} className="gap-2 rounded-xl h-10 w-full md:col-span-5 mt-2">
+              <Button onClick={handleAdd} disabled={!newLabel.trim() || !newIdProductType || !newIdUnit} className="gap-2 rounded-xl h-10 w-full md:col-span-5 mt-2">
                 <Plus className="size-4" /> Ajouter
               </Button>
             </div>
