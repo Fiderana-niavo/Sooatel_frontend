@@ -115,7 +115,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
 
   return (
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
-      <DialogContent className="max-w-5xl rounded-xl p-0 overflow-hidden bg-card border shadow-2xl">
+      <DialogContent onInteractOutside={(e) => e.preventDefault()} className="max-w-5xl rounded-xl p-0 overflow-hidden bg-card border shadow-2xl">
         <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
           <DialogHeader>
             <div className="flex items-center justify-between">
@@ -189,7 +189,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
                 </div>
               </div>
 
-              <Button onClick={handleAdd} disabled={!newLabel.trim() || !newIdProductType || !newIdUnit} className="gap-2 rounded-lg h-10 w-full md:col-span-5 mt-2">
+              <Button type="button" onClick={handleAdd} disabled={!newLabel.trim() || !newIdProductType || !newIdUnit} className="gap-2 rounded-lg h-10 w-full md:col-span-5 mt-2">
                 <Plus className="size-4" /> Ajouter
               </Button>
             </div>

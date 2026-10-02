@@ -67,7 +67,7 @@ export function MenuCategorysModal({ isOpen, onClose, data, onAdd, onEdit, onDel
 
   return (
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
-      <DialogContent className="max-w-4xl rounded-[2rem] p-0 overflow-hidden bg-card border shadow-2xl">
+      <DialogContent onInteractOutside={(e) => e.preventDefault()} className="max-w-4xl rounded-[2rem] p-0 overflow-hidden bg-card border shadow-2xl">
         <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
           <DialogHeader>
             <div className="flex items-center justify-between">
