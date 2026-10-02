@@ -115,12 +115,12 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
 
   return (
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
-      <DialogContent className="max-w-5xl rounded-[2rem] p-0 overflow-hidden bg-card border shadow-2xl">
+      <DialogContent className="max-w-5xl rounded-xl p-0 overflow-hidden bg-card border shadow-2xl">
         <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-primary/20 text-primary rounded-xl">
+                <div className="p-2.5 bg-primary/20 text-primary rounded-lg">
                   <Package className="size-6" />
                 </div>
                 <div>
@@ -141,7 +141,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
         </div>
 
         <div className="p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar max-h-[calc(95vh-150px)]">
-          <div className="bg-muted/10 p-5 rounded-2xl border border-border/50 shrink-0">
+          <div className="bg-muted/10 p-5 rounded-xl border border-border/50 shrink-0">
             <h4 className="text-sm font-semibold mb-4 text-foreground">Ajouter un Article</h4>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
               <div className="space-y-1.5 md:col-span-2">
@@ -150,7 +150,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Type d'article</label>
-                <select value={newIdProductType} onChange={(e) => setNewIdProductType(e.target.value)} className="w-full bg-background border border-input rounded-xl px-3 h-10 text-sm">
+                <select value={newIdProductType} onChange={(e) => setNewIdProductType(e.target.value)} className="w-full bg-background border border-input rounded-lg px-3 h-10 text-sm">
                   <option value="">Sélectionner...</option>
                   {itemTypes.map(it => <option key={it.idProductType} value={it.idProductType}>{it.label}</option>)}
                 </select>
@@ -158,7 +158,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Unité de Mesure</label>
-                <select value={newIdUnit} onChange={(e) => setNewIdUnit(e.target.value)} className="w-full bg-background border border-input rounded-xl px-3 h-10 text-sm">
+                <select value={newIdUnit} onChange={(e) => setNewIdUnit(e.target.value)} className="w-full bg-background border border-input rounded-lg px-3 h-10 text-sm">
                   <option value="">Sélectionner...</option>
                   {unitOfMeasures.map(u => <option key={u.idUnit} value={u.idUnit}>{u.label} ({u.symbol})</option>)}
                 </select>
@@ -178,18 +178,18 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
               <div className="space-y-1.5 md:col-span-2">
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Options</label>
                 <div className="flex flex-wrap gap-2 h-10 items-center">
-                  <label className="flex items-center gap-2 text-sm bg-background border px-3 rounded-lg h-full cursor-pointer hover:bg-muted/50 transition-colors">
+                  <label className="flex items-center gap-2 text-sm bg-background border px-3 rounded-md h-full cursor-pointer hover:bg-muted/50 transition-colors">
                     <input type="checkbox" checked={newIsPerishable} onChange={(e) => setNewIsPerishable(e.target.checked)} />
                     Périssable
                   </label>
-                  <label className="flex items-center gap-2 text-sm bg-background border px-3 rounded-lg h-full cursor-pointer hover:bg-muted/50 transition-colors">
+                  <label className="flex items-center gap-2 text-sm bg-background border px-3 rounded-md h-full cursor-pointer hover:bg-muted/50 transition-colors">
                     <input type="checkbox" checked={newIsProduced} onChange={(e) => setNewIsProduced(e.target.checked)} />
                     Produit interne
                   </label>
                 </div>
               </div>
 
-              <Button onClick={handleAdd} disabled={!newLabel.trim() || !newIdProductType || !newIdUnit} className="gap-2 rounded-xl h-10 w-full md:col-span-5 mt-2">
+              <Button onClick={handleAdd} disabled={!newLabel.trim() || !newIdProductType || !newIdUnit} className="gap-2 rounded-lg h-10 w-full md:col-span-5 mt-2">
                 <Plus className="size-4" /> Ajouter
               </Button>
             </div>
@@ -197,12 +197,12 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
 
           <div className="space-y-3">
             {paginatedData.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
+              <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-xl border border-dashed">
                 Aucun article trouvé.
               </div>
             ) : (
               paginatedData.map((item: any) => (
-                <div key={item.idItem} className="p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors group">
+                <div key={item.idItem} className="p-4 rounded-lg border bg-card hover:bg-muted/30 transition-colors group">
                   {editingId === item.idItem ? (
                     <div className="space-y-3">
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
@@ -260,18 +260,18 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
                           {menuOpenId === item.idItem && (
                             <>
                               <div className="fixed inset-0 z-40" onClick={() => setMenuOpenId(null)}></div>
-                              <div className="absolute right-0 bottom-full mb-1 w-48 bg-card border border-border/50 shadow-xl rounded-xl p-1 z-50 animate-in zoom-in-95 origin-bottom-right">
-                                <button onClick={() => { setViewingId(viewingId === item.idItem ? null : item.idItem); setMenuOpenId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 rounded-lg text-left">
+                              <div className="absolute right-0 bottom-full mb-1 w-48 bg-card border border-border/50 shadow-xl rounded-lg p-1 z-50 animate-in zoom-in-95 origin-bottom-right">
+                                <button onClick={() => { setViewingId(viewingId === item.idItem ? null : item.idItem); setMenuOpenId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 rounded-md text-left">
                                   <Eye className="size-4 text-muted-foreground" /> {viewingId === item.idItem ? "Masquer détails" : "Détails"}
                                 </button>
-                                <button onClick={() => { startEdit(item); setMenuOpenId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 rounded-lg text-left">
+                                <button onClick={() => { startEdit(item); setMenuOpenId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 rounded-md text-left">
                                   <Edit className="size-4 text-blue-500" /> Modifier
                                 </button>
-                                <button onClick={() => { handleToggleStatus(item); setMenuOpenId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 rounded-lg text-left">
+                                <button onClick={() => { handleToggleStatus(item); setMenuOpenId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 rounded-md text-left">
                                   {item.status === 0 ? <><PowerOff className="size-4 text-orange-500" /> Rendre inactif</> : <><Power className="size-4 text-emerald-500" /> Rendre actif</>}
                                 </button>
                                 <div className="h-px bg-border/50 my-1"></div>
-                                <button onClick={() => { onDelete(item.idItem); setMenuOpenId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-destructive/10 text-destructive rounded-lg text-left">
+                                <button onClick={() => { onDelete(item.idItem); setMenuOpenId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-destructive/10 text-destructive rounded-md text-left">
                                   <Trash2 className="size-4" /> Supprimer
                                 </button>
                               </div>
@@ -281,7 +281,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
                       </div>
 
                       {viewingId === item.idItem && (
-                        <div className="mt-3 pt-3 border-t border-border/50 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-muted/5 p-4 rounded-xl animate-in fade-in zoom-in-95 duration-200">
+                        <div className="mt-3 pt-3 border-t border-border/50 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-muted/5 p-4 rounded-lg animate-in fade-in zoom-in-95 duration-200">
                           <div><span className="text-muted-foreground block text-xs uppercase mb-1">Stock Actuel</span> <span className="font-semibold text-base">{item.quantity ?? 0}</span></div>
                           <div><span className="text-muted-foreground block text-xs uppercase mb-1">Stock Min.</span> <span className="font-semibold text-base">{item.minimumStockLevel}</span></div>
                           <div><span className="text-muted-foreground block text-xs uppercase mb-1">Re-commande</span> <span className="font-semibold text-base">{item.reorderQuantity ?? "-"}</span></div>
@@ -309,7 +309,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
         </div>
 
         <DialogFooter className="p-4 bg-muted/10 border-t shrink-0">
-          <Button onClick={onClose} variant="outline" className="w-full sm:w-auto rounded-xl">Fermer</Button>
+          <Button onClick={onClose} variant="outline" className="w-full sm:w-auto rounded-lg">Fermer</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
