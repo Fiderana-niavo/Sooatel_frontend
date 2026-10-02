@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/utils/ui";
 
@@ -29,6 +30,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
@@ -42,20 +44,45 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
     }
   }, [isOpen, selectedOption]);
 
-  // Close dropdown on outside click
+  // Close dropdown on outside click and scroll
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+        // We also need to check if the click was inside the portal
+        const target = event.target as HTMLElement;
+        if (!target.closest('.searchable-select-portal')) {
+          setIsOpen(false);
+        }
       }
+    };
+
+    const handleScroll = (event: Event) => {
+      const target = event.target as HTMLElement;
+      if (target && target.closest && target.closest('.searchable-select-portal')) {
+        return; // Do not close if scrolling inside the dropdown
+      }
+      if (isOpen) setIsOpen(false);
     };
 
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("scroll", handleScroll, true);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll, true);
     };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen && dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
   }, [isOpen]);
 
   const filteredOptions = options.filter((opt) =>
@@ -97,9 +124,15 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
         <ChevronDown size={16} className="absolute right-3 text-muted-foreground opacity-50 pointer-events-none" />
       </div>
 
-      {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-popover border border-border/50 rounded-md shadow-md animate-in fade-in slide-in-from-top-2">
-          <div className="max-h-60 overflow-y-auto p-1">
+      {isOpen && createPortal(
+        <div 
+          className="searchable-select-portal absolute z-[9999] mt-1 bg-popover border border-border/50 rounded-md shadow-md animate-in fade-in slide-in-from-top-2"
+          style={{ top: coords.top, left: coords.left, width: coords.width, pointerEvents: "auto" }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onWheel={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+        >
+          <div className="max-h-[136px] overflow-y-auto p-1 custom-scrollbar">
             {filteredOptions.length === 0 ? (
               <div className="px-2 py-4 text-sm text-center text-muted-foreground">
                 Aucun résultat.
@@ -135,7 +168,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
               </button>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

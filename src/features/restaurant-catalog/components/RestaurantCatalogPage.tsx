@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 import { ItemsModal, ItemService, type Item } from "@/features/items";
 import { ItemTypesModal, ItemTypeService, type ItemType } from "@/features/item-types";
@@ -18,9 +18,13 @@ export function RestaurantCatalogPage() {
     isOpen: false,
   });
 
-  const showSnackbar = (message: string, type: SnackbarType = "info") => {
+  const showSnackbar = useCallback((message: string, type: SnackbarType = "info") => {
     setSnackbar({ message, type, isOpen: true });
-  };
+  }, []);
+
+  const closeSnackbar = useCallback(() => {
+    setSnackbar((prev) => ({ ...prev, isOpen: false }));
+  }, []);
 
   const [selectedMenuCategory, setSelectedMenuCategory] = useState<string>("");
 
@@ -69,26 +73,26 @@ export function RestaurantCatalogPage() {
 
 
       <ItemsModal
-        isOpen={items.isOpen} onClose={() => items.setIsOpen(false)} data={items.data}
+        isOpen={items.isOpen} onClose={() => items.setIsOpen(false)}
         itemTypes={itemTypes.data} unitOfMeasures={unitOfMeasures.data}
         onAdd={(data) => items.handleAdd(data, showSnackbar)} onEdit={(id, data) => items.handleEdit(id, data, showSnackbar)} onDelete={items.promptDelete}
       />
       <ConfirmDialog open={items.confirmOpen} onOpenChange={items.setConfirmOpen} title="Confirmation" description="Voulez-vous vraiment supprimer cet article ?" onConfirm={() => items.executeDelete(showSnackbar)} loading={items.isDeleting} />
 
       <ItemTypesModal
-        isOpen={itemTypes.isOpen} onClose={() => itemTypes.setIsOpen(false)} data={itemTypes.data}
+        isOpen={itemTypes.isOpen} onClose={() => itemTypes.setIsOpen(false)}
         onAdd={(data) => itemTypes.handleAdd(data, showSnackbar)} onEdit={(id, data) => itemTypes.handleEdit(id, data, showSnackbar)} onDelete={itemTypes.promptDelete}
       />
       <ConfirmDialog open={itemTypes.confirmOpen} onOpenChange={itemTypes.setConfirmOpen} title="Confirmation" description="Voulez-vous vraiment supprimer ce type d'article ?" onConfirm={() => itemTypes.executeDelete(showSnackbar)} loading={itemTypes.isDeleting} />
 
       <UnitOfMeasuresModal
-        isOpen={unitOfMeasures.isOpen} onClose={() => unitOfMeasures.setIsOpen(false)} data={unitOfMeasures.data}
+        isOpen={unitOfMeasures.isOpen} onClose={() => unitOfMeasures.setIsOpen(false)}
         onAdd={(data) => unitOfMeasures.handleAdd(data, showSnackbar)} onEdit={(id, data) => unitOfMeasures.handleEdit(id, data, showSnackbar)} onDelete={unitOfMeasures.promptDelete}
       />
       <ConfirmDialog open={unitOfMeasures.confirmOpen} onOpenChange={unitOfMeasures.setConfirmOpen} title="Confirmation" description="Voulez-vous vraiment supprimer cette unité de mesure ?" onConfirm={() => unitOfMeasures.executeDelete(showSnackbar)} loading={unitOfMeasures.isDeleting} />
 
       <MenuItemsModal
-        isOpen={menuItems.isOpen} onClose={() => menuItems.setIsOpen(false)} data={menuItems.data}
+        isOpen={menuItems.isOpen} onClose={() => menuItems.setIsOpen(false)}
         items={items.data}
         categories={menuCategories.data} selectedCategory={selectedMenuCategory} onCategoryChange={setSelectedMenuCategory}
         onAdd={(data) => menuItems.handleAdd(data, showSnackbar)} onEdit={(id, data) => menuItems.handleEdit(id, data, showSnackbar)} onDelete={menuItems.promptDelete}
@@ -96,7 +100,7 @@ export function RestaurantCatalogPage() {
       <ConfirmDialog open={menuItems.confirmOpen} onOpenChange={menuItems.setConfirmOpen} title="Confirmation" description="Voulez-vous vraiment supprimer ce plat ?" onConfirm={() => menuItems.executeDelete(showSnackbar)} loading={menuItems.isDeleting} />
 
       <MenuCategorysModal
-        isOpen={menuCategories.isOpen} onClose={() => menuCategories.setIsOpen(false)} data={menuCategories.data}
+        isOpen={menuCategories.isOpen} onClose={() => menuCategories.setIsOpen(false)}
         onAdd={(data) => menuCategories.handleAdd(data, showSnackbar)} onEdit={(id, data) => menuCategories.handleEdit(id, data, showSnackbar)} onDelete={menuCategories.promptDelete}
       />
       <ConfirmDialog open={menuCategories.confirmOpen} onOpenChange={menuCategories.setConfirmOpen} title="Confirmation" description="Voulez-vous vraiment supprimer cette catégorie de menu ?" onConfirm={() => menuCategories.executeDelete(showSnackbar)} loading={menuCategories.isDeleting} />
@@ -106,7 +110,7 @@ export function RestaurantCatalogPage() {
         <Snackbar
           message={snackbar.message}
           type={snackbar.type}
-          onClose={() => setSnackbar({ ...snackbar, isOpen: false })}
+          onClose={closeSnackbar}
         />
       )}
     </div>

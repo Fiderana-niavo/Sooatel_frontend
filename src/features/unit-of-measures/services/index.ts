@@ -14,6 +14,18 @@ export class UnitOfMeasureService {
     return (res.data.payload as { records: UnitOfMeasure[] }).records || [];
   }
 
+  static async getAllPaginated(params?: Record<string, any>): Promise<{ records: UnitOfMeasure[], total: number }> {
+    const res = await axios.get<ApiResponse<{ records: UnitOfMeasure[], total: number } | UnitOfMeasure[]>>(`${BASE}/unit-of-measures`, { params });
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    if (Array.isArray(res.data.payload)) {
+      return { records: res.data.payload, total: res.data.payload.length };
+    }
+    return { 
+      records: res.data.payload.records || [], 
+      total: res.data.payload.total || 0 
+    };
+  }
+
   static async getById(id: string): Promise<UnitOfMeasure> {
     const res = await axios.get<ApiResponse<UnitOfMeasure>>(`${BASE}/unit-of-measures/${id}`);
     if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');

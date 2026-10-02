@@ -14,6 +14,18 @@ export class ItemTypeService {
     return (res.data.payload as { records: ItemType[] }).records || [];
   }
 
+  static async getAllPaginated(params?: Record<string, any>): Promise<{ records: ItemType[], total: number }> {
+    const res = await axios.get<ApiResponse<{ records: ItemType[], total: number } | ItemType[]>>(`${BASE}/item-types`, { params });
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    if (Array.isArray(res.data.payload)) {
+      return { records: res.data.payload, total: res.data.payload.length };
+    }
+    return { 
+      records: res.data.payload.records || [], 
+      total: res.data.payload.total || 0 
+    };
+  }
+
   static async getById(id: string): Promise<ItemType> {
     const res = await axios.get<ApiResponse<ItemType>>(`${BASE}/item-types/${id}`);
     if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');

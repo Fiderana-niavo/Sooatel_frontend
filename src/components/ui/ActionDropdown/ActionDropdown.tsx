@@ -87,7 +87,8 @@ export const ActionDropdown: React.FC<ActionDropdownProps> = ({ items, icon }) =
         <div
           ref={dropdownRef}
           className="absolute z-[9999] w-48 rounded-xl shadow-lg p-1 bg-card border animate-in fade-in zoom-in-95 duration-100"
-          style={{ top: coords.top, left: coords.left }}
+          style={{ top: coords.top, left: coords.left, pointerEvents: "auto" }}
+          onPointerDown={(e) => e.stopPropagation()}
         >
           <div className="flex flex-col" role="menu">
             {visibleItems.map((item, index) => (

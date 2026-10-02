@@ -14,6 +14,18 @@ export class MenuItemService {
     return (res.data.payload as { records: MenuItem[] }).records || [];
   }
 
+  static async getAllPaginated(params?: Record<string, any>): Promise<{ records: MenuItem[], total: number }> {
+    const res = await axios.get<ApiResponse<{ records: MenuItem[], total: number } | MenuItem[]>>(`${BASE}/menu-items`, { params });
+    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    if (Array.isArray(res.data.payload)) {
+      return { records: res.data.payload, total: res.data.payload.length };
+    }
+    return { 
+      records: res.data.payload.records || [], 
+      total: res.data.payload.total || 0 
+    };
+  }
+
   static async getById(id: string): Promise<MenuItem> {
     const res = await axios.get<ApiResponse<MenuItem>>(`${BASE}/menu-items/${id}`);
     if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');

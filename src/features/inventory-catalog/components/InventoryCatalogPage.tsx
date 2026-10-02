@@ -77,7 +77,6 @@ export function InventoryCatalogPage({ onGoToDeliveries }: { onGoToDeliveries?: 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
       showSnackbar("Article ajouté", "success");
-      setIsItemsOpen(false);
     },
     onError: () => showSnackbar("Erreur lors de l'ajout", "error"),
   });
@@ -87,7 +86,6 @@ export function InventoryCatalogPage({ onGoToDeliveries }: { onGoToDeliveries?: 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
       showSnackbar("Article modifié", "success");
-      setIsItemsOpen(false);
     },
     onError: () => showSnackbar("Erreur lors de la modification", "error"),
   });
@@ -106,7 +104,6 @@ export function InventoryCatalogPage({ onGoToDeliveries }: { onGoToDeliveries?: 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["itemTypes"] });
       showSnackbar("Type d'article ajouté", "success");
-      setIsItemTypesOpen(false);
     },
     onError: () => showSnackbar("Erreur", "error"),
   });
@@ -116,7 +113,6 @@ export function InventoryCatalogPage({ onGoToDeliveries }: { onGoToDeliveries?: 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["itemTypes"] });
       showSnackbar("Type d'article modifié", "success");
-      setIsItemTypesOpen(false);
     },
     onError: () => showSnackbar("Erreur", "error"),
   });
@@ -135,7 +131,6 @@ export function InventoryCatalogPage({ onGoToDeliveries }: { onGoToDeliveries?: 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["unitOfMeasures"] });
       showSnackbar("Unité ajoutée", "success");
-      setIsUnitsOpen(false);
     },
     onError: () => showSnackbar("Erreur", "error"),
   });
@@ -145,7 +140,6 @@ export function InventoryCatalogPage({ onGoToDeliveries }: { onGoToDeliveries?: 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["unitOfMeasures"] });
       showSnackbar("Unité modifiée", "success");
-      setIsUnitsOpen(false);
     },
     onError: () => showSnackbar("Erreur", "error"),
   });
@@ -164,7 +158,6 @@ export function InventoryCatalogPage({ onGoToDeliveries }: { onGoToDeliveries?: 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["itemUnits"] });
       showSnackbar("Unité alternative ajoutée", "success");
-      setIsItemUnitsOpen(false);
     },
     onError: (err: any) => {
       const msg = err.response?.data?.error || err.response?.data?.message || "Erreur lors de l'ajout";
@@ -263,7 +256,6 @@ export function InventoryCatalogPage({ onGoToDeliveries }: { onGoToDeliveries?: 
       <ItemsModal
         isOpen={isItemsOpen}
         onClose={() => setIsItemsOpen(false)}
-        data={items}
         itemTypes={itemTypes}
         unitOfMeasures={unitOfMeasures}
         onAdd={(data) => createItem.mutate(data)}
@@ -284,7 +276,6 @@ export function InventoryCatalogPage({ onGoToDeliveries }: { onGoToDeliveries?: 
       <ItemTypesModal
         isOpen={isItemTypesOpen}
         onClose={() => setIsItemTypesOpen(false)}
-        data={itemTypes}
         onAdd={(data) => createItemType.mutate(data as any)}
         onEdit={(id, data) => updateItemType.mutate({ id, data })}
         onDelete={(id) => setItemTypesConfirm({ isOpen: true, id })}
@@ -303,7 +294,6 @@ export function InventoryCatalogPage({ onGoToDeliveries }: { onGoToDeliveries?: 
       <UnitOfMeasuresModal
         isOpen={isUnitsOpen}
         onClose={() => setIsUnitsOpen(false)}
-        data={unitOfMeasures}
         onAdd={(data) => createUnit.mutate(data as any)}
         onEdit={(id, data) => updateUnit.mutate({ id, data })}
         onDelete={(id) => setUnitsConfirm({ isOpen: true, id })}

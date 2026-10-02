@@ -8,11 +8,12 @@ import { Coffee, Edit, Trash2, Plus, X, Check, Filter, Search } from "lucide-rea
 import type { MenuItem } from "../types";
 import type { MenuCategory } from "../../menu-categories/types";
 import type { Item } from "../../items/types/item.type";
+import { useQuery } from "@tanstack/react-query";
+import { MenuItemService } from "../services";
 
 interface MenuItemsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  data: MenuItem[];
   items: Item[];
   categories: MenuCategory[];
   selectedCategory: string;
@@ -22,7 +23,7 @@ interface MenuItemsModalProps {
   onDelete: (id: string) => void;
 }
 
-export function MenuItemsModal({ isOpen, onClose, data, items, categories, selectedCategory, onCategoryChange, onAdd, onEdit, onDelete }: MenuItemsModalProps) {
+export function MenuItemsModal({ isOpen, onClose, items, categories, selectedCategory, onCategoryChange, onAdd, onEdit, onDelete }: MenuItemsModalProps) {
   const [newIdItem, setNewIdItem] = useState("");
   const [newSalePrice, setNewSalePrice] = useState("");
   const [newRecipeCost, setNewRecipeCost] = useState("");
@@ -77,18 +78,18 @@ export function MenuItemsModal({ isOpen, onClose, data, items, categories, selec
     }
   };
 
-  const filteredData = data.filter((r) => {
-    const matchesSearch = r.ref?.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = selectedCategory ? r.idCategory === selectedCategory : true;
-    return matchesSearch && matchesCategory;
+  const { data: paginatedDataResult, isLoading } = useQuery({
+    queryKey: ["menu-items-paginated", currentPage, search, selectedCategory],
+    queryFn: () => MenuItemService.getAllPaginated({ page: currentPage, limit: itemsPerPage, search, idCategory: selectedCategory || undefined }),
+    enabled: isOpen
   });
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const paginatedData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const paginatedData = paginatedDataResult?.records || [];
+  const totalPages = paginatedDataResult?.total ? Math.ceil(paginatedDataResult.total / itemsPerPage) : 1;
 
   return (
-    <Dialog open={isOpen}>
-      <DialogContent onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()} className="max-w-5xl rounded-[2rem] p-0 overflow-hidden bg-card border shadow-2xl">
+    <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
+      <DialogContent onInteractOutside={(e) => e.preventDefault()} className="max-w-5xl rounded-[2rem] p-0 overflow-hidden bg-card border shadow-2xl">
         <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
           <DialogHeader>
             <div className="flex items-center justify-between">
@@ -108,7 +109,7 @@ export function MenuItemsModal({ isOpen, onClose, data, items, categories, selec
               <div className="flex items-center gap-3">
                 <div className="relative hidden md:block">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                  <Input placeholder="Rechercher par référence..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} className="pl-9 w-64 bg-background" />
+                  <Input placeholder="Rechercher par nom..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} className="pl-9 w-64 bg-background" />
                 </div>
               </div>
             </div>
@@ -123,7 +124,7 @@ export function MenuItemsModal({ isOpen, onClose, data, items, categories, selec
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Article (Stock lié)</label>
                 <select value={newIdItem} onChange={(e) => setNewIdItem(e.target.value)} className="w-full bg-background border border-input rounded-xl px-3 h-10 text-sm">
                   <option value="">Sélectionner...</option>
-                  {items.filter(i => !data.some(m => (m.idItem || (m as any).item?.idItem) === i.idItem)).map((i) => <option key={i.idItem} value={i.idItem}>{i.label + (i.unit?.symbol ? ` (${i.unit.symbol})` : "")}</option>)}
+                  {items.map((i) => <option key={i.idItem} value={i.idItem}>{i.label + (i.unit?.symbol ? ` (${i.unit.symbol})` : "")}</option>)}
                 </select>
               </div>
               <div className="space-y-1.5">
@@ -160,54 +161,77 @@ export function MenuItemsModal({ isOpen, onClose, data, items, categories, selec
             </div>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scrollbar space-y-3">
-            {paginatedData.length === 0 ? (
+          <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scrollbar">
+            {isLoading ? (
+              <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
+                Chargement...
+              </div>
+            ) : paginatedData.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
                 Aucun plat trouvé.
               </div>
             ) : (
-              paginatedData.map((item: any) => (
-                <div key={item.idMenu} className="p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors group">
-                  {editingId === item.idMenu ? (
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
-                      <select value={editIdItem} onChange={(e) => setEditIdItem(e.target.value)} className="md:col-span-2 w-full bg-background border border-input rounded-md px-3 h-9 text-sm">
-                        <option value="">Article...</option>
-                        {items.filter(i => !data.some(m => (m.idItem || (m as any).item?.idItem) === i.idItem) || i.idItem === editIdItem).map((i) => <option key={i.idItem} value={i.idItem}>{i.label + (i.unit?.symbol ? ` (${i.unit.symbol})` : "")}</option>)}
-                      </select>
-                      <select value={editIdCategory} onChange={(e) => setEditIdCategory(e.target.value)} className="w-full bg-background border border-input rounded-md px-3 h-9 text-sm">
-                        <option value="">Catégorie...</option>
-                        {categories.map((c) => <option key={c.idCategory} value={c.idCategory}>{c.label}</option>)}
-                      </select>
-                      <CurrencyInput value={editSalePrice ? Number(editSalePrice) : undefined} onChange={(val) => setEditSalePrice(val !== undefined ? String(val) : "")} className="h-9" placeholder="Prix" />
-                      <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" onClick={saveEdit} className="text-green-600"><Check className="size-4" /></Button>
-                        <Button size="icon" variant="ghost" onClick={cancelEdit}><X className="size-4" /></Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 flex-1">
-                        <div className="font-semibold text-foreground w-1/5 truncate">{item.ref}</div>
-                        <div className="text-sm text-muted-foreground w-1/5 truncate">
-                          {item.item?.label || items.find(i => i.idItem === (item.idItem || item.item?.idItem))?.label || "Article Inconnu"}
-                        </div>
-                        <div className="text-sm text-muted-foreground w-1/5 truncate">
-                          <span className="px-2 py-1 bg-primary/10 text-primary rounded-md">
-                            {categories.find(c => c.idCategory === item.idCategory)?.label || "Inconnu"}
-                          </span>
-                        </div>
-                        <div className="text-sm font-semibold text-emerald-600 flex-1 text-right pr-4">
-                          {Number(item.salePrice).toLocaleString()} Ar
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Button size="icon" variant="ghost" onClick={() => startEdit(item)} className="opacity-0 group-hover:opacity-100"><Edit className="size-4" /></Button>
-                        <Button size="icon" variant="ghost" onClick={() => onDelete(item.idMenu)} className="opacity-0 group-hover:opacity-100 text-destructive"><Trash2 className="size-4" /></Button>
-                      </div>
-                    </div>
-                  )}
+              <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-muted/50 text-muted-foreground text-xs uppercase font-semibold">
+                      <tr>
+                        <th className="px-6 py-4 rounded-tl-2xl">Réf</th>
+                        <th className="px-6 py-4">Article lié</th>
+                        <th className="px-6 py-4">Catégorie</th>
+                        <th className="px-6 py-4 text-right">Prix (Ar)</th>
+                        <th className="px-6 py-4 text-right rounded-tr-2xl w-24">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/50">
+                      {paginatedData.map((item: any) => (
+                        <tr key={item.idMenu} className="hover:bg-muted/30 transition-colors group">
+                          {editingId === item.idMenu ? (
+                            <td colSpan={5} className="px-6 py-2">
+                              <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
+                                <select value={editIdItem} onChange={(e) => setEditIdItem(e.target.value)} className="md:col-span-2 w-full bg-background border border-input rounded-md px-3 h-9 text-sm">
+                                  <option value="">Article...</option>
+                                  {items.map((i) => <option key={i.idItem} value={i.idItem}>{i.label + (i.unit?.symbol ? ` (${i.unit.symbol})` : "")}</option>)}
+                                </select>
+                                <select value={editIdCategory} onChange={(e) => setEditIdCategory(e.target.value)} className="w-full bg-background border border-input rounded-md px-3 h-9 text-sm">
+                                  <option value="">Catégorie...</option>
+                                  {categories.map((c) => <option key={c.idCategory} value={c.idCategory}>{c.label}</option>)}
+                                </select>
+                                <CurrencyInput value={editSalePrice ? Number(editSalePrice) : undefined} onChange={(val) => setEditSalePrice(val !== undefined ? String(val) : "")} className="h-9" placeholder="Prix" />
+                                <div className="flex justify-end gap-1">
+                                  <Button size="icon" variant="ghost" onClick={saveEdit} className="text-green-600 hover:text-green-600 hover:bg-green-600/10 rounded-full"><Check className="size-4" /></Button>
+                                  <Button size="icon" variant="ghost" onClick={cancelEdit} className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full"><X className="size-4" /></Button>
+                                </div>
+                              </div>
+                            </td>
+                          ) : (
+                            <>
+                              <td className="px-6 py-4 font-semibold text-foreground truncate max-w-[120px]">{item.ref}</td>
+                              <td className="px-6 py-4 text-muted-foreground truncate max-w-[200px]">
+                                {item.item?.label || items.find(i => i.idItem === (item.idItem || item.item?.idItem))?.label || "Article Inconnu"}
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="px-2.5 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium border border-primary/20">
+                                  {categories.find(c => c.idCategory === item.idCategory)?.label || "Inconnu"}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-right font-semibold text-emerald-600 whitespace-nowrap">
+                                {Number(item.salePrice).toLocaleString()} Ar
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex items-center justify-end gap-1">
+                                  <Button size="icon" variant="ghost" onClick={() => startEdit(item)} className="opacity-0 group-hover:opacity-100 text-primary hover:text-primary hover:bg-primary/10 rounded-full"><Edit className="size-4" /></Button>
+                                  <Button size="icon" variant="ghost" onClick={() => onDelete(item.idMenu)} className="opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"><Trash2 className="size-4" /></Button>
+                                </div>
+                              </td>
+                            </>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              ))
+              </div>
             )}
           </div>
           {totalPages > 1 && (

@@ -120,7 +120,7 @@ export const RecipeFormDialog: React.FC<Props> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl h-[85vh] flex flex-col">
+      <DialogContent className="max-w-5xl h-screen max-h-screen flex flex-col p-4 md:p-6 rounded-none sm:rounded-none">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Modifier la recette" : "Nouvelle recette"}</DialogTitle>
           <DialogDescription className="italic">
