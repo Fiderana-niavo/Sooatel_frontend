@@ -75,7 +75,7 @@ export function ItemsModal({ isOpen, onClose, data, itemTypes, unitOfMeasures, o
     setEditLabel(item.label || "");
     setEditIdProductType(item.idProductType || "");
     setEditIdUnit(item.idUnit || "");
-    setEditMinStock(item.minimumStockLevel?.toString() || "");
+    setEditMinStock(item.minimumStockLevel != null && item.minimumStockLevel !== 0 ? item.minimumStockLevel.toString() : "");
     setEditReorderQuantity(item.reorderQuantity?.toString() || "");
     setEditIsPerishable(item.isPerishable || false);
     setEditIsProduced(item.isProduced || false);

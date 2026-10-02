@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
 export function useCrud<T, C = any, U = any>(
@@ -14,14 +14,17 @@ export function useCrud<T, C = any, U = any>(
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const fetchFnRef = useRef(fetchFn);
+  fetchFnRef.current = fetchFn;
+
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetchFn();
+      const res = await fetchFnRef.current();
       setData(res);
     } catch (err) {
       console.error(err);
     }
-  }, [fetchFn]);
+  }, []);
 
   useEffect(() => {
     fetchData();
