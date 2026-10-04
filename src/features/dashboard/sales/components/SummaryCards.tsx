@@ -11,13 +11,24 @@ interface Props {
 }
 
 const formatAmount = (n: number) =>
-  n.toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  n.toLocaleString("fr-FR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
 
-export const SummaryCards: React.FC<Props> = ({ total, metric, loading, startDate, endDate }) => {
+export const SummaryCards: React.FC<Props> = ({
+  total,
+  metric,
+  loading,
+  startDate,
+  endDate,
+}) => {
   const isCA = metric === "ca";
   const Icon = isCA ? TrendingUp : PiggyBank;
   const label = isCA ? "Chiffre d'affaires" : "Bénéfice Net";
-  const colorClass = isCA ? "text-primary bg-primary/10" : "text-emerald-500 bg-emerald-500/10";
+  const colorClass = isCA
+    ? "text-primary bg-primary/10"
+    : "text-emerald-500 bg-emerald-500/10";
   const valueClass = isCA ? "text-primary" : "text-emerald-500";
 
   const fmt = (d: string) =>
@@ -41,9 +52,13 @@ export const SummaryCards: React.FC<Props> = ({ total, metric, loading, startDat
           {loading ? (
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           ) : (
-            <p className={`text-3xl font-extrabold tracking-tight ${valueClass}`}>
+            <p
+              className={`text-3xl font-extrabold tracking-tight ${valueClass}`}
+            >
               {formatAmount(total)}{" "}
-              <span className="text-base font-semibold text-muted-foreground">Ar</span>
+              <span className="text-base font-semibold text-muted-foreground">
+                Ar
+              </span>
             </p>
           )}
         </div>

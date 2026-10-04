@@ -27,7 +27,10 @@ export function MultiSelectCombobox<T>({
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -46,13 +49,17 @@ export function MultiSelectCombobox<T>({
   };
 
   const handleRemove = (valueToRemove: string | number) => {
-    onChange(selectedItems.filter((item) => getOptionValue(item) !== valueToRemove));
+    onChange(
+      selectedItems.filter((item) => getOptionValue(item) !== valueToRemove),
+    );
   };
 
   const filteredOptions = options.filter(
     (option) =>
       getOptionLabel(option).toLowerCase().includes(searchTerm.toLowerCase()) &&
-      !selectedItems.some((item) => getOptionValue(item) === getOptionValue(option))
+      !selectedItems.some(
+        (item) => getOptionValue(item) === getOptionValue(option),
+      ),
   );
 
   return (

@@ -10,14 +10,23 @@ interface PurchaseInfoFormProps {
   onChange: (field: keyof CreatePurchaseDto, value: any) => void;
 }
 
-export const PurchaseInfoForm: React.FC<PurchaseInfoFormProps> = ({ data, suppliers, employees, onChange }) => {
+export const PurchaseInfoForm: React.FC<PurchaseInfoFormProps> = ({
+  data,
+  suppliers,
+  employees,
+  onChange,
+}) => {
   return (
     <div className="p-6 space-y-6">
-      <h3 className="text-lg font-semibold text-foreground">Informations Générales</h3>
+      <h3 className="text-lg font-semibold text-foreground">
+        Informations Générales
+      </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
-          <label className="block text-sm font-medium mb-1">Date de la commande <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium mb-1">
+            Date de la commande <span className="text-red-500">*</span>
+          </label>
           <Input
             type="datetime-local"
             value={data.purchaseDate}
@@ -26,7 +35,9 @@ export const PurchaseInfoForm: React.FC<PurchaseInfoFormProps> = ({ data, suppli
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Fournisseur <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium mb-1">
+            Fournisseur <span className="text-red-500">*</span>
+          </label>
           <SearchableSelect
             value={data.idSupplier}
             onChange={(val) => onChange("idSupplier", val)}
@@ -36,7 +47,10 @@ export const PurchaseInfoForm: React.FC<PurchaseInfoFormProps> = ({ data, suppli
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Responsable de l'achat (Employé) <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium mb-1">
+            Responsable de l'achat (Employé){" "}
+            <span className="text-red-500">*</span>
+          </label>
           <SearchableSelect
             value={data.idPurchaser}
             onChange={(val) => onChange("idPurchaser", val)}

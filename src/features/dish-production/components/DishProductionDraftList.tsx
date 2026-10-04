@@ -12,9 +12,19 @@ interface Props {
   onDelete: (m: DishProduction) => void;
 }
 
-export function DishProductionDraftList({ records, isLoading, onEdit, onValidate, onDelete }: Props) {
-  const [confirmTarget, setConfirmTarget] = useState<DishProduction | null>(null);
-  const [validateTarget, setValidateTarget] = useState<DishProduction | null>(null);
+export function DishProductionDraftList({
+  records,
+  isLoading,
+  onEdit,
+  onValidate,
+  onDelete,
+}: Props) {
+  const [confirmTarget, setConfirmTarget] = useState<DishProduction | null>(
+    null,
+  );
+  const [validateTarget, setValidateTarget] = useState<DishProduction | null>(
+    null,
+  );
 
   const handleConfirmDelete = () => {
     if (confirmTarget) onDelete(confirmTarget);
@@ -49,33 +59,66 @@ export function DishProductionDraftList({ records, isLoading, onEdit, onValidate
               </tr>
             ) : records.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-8 text-muted-foreground">
+                <td
+                  colSpan={6}
+                  className="text-center py-8 text-muted-foreground"
+                >
                   Aucune production en brouillon
                 </td>
               </tr>
             ) : (
               records.map((m) => (
-                <tr key={m.idDishProduction} className="border-t hover:bg-muted/50 transition-colors">
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{m.ref}</td>
-                  <td className="px-4 py-3 font-medium">{m.item?.label ?? "-"}</td>
+                <tr
+                  key={m.idDishProduction}
+                  className="border-t hover:bg-muted/50 transition-colors"
+                >
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                    {m.ref}
+                  </td>
+                  <td className="px-4 py-3 font-medium">
+                    {m.item?.label ?? "-"}
+                  </td>
                   <td className="px-4 py-3 text-right font-semibold text-primary">
                     {Number(m.quantity).toLocaleString()}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                    {m.productionDate ? new Date(m.productionDate).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "-"}
+                    {m.productionDate
+                      ? new Date(m.productionDate).toLocaleString("fr-FR", {
+                          dateStyle: "short",
+                          timeStyle: "short",
+                        })
+                      : "-"}
                   </td>
-                  <td className="px-4 py-3 max-w-[200px] truncate text-muted-foreground" title={m.notes ?? ""}>
+                  <td
+                    className="px-4 py-3 max-w-[200px] truncate text-muted-foreground"
+                    title={m.notes ?? ""}
+                  >
                     {m.notes || "-"}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="sm" title="Modifier" onClick={() => onEdit(m)}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Modifier"
+                        onClick={() => onEdit(m)}
+                      >
                         <Edit2 className="size-4 text-blue-500" />
                       </Button>
-                      <Button variant="ghost" size="sm" title="Valider" onClick={() => setValidateTarget(m)}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Valider"
+                        onClick={() => setValidateTarget(m)}
+                      >
                         <CheckCircle className="size-4 text-green-600" />
                       </Button>
-                      <Button variant="ghost" size="sm" title="Supprimer" onClick={() => setConfirmTarget(m)}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Supprimer"
+                        onClick={() => setConfirmTarget(m)}
+                      >
                         <Trash2 className="size-4 text-red-500" />
                       </Button>
                     </div>
@@ -89,7 +132,9 @@ export function DishProductionDraftList({ records, isLoading, onEdit, onValidate
 
       <ConfirmDialog
         open={!!confirmTarget}
-        onOpenChange={(open) => { if (!open) setConfirmTarget(null); }}
+        onOpenChange={(open) => {
+          if (!open) setConfirmTarget(null);
+        }}
         title="Supprimer la saisie"
         description="Voulez-vous vraiment supprimer ce brouillon de production ?"
         onConfirm={handleConfirmDelete}
@@ -97,7 +142,9 @@ export function DishProductionDraftList({ records, isLoading, onEdit, onValidate
 
       <ConfirmDialog
         open={!!validateTarget}
-        onOpenChange={(open) => { if (!open) setValidateTarget(null); }}
+        onOpenChange={(open) => {
+          if (!open) setValidateTarget(null);
+        }}
         title="Valider la production"
         description="Attention : La validation va déduire les ingrédients du stock et ajouter le plat produit en stock. Cette action est irréversible. Confirmer ?"
         onConfirm={handleConfirmValidate}

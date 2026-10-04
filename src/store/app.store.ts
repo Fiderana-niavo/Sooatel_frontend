@@ -22,8 +22,7 @@ export const useAppStore = create<AppStore>()(
 
       setPermissions: (permissions) => set({ permissions }),
 
-      hasPermission: (code) =>
-        get().permissions.some((p) => p.code === code),
+      hasPermission: (code) => get().permissions.some((p) => p.code === code),
 
       clear: () => set({ connectedUser: null, permissions: [] }),
     }),

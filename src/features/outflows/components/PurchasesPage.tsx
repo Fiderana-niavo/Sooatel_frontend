@@ -3,7 +3,9 @@ import { OutflowCategoryList } from "../category/components/OutflowCategoryList"
 import { CashOutflowList } from "../cash_outflow/components/CashOutflowList";
 
 export function PurchasesPage() {
-  const [activeSubTab, setActiveSubTab] = useState<"cashOutflows" | "categories">("cashOutflows");
+  const [activeSubTab, setActiveSubTab] = useState<
+    "cashOutflows" | "categories"
+  >("cashOutflows");
 
   return (
     <div className="flex flex-col gap-6 w-full h-full">

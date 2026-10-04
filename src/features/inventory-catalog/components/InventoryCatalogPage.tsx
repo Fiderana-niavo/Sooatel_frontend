@@ -6,10 +6,7 @@ import {
   ItemService,
   itemUnitService,
 } from "@/features/items";
-import {
-  ItemTypesModal,
-  ItemTypeService,
-} from "@/features/item-types";
+import { ItemTypesModal, ItemTypeService } from "@/features/item-types";
 import {
   UnitOfMeasuresModal,
   UnitOfMeasureService,
@@ -22,7 +19,11 @@ import { deliveryService } from "@/features/delivery/services/delivery.service";
 import { CheckCircle2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-export function InventoryCatalogPage({ onGoToDeliveries }: { onGoToDeliveries?: () => void }) {
+export function InventoryCatalogPage({
+  onGoToDeliveries,
+}: {
+  onGoToDeliveries?: () => void;
+}) {
   const queryClient = useQueryClient();
 
   const [snackbar, setSnackbar] = useState<{
@@ -160,18 +161,25 @@ export function InventoryCatalogPage({ onGoToDeliveries }: { onGoToDeliveries?: 
       showSnackbar("Unité alternative ajoutée", "success");
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.error || err.response?.data?.message || "Erreur lors de l'ajout";
+      const msg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        "Erreur lors de l'ajout";
       showSnackbar(msg, "error");
     },
   });
   const updateItemUnit = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => itemUnitService.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      itemUnitService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["itemUnits"] });
       showSnackbar("Unité alternative modifiée", "success");
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.error || err.response?.data?.message || "Erreur lors de la modification";
+      const msg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        "Erreur lors de la modification";
       showSnackbar(msg, "error");
     },
   });
@@ -194,16 +202,19 @@ export function InventoryCatalogPage({ onGoToDeliveries }: { onGoToDeliveries?: 
 
   const openDeliveriesResult = useQuery({
     queryKey: ["deliveries-open-count"],
-    queryFn: () => deliveryService.getAllDeliveries({ status: 5, limit: 1 })
+    queryFn: () => deliveryService.getAllDeliveries({ status: 5, limit: 1 }),
   });
   const openDeliveriesCount = openDeliveriesResult.data?.total ?? 0;
 
   return (
     <div className="w-full h-full flex flex-col space-y-8 animate-in fade-in duration-500">
       {openDeliveriesCount > 0 && (
-        <div 
+        <div
           onClick={() => {
-            sessionStorage.setItem("deliveryFilter", JSON.stringify({ status: 5 }));
+            sessionStorage.setItem(
+              "deliveryFilter",
+              JSON.stringify({ status: 5 }),
+            );
             if (onGoToDeliveries) onGoToDeliveries();
           }}
           className="flex items-start gap-3 bg-amber-500/10 p-4 rounded-lg border border-amber-500/20 text-amber-700 dark:text-amber-400 cursor-pointer hover:bg-amber-500/20 transition-colors"
@@ -213,10 +224,14 @@ export function InventoryCatalogPage({ onGoToDeliveries }: { onGoToDeliveries?: 
           </div>
           <div>
             <h3 className="font-semibold text-base mb-1">
-              {openDeliveriesCount} livraison{openDeliveriesCount > 1 ? "s" : ""} non validée{openDeliveriesCount > 1 ? "s" : ""}
+              {openDeliveriesCount} livraison
+              {openDeliveriesCount > 1 ? "s" : ""} non validée
+              {openDeliveriesCount > 1 ? "s" : ""}
             </h3>
             <p className="text-sm opacity-90">
-              Vous avez des livraisons en statut "Ouverte". Cliquez ici pour les vérifier et les valider pour mettre à jour les stocks et autoriser les paiements.
+              Vous avez des livraisons en statut "Ouverte". Cliquez ici pour les
+              vérifier et les valider pour mettre à jour les stocks et autoriser
+              les paiements.
             </p>
           </div>
         </div>

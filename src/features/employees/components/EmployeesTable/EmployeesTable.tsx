@@ -3,7 +3,19 @@ import type { EmployeeListItem } from "../../types/type";
 import { SearchInput } from "@/components/ui/Inputs/search-input";
 import Pagination from "@/components/ui/Pagination/pagination";
 import { Button } from "@/components/ui/Button/button";
-import { MoreVertical, Edit, Trash2, Eye, Plus, Briefcase, ArrowUp, ArrowDown, ArrowUpDown, CalendarDays, UserX } from "lucide-react";
+import {
+  MoreVertical,
+  Edit,
+  Trash2,
+  Eye,
+  Plus,
+  Briefcase,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+  CalendarDays,
+  UserX,
+} from "lucide-react";
 
 interface EmployeesTableProps {
   employees: EmployeeListItem[];
@@ -68,7 +80,10 @@ export function EmployeesTable({
   const dropdownRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setOpenDropdownId(null);
       }
     }
@@ -94,7 +109,9 @@ export function EmployeesTable({
 
   const renderSortIcon = (field: "name" | "employeeCode") => {
     if (sortBy !== field) {
-      return <ArrowUpDown className="size-3.5 text-muted-foreground/40 ml-1 inline-block" />;
+      return (
+        <ArrowUpDown className="size-3.5 text-muted-foreground/40 ml-1 inline-block" />
+      );
     }
     return sortOrder === "ASC" ? (
       <ArrowUp className="size-3.5 text-primary ml-1 inline-block" />
@@ -118,7 +135,7 @@ export function EmployeesTable({
         </Button>
       </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <select
           value={selectedJobTitleId}
           onChange={(e) => onJobTitleChange(e.target.value)}
@@ -134,7 +151,9 @@ export function EmployeesTable({
 
         <select
           value={selectedInternship}
-          onChange={(e) => onInternshipChange(e.target.value as "all" | "yes" | "no")}
+          onChange={(e) =>
+            onInternshipChange(e.target.value as "all" | "yes" | "no")
+          }
           className="h-8 rounded-lg border border-input bg-background px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
           <option value="all">Tous les types (Stagiaires/Employés)</option>
@@ -144,7 +163,9 @@ export function EmployeesTable({
 
         <select
           value={selectedUserAccount}
-          onChange={(e) => onUserAccountChange(e.target.value as "all" | "yes" | "no")}
+          onChange={(e) =>
+            onUserAccountChange(e.target.value as "all" | "yes" | "no")
+          }
           className="h-8 rounded-lg border border-input bg-background px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
           <option value="all">Tous les statuts de compte</option>
@@ -153,18 +174,25 @@ export function EmployeesTable({
         </select>
 
         <button
-          onClick={() => onStatusChange(selectedStatus === "active" ? "former" : "active")}
+          onClick={() =>
+            onStatusChange(selectedStatus === "active" ? "former" : "active")
+          }
           className={`h-8 px-3 py-1 text-xs font-semibold rounded-lg shadow-sm border transition-colors ${
-            selectedStatus === "former" 
-              ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90" 
+            selectedStatus === "former"
+              ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
               : "bg-background text-muted-foreground border-input hover:text-foreground"
           }`}
         >
-          {selectedStatus === "active" ? "Afficher les anciens employés" : "Afficher les employés actifs"}
+          {selectedStatus === "active"
+            ? "Afficher les anciens employés"
+            : "Afficher les employés actifs"}
         </button>
       </div>
 
-      <div className="bg-background border rounded-xl shadow-sm md:overflow-visible overflow-x-auto" ref={dropdownRef}>
+      <div
+        className="bg-background border rounded-xl shadow-sm md:overflow-visible overflow-x-auto"
+        ref={dropdownRef}
+      >
         <div className="min-w-max md:min-w-0">
           <table className="w-full text-left text-sm">
             <thead className="bg-muted/50 border-b">
@@ -187,27 +215,46 @@ export function EmployeesTable({
                     {renderSortIcon("name")}
                   </div>
                 </th>
-                <th className="px-6 py-4 font-medium text-muted-foreground">Poste</th>
-                <th className="px-6 py-4 font-medium text-muted-foreground">Stagiaire</th>
-                <th className="px-6 py-4 font-medium text-muted-foreground">Compte</th>
-                <th className="px-6 py-4 font-medium text-center text-muted-foreground">Actions</th>
+                <th className="px-6 py-4 font-medium text-muted-foreground">
+                  Poste
+                </th>
+                <th className="px-6 py-4 font-medium text-muted-foreground">
+                  Stagiaire
+                </th>
+                <th className="px-6 py-4 font-medium text-muted-foreground">
+                  Compte
+                </th>
+                <th className="px-6 py-4 font-medium text-center text-muted-foreground">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {employees.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
+                  <td
+                    colSpan={6}
+                    className="px-6 py-8 text-center text-muted-foreground"
+                  >
                     Aucun employé trouvé.
                   </td>
                 </tr>
               ) : (
                 employees.map((emp, index) => {
-                  const isNearBottom = index >= employees.length - 3 && employees.length > 3;
+                  const isNearBottom =
+                    index >= employees.length - 3 && employees.length > 3;
                   return (
-                    <tr key={emp.idEmployee} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4 font-medium">{emp.employeeCode || "-"}</td>
+                    <tr
+                      key={emp.idEmployee}
+                      className="border-b last:border-0 hover:bg-muted/30 transition-colors"
+                    >
+                      <td className="px-6 py-4 font-medium">
+                        {emp.employeeCode || "-"}
+                      </td>
                       <td className="px-6 py-4">
-                        <div className="font-semibold text-foreground">{emp.name} {emp.lastname}</div>
+                        <div className="font-semibold text-foreground">
+                          {emp.name} {emp.lastname}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
                         {emp.jobTitle || "Aucun poste assigné"}
@@ -219,7 +266,9 @@ export function EmployeesTable({
                             Stagiaire
                           </span>
                         ) : (
-                          <span className="text-muted-foreground text-xs italic">Employé</span>
+                          <span className="text-muted-foreground text-xs italic">
+                            Employé
+                          </span>
                         )}
                       </td>
                       <td className="px-6 py-4">
@@ -245,9 +294,14 @@ export function EmployeesTable({
                         </button>
 
                         {openDropdownId === emp.idEmployee && (
-                          <div className={`absolute right-8 z-50 w-48 bg-card border rounded-xl shadow-lg p-1 animate-in fade-in zoom-in-95 duration-100 max-h-[300px] overflow-y-auto ${isNearBottom ? "bottom-10" : "top-10"}`}>
+                          <div
+                            className={`absolute right-8 z-50 w-48 bg-card border rounded-xl shadow-lg p-1 animate-in fade-in zoom-in-95 duration-100 max-h-[300px] overflow-y-auto ${isNearBottom ? "bottom-10" : "top-10"}`}
+                          >
                             <button
-                              onClick={() => { setOpenDropdownId(null); onViewDetails(emp); }}
+                              onClick={() => {
+                                setOpenDropdownId(null);
+                                onViewDetails(emp);
+                              }}
                               className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
                             >
                               <Eye className="size-4" /> Détails
@@ -255,41 +309,63 @@ export function EmployeesTable({
                             {selectedStatus === "active" ? (
                               <>
                                 <button
-                                  onClick={() => { setOpenDropdownId(null); onEdit(emp); }}
+                                  onClick={() => {
+                                    setOpenDropdownId(null);
+                                    onEdit(emp);
+                                  }}
                                   className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
                                 >
                                   <Edit className="size-4" /> Modifier
                                 </button>
                                 <button
-                                  onClick={() => { setOpenDropdownId(null); onChangeJob(emp); }}
+                                  onClick={() => {
+                                    setOpenDropdownId(null);
+                                    onChangeJob(emp);
+                                  }}
                                   className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
                                 >
-                                  <Briefcase className="size-4" /> Changer de poste
+                                  <Briefcase className="size-4" /> Changer de
+                                  poste
                                 </button>
                                 <button
-                                  onClick={() => { setOpenDropdownId(null); onTerminateContract(emp); }}
+                                  onClick={() => {
+                                    setOpenDropdownId(null);
+                                    onTerminateContract(emp);
+                                  }}
                                   className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors text-orange-600"
                                 >
-                                  <UserX className="size-4" /> Terminer le contrat
+                                  <UserX className="size-4" /> Terminer le
+                                  contrat
                                 </button>
                                 <button
-                                  onClick={() => { setOpenDropdownId(null); onEditPlanning(emp); }}
+                                  onClick={() => {
+                                    setOpenDropdownId(null);
+                                    onEditPlanning(emp);
+                                  }}
                                   className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors"
                                 >
-                                  <CalendarDays className="size-4 text-primary" /> Disponibilités
+                                  <CalendarDays className="size-4 text-primary" />{" "}
+                                  Disponibilités
                                 </button>
                               </>
                             ) : (
                               <button
-                                onClick={() => { setOpenDropdownId(null); onRenewContract(emp); }}
+                                onClick={() => {
+                                  setOpenDropdownId(null);
+                                  onRenewContract(emp);
+                                }}
                                 className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors text-green-600"
                               >
-                                <Briefcase className="size-4" /> Renouveler le contrat
+                                <Briefcase className="size-4" /> Renouveler le
+                                contrat
                               </button>
                             )}
                             <div className="h-px bg-border my-1 mx-2" />
                             <button
-                              onClick={() => { setOpenDropdownId(null); onDelete(emp); }}
+                              onClick={() => {
+                                setOpenDropdownId(null);
+                                onDelete(emp);
+                              }}
                               className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-destructive/10 text-destructive rounded-lg transition-colors"
                             >
                               <Trash2 className="size-4" /> Supprimer

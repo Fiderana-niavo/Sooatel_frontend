@@ -70,10 +70,10 @@ export function LossForm({ onClose, onSuccess, onError }: Props) {
       setFormError("Veuillez préciser le motif de perte.");
       return;
     }
-    
+
     if (Number(form.quantity) <= 0) {
-        setFormError("La quantité doit être supérieure à 0.");
-        return;
+      setFormError("La quantité doit être supérieure à 0.");
+      return;
     }
 
     setFormError(null);
@@ -90,11 +90,18 @@ export function LossForm({ onClose, onSuccess, onError }: Props) {
               <Flame className="size-5 text-orange-500" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground">Enregistrer une perte</h3>
-              <p className="text-xs text-muted-foreground">La perte sera validée immédiatement</p>
+              <h3 className="font-semibold text-foreground">
+                Enregistrer une perte
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                La perte sera validée immédiatement
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-muted transition-colors">
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-muted transition-colors"
+          >
             <X className="size-4 text-muted-foreground" />
           </button>
         </div>
@@ -115,7 +122,8 @@ export function LossForm({ onClose, onSuccess, onError }: Props) {
               <p className="text-xs text-muted-foreground">
                 Stock disponible :{" "}
                 <span className="font-semibold text-foreground">
-                  {Number(selectedItem.quantity ?? 0).toLocaleString()} {selectedItem.unit?.symbol ?? ""}
+                  {Number(selectedItem.quantity ?? 0).toLocaleString()}{" "}
+                  {selectedItem.unit?.symbol ?? ""}
                 </span>
               </p>
             )}
@@ -127,9 +135,16 @@ export function LossForm({ onClose, onSuccess, onError }: Props) {
               type="number"
               min={1}
               placeholder="0"
-              value={form.quantity === ("" as unknown as number) ? "" : form.quantity}
+              value={
+                form.quantity === ("" as unknown as number) ? "" : form.quantity
+              }
               onChange={(e) =>
-                setField("quantity", e.target.value === "" ? ("" as unknown as number) : Number(e.target.value))
+                setField(
+                  "quantity",
+                  e.target.value === ""
+                    ? ("" as unknown as number)
+                    : Number(e.target.value),
+                )
               }
             />
           </div>
@@ -163,7 +178,10 @@ export function LossForm({ onClose, onSuccess, onError }: Props) {
 
           <div className="flex items-start gap-2 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg text-sm text-orange-700">
             <AlertTriangle className="size-4 mt-0.5 shrink-0" />
-            <span>La perte est enregistrée et validée immédiatement. Cette action ne peut pas être annulée.</span>
+            <span>
+              La perte est enregistrée et validée immédiatement. Cette action ne
+              peut pas être annulée.
+            </span>
           </div>
 
           {formError && (
@@ -174,7 +192,12 @@ export function LossForm({ onClose, onSuccess, onError }: Props) {
         </div>
 
         <div className="p-5 border-t border-border/50 flex gap-3">
-          <Button variant="outline" className="flex-1" onClick={onClose} disabled={mutation.isPending}>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={onClose}
+            disabled={mutation.isPending}
+          >
             Annuler
           </Button>
           <Button
@@ -182,7 +205,9 @@ export function LossForm({ onClose, onSuccess, onError }: Props) {
             onClick={handleSubmit}
             disabled={mutation.isPending}
           >
-            {mutation.isPending ? <Loader2 className="size-4 mr-2 animate-spin" /> : null}
+            {mutation.isPending ? (
+              <Loader2 className="size-4 mr-2 animate-spin" />
+            ) : null}
             Enregistrer la perte
           </Button>
         </div>

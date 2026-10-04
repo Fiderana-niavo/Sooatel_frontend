@@ -9,7 +9,11 @@ interface JobRequirementsModalProps {
   jobTitles: JobTitle[];
 }
 
-export function JobRequirementsModal({ isOpen, onClose, jobTitles }: JobRequirementsModalProps) {
+export function JobRequirementsModal({
+  isOpen,
+  onClose,
+  jobTitles,
+}: JobRequirementsModalProps) {
   const [selectedJobId, setSelectedJobId] = useState<string>("");
 
   useEffect(() => {
@@ -32,7 +36,9 @@ export function JobRequirementsModal({ isOpen, onClose, jobTitles }: JobRequirem
               <Users className="size-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground">Besoins en Personnel</h2>
+              <h2 className="text-xl font-bold text-foreground">
+                Besoins en Personnel
+              </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Configurez les exigences de planning pour chaque poste
               </p>
@@ -57,7 +63,9 @@ export function JobRequirementsModal({ isOpen, onClose, jobTitles }: JobRequirem
               onChange={(e) => setSelectedJobId(e.target.value)}
               className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 transition-all outline-none"
             >
-              <option value="" disabled>-- Choisir un poste --</option>
+              <option value="" disabled>
+                -- Choisir un poste --
+              </option>
               {jobTitles.map((job) => (
                 <option key={job.idJobTitle} value={job.idJobTitle}>
                   {job.title}
@@ -76,7 +84,10 @@ export function JobRequirementsModal({ isOpen, onClose, jobTitles }: JobRequirem
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground bg-muted/10 rounded-2xl border border-dashed border-border/50">
               <Users className="size-12 mb-3 opacity-20" />
-              <p>Choisissez un poste ci-dessus pour voir la liste de ses besoins ou en ajouter de nouveaux.</p>
+              <p>
+                Choisissez un poste ci-dessus pour voir la liste de ses besoins
+                ou en ajouter de nouveaux.
+              </p>
             </div>
           )}
         </div>

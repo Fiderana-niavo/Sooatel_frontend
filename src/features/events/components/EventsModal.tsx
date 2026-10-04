@@ -1,6 +1,13 @@
 import { toIsoDate } from "@/utils/date";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
 import { Calendar, Edit, Trash2, Plus, X, Check, Search } from "lucide-react";
@@ -16,7 +23,14 @@ interface EventsModalProps {
   onDelete: (id: string) => void;
 }
 
-export function EventsModal({ isOpen, onClose, data, onAdd, onEdit, onDelete }: EventsModalProps) {
+export function EventsModal({
+  isOpen,
+  onClose,
+  data,
+  onAdd,
+  onEdit,
+  onDelete,
+}: EventsModalProps) {
   const [newEventName, setNewEventName] = useState("");
   const [newStartDate, setNewStartDate] = useState("");
   const [newEndDate, setNewEndDate] = useState("");
@@ -29,14 +43,20 @@ export function EventsModal({ isOpen, onClose, data, onAdd, onEdit, onDelete }: 
   const [search, setSearch] = useState("");
 
   const [missingEndDateConfirm, setMissingEndDateConfirm] = useState(false);
-  const [pendingAction, setPendingAction] = useState<"add" | "edit" | null>(null);
+  const [pendingAction, setPendingAction] = useState<"add" | "edit" | null>(
+    null,
+  );
 
   const executeAdd = (forceOneDay: boolean) => {
     if (newStartDate) {
       onAdd({
         eventName: newEventName.trim() || null,
         startDate: new Date(newStartDate),
-        endDate: forceOneDay ? new Date(newStartDate) : (newEndDate ? new Date(newEndDate) : undefined),
+        endDate: forceOneDay
+          ? new Date(newStartDate)
+          : newEndDate
+            ? new Date(newEndDate)
+            : undefined,
       } as any);
       setNewEventName("");
       setNewStartDate("");
@@ -70,7 +90,11 @@ export function EventsModal({ isOpen, onClose, data, onAdd, onEdit, onDelete }: 
       onEdit(editingId, {
         eventName: editEventName.trim() || null,
         startDate: new Date(editStartDate),
-        endDate: forceOneDay ? new Date(editStartDate) : (editEndDate ? new Date(editEndDate) : undefined),
+        endDate: forceOneDay
+          ? new Date(editStartDate)
+          : editEndDate
+            ? new Date(editEndDate)
+            : undefined,
       } as any);
       setEditingId(null);
     }
@@ -94,12 +118,12 @@ export function EventsModal({ isOpen, onClose, data, onAdd, onEdit, onDelete }: 
   };
 
   const filteredData = data.filter((r) =>
-    r.eventName?.toLowerCase().includes(search.toLowerCase())
+    r.eventName?.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
-      <DialogContent 
+      <DialogContent
         className="max-w-4xl rounded-[2rem] p-0 overflow-hidden bg-card border shadow-2xl"
         onInteractOutside={(e) => {
           if (missingEndDateConfirm) e.preventDefault();
@@ -136,25 +160,55 @@ export function EventsModal({ isOpen, onClose, data, onAdd, onEdit, onDelete }: 
 
         <div className="p-6 md:p-8 space-y-6">
           <div className="bg-muted/10 p-5 rounded-2xl border border-border/50">
-            <h4 className="text-sm font-semibold mb-4 text-foreground">Ajouter un évènement</h4>
+            <h4 className="text-sm font-semibold mb-4 text-foreground">
+              Ajouter un évènement
+            </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase">Nom</label>
-                <Input placeholder="Soirée..." value={newEventName} onChange={(e) => setNewEventName(e.target.value)} className="bg-background" />
+                <label className="text-xs font-semibold text-muted-foreground uppercase">
+                  Nom
+                </label>
+                <Input
+                  placeholder="Soirée..."
+                  value={newEventName}
+                  onChange={(e) => setNewEventName(e.target.value)}
+                  className="bg-background"
+                />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase">Date début</label>
-                <Input type="date" value={newStartDate} onChange={(e) => {
-                  setNewStartDate(e.target.value);
-                  // Auto-correct end date if it's now before the new start date
-                  if (newEndDate && e.target.value > newEndDate) setNewEndDate(e.target.value);
-                }} className="bg-background" />
+                <label className="text-xs font-semibold text-muted-foreground uppercase">
+                  Date début
+                </label>
+                <Input
+                  type="date"
+                  value={newStartDate}
+                  onChange={(e) => {
+                    setNewStartDate(e.target.value);
+                    // Auto-correct end date if it's now before the new start date
+                    if (newEndDate && e.target.value > newEndDate)
+                      setNewEndDate(e.target.value);
+                  }}
+                  className="bg-background"
+                />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase">Date fin</label>
-                <Input type="date" value={newEndDate} min={newStartDate} onChange={(e) => setNewEndDate(e.target.value)} className="bg-background" disabled={!newStartDate} />
+                <label className="text-xs font-semibold text-muted-foreground uppercase">
+                  Date fin
+                </label>
+                <Input
+                  type="date"
+                  value={newEndDate}
+                  min={newStartDate}
+                  onChange={(e) => setNewEndDate(e.target.value)}
+                  className="bg-background"
+                  disabled={!newStartDate}
+                />
               </div>
-              <Button onClick={handleAdd} disabled={!newStartDate} className="gap-2 rounded-xl h-10 w-full md:w-auto md:justify-center">
+              <Button
+                onClick={handleAdd}
+                disabled={!newStartDate}
+                className="gap-2 rounded-xl h-10 w-full md:w-auto md:justify-center"
+              >
                 <Plus className="size-4" /> Ajouter
               </Button>
             </div>
@@ -167,30 +221,90 @@ export function EventsModal({ isOpen, onClose, data, onAdd, onEdit, onDelete }: 
               </div>
             ) : (
               filteredData.map((item: any) => (
-                <div key={item.idEvent} className="p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors group">
+                <div
+                  key={item.idEvent}
+                  className="p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors group"
+                >
                   {editingId === item.idEvent ? (
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
-                      <Input value={editEventName} onChange={(e) => setEditEventName(e.target.value)} className="h-9" placeholder="Nom" />
-                      <Input type="date" value={editStartDate} onChange={(e) => {
-                        setEditStartDate(e.target.value);
-                        if (editEndDate && e.target.value > editEndDate) setEditEndDate(e.target.value);
-                      }} className="h-9" />
-                      <Input type="date" value={editEndDate} min={editStartDate} onChange={(e) => setEditEndDate(e.target.value)} className="h-9" disabled={!editStartDate} />
+                      <Input
+                        value={editEventName}
+                        onChange={(e) => setEditEventName(e.target.value)}
+                        className="h-9"
+                        placeholder="Nom"
+                      />
+                      <Input
+                        type="date"
+                        value={editStartDate}
+                        onChange={(e) => {
+                          setEditStartDate(e.target.value);
+                          if (editEndDate && e.target.value > editEndDate)
+                            setEditEndDate(e.target.value);
+                        }}
+                        className="h-9"
+                      />
+                      <Input
+                        type="date"
+                        value={editEndDate}
+                        min={editStartDate}
+                        onChange={(e) => setEditEndDate(e.target.value)}
+                        className="h-9"
+                        disabled={!editStartDate}
+                      />
                       <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" onClick={saveEdit} className="text-green-600"><Check className="size-4" /></Button>
-                        <Button size="icon" variant="ghost" onClick={cancelEdit}><X className="size-4" /></Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={saveEdit}
+                          className="text-green-600"
+                        >
+                          <Check className="size-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={cancelEdit}
+                        >
+                          <X className="size-4" />
+                        </Button>
                       </div>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 flex-1">
-                        <div className="font-semibold text-foreground w-1/3 truncate">{item.eventName || "Sans nom"}</div>
-                        <div className="text-sm text-muted-foreground w-1/3">Du: {item.startDate ? new Date(item.startDate).toLocaleDateString() : "-"}</div>
-                        <div className="text-sm text-muted-foreground w-1/3">Au: {item.endDate ? new Date(item.endDate).toLocaleDateString() : "-"}</div>
+                        <div className="font-semibold text-foreground w-1/3 truncate">
+                          {item.eventName || "Sans nom"}
+                        </div>
+                        <div className="text-sm text-muted-foreground w-1/3">
+                          Du:{" "}
+                          {item.startDate
+                            ? new Date(item.startDate).toLocaleDateString()
+                            : "-"}
+                        </div>
+                        <div className="text-sm text-muted-foreground w-1/3">
+                          Au:{" "}
+                          {item.endDate
+                            ? new Date(item.endDate).toLocaleDateString()
+                            : "-"}
+                        </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <Button size="icon" variant="ghost" onClick={() => startEdit(item)} className="opacity-0 group-hover:opacity-100"><Edit className="size-4" /></Button>
-                        <Button size="icon" variant="ghost" onClick={() => onDelete(item.idEvent)} className="opacity-0 group-hover:opacity-100 text-destructive"><Trash2 className="size-4" /></Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => startEdit(item)}
+                          className="opacity-0 group-hover:opacity-100"
+                        >
+                          <Edit className="size-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => onDelete(item.idEvent)}
+                          className="opacity-0 group-hover:opacity-100 text-destructive"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -201,7 +315,13 @@ export function EventsModal({ isOpen, onClose, data, onAdd, onEdit, onDelete }: 
         </div>
 
         <DialogFooter className="p-4 bg-muted/10 border-t">
-          <Button onClick={onClose} variant="outline" className="w-full sm:w-auto rounded-xl">Fermer</Button>
+          <Button
+            onClick={onClose}
+            variant="outline"
+            className="w-full sm:w-auto rounded-xl"
+          >
+            Fermer
+          </Button>
         </DialogFooter>
 
         {/* Confirmation Dialog for single day events */}

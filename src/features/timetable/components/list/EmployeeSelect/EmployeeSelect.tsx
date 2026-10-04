@@ -15,9 +15,14 @@ function dayOfWeek(dateStr: string): number {
   return new Date(dateStr + "T00:00:00Z").getUTCDay();
 }
 
-function getAvailabilityLabel(emp: AvailableEmployee, date: string): string | null {
+function getAvailabilityLabel(
+  emp: AvailableEmployee,
+  date: string,
+): string | null {
   const dow = dayOfWeek(date);
-  const avail = emp.availabilities.find((a) => a.dayOfWeek === dow || a.dayOfWeek === null);
+  const avail = emp.availabilities.find(
+    (a) => a.dayOfWeek === dow || a.dayOfWeek === null,
+  );
   if (!avail) return null;
   if (avail.shiftLabel) return avail.shiftLabel;
   if (avail.customStartTime && avail.customEndTime)
@@ -41,7 +46,10 @@ export function EmployeeSelect({
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -78,7 +86,9 @@ export function EmployeeSelect({
         {selected ? (
           <>
             <UserCheck className="size-3 text-primary shrink-0" />
-            <span className="flex-1 truncate font-medium">{selected.employeeName}</span>
+            <span className="flex-1 truncate font-medium">
+              {selected.employeeName}
+            </span>
             <span
               onClick={handleClear}
               className="text-muted-foreground hover:text-destructive cursor-pointer text-xs px-1"
@@ -90,7 +100,9 @@ export function EmployeeSelect({
         ) : (
           <>
             <Users className="size-3 text-muted-foreground shrink-0" />
-            <span className="flex-1 text-muted-foreground truncate">{placeholder}</span>
+            <span className="flex-1 text-muted-foreground truncate">
+              {placeholder}
+            </span>
           </>
         )}
       </button>
@@ -135,17 +147,25 @@ export function EmployeeSelect({
                     onMouseEnter={() => setHovered(emp.idEmployee)}
                     onMouseLeave={() => setHovered(null)}
                     onClick={() => handleSelect(emp)}
-                    className={`relative px-3 py-2 cursor-pointer text-xs transition-colors ${emp.idEmployee === value ? "bg-primary/10 text-primary" : "hover:bg-muted/40"
-                      }`}
+                    className={`relative px-3 py-2 cursor-pointer text-xs transition-colors ${
+                      emp.idEmployee === value
+                        ? "bg-primary/10 text-primary"
+                        : "hover:bg-muted/40"
+                    }`}
                   >
-                    <div className="font-medium truncate">{emp.employeeName}</div>
+                    <div className="font-medium truncate">
+                      {emp.employeeName}
+                    </div>
                     {emp.jobTitle && (
-                      <div className="text-muted-foreground">{emp.jobTitle}</div>
+                      <div className="text-muted-foreground">
+                        {emp.jobTitle}
+                      </div>
                     )}
 
                     {hovered === emp.idEmployee && availLabel && (
                       <div className="absolute left-full top-0 ml-2 z-[60] bg-secondary text-secondary-foreground text-xs px-2.5 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
-                        <span className="font-medium">Disponible :</span> {availLabel}
+                        <span className="font-medium">Disponible :</span>{" "}
+                        {availLabel}
                       </div>
                     )}
                   </div>

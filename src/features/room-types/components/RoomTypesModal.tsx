@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
 import { BedDouble, Edit, Trash2, Plus, X, Check, Search } from "lucide-react";
@@ -14,7 +21,14 @@ interface RoomTypesModalProps {
   onDelete: (id: string) => void;
 }
 
-export function RoomTypesModal({ isOpen, onClose, data, onAdd, onEdit, onDelete }: RoomTypesModalProps) {
+export function RoomTypesModal({
+  isOpen,
+  onClose,
+  data,
+  onAdd,
+  onEdit,
+  onDelete,
+}: RoomTypesModalProps) {
   const [newLabel, setNewLabel] = useState("");
   const [newDescription, setNewDescription] = useState("");
 
@@ -56,7 +70,7 @@ export function RoomTypesModal({ isOpen, onClose, data, onAdd, onEdit, onDelete 
   };
 
   const filteredData = data.filter((r) =>
-    r.label?.toLowerCase().includes(search.toLowerCase())
+    r.label?.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -93,10 +107,14 @@ export function RoomTypesModal({ isOpen, onClose, data, onAdd, onEdit, onDelete 
 
         <div className="p-6 md:p-8 space-y-6">
           <div className="bg-muted/10 p-5 rounded-2xl border border-border/50">
-            <h4 className="text-sm font-semibold mb-4 text-foreground">Nouveau type</h4>
+            <h4 className="text-sm font-semibold mb-4 text-foreground">
+              Nouveau type
+            </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase">Nom de la catégorie</label>
+                <label className="text-xs font-semibold text-muted-foreground uppercase">
+                  Nom de la catégorie
+                </label>
                 <Input
                   placeholder="Ex: Suite familiale..."
                   value={newLabel}
@@ -105,7 +123,9 @@ export function RoomTypesModal({ isOpen, onClose, data, onAdd, onEdit, onDelete 
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase">Description</label>
+                <label className="text-xs font-semibold text-muted-foreground uppercase">
+                  Description
+                </label>
                 <Input
                   placeholder="Infos..."
                   value={newDescription}
@@ -113,7 +133,11 @@ export function RoomTypesModal({ isOpen, onClose, data, onAdd, onEdit, onDelete 
                   className="bg-background"
                 />
               </div>
-              <Button onClick={handleAdd} disabled={!newLabel.trim()} className="gap-2 rounded-xl h-10 w-full">
+              <Button
+                onClick={handleAdd}
+                disabled={!newLabel.trim()}
+                className="gap-2 rounded-xl h-10 w-full"
+              >
                 <Plus className="size-4" /> Ajouter
               </Button>
             </div>
@@ -126,25 +150,69 @@ export function RoomTypesModal({ isOpen, onClose, data, onAdd, onEdit, onDelete 
               </div>
             ) : (
               filteredData.map((item: any) => (
-                <div key={item.idRoomType} className="p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors group">
+                <div
+                  key={item.idRoomType}
+                  className="p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors group"
+                >
                   {editingId === item.idRoomType ? (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
-                      <Input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} className="h-9" placeholder="Nom" />
-                      <Input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="h-9" placeholder="Description" />
+                      <Input
+                        value={editLabel}
+                        onChange={(e) => setEditLabel(e.target.value)}
+                        className="h-9"
+                        placeholder="Nom"
+                      />
+                      <Input
+                        value={editDescription}
+                        onChange={(e) => setEditDescription(e.target.value)}
+                        className="h-9"
+                        placeholder="Description"
+                      />
                       <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" onClick={saveEdit} className="text-green-600"><Check className="size-4" /></Button>
-                        <Button size="icon" variant="ghost" onClick={cancelEdit}><X className="size-4" /></Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={saveEdit}
+                          className="text-green-600"
+                        >
+                          <Check className="size-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={cancelEdit}
+                        >
+                          <X className="size-4" />
+                        </Button>
                       </div>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 flex-1">
-                        <div className="font-semibold text-foreground w-1/3 truncate">{item.label}</div>
-                        <div className="text-sm text-muted-foreground flex-1 truncate">{item.description || "-"}</div>
+                        <div className="font-semibold text-foreground w-1/3 truncate">
+                          {item.label}
+                        </div>
+                        <div className="text-sm text-muted-foreground flex-1 truncate">
+                          {item.description || "-"}
+                        </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <Button size="icon" variant="ghost" onClick={() => startEdit(item)} className="opacity-0 group-hover:opacity-100"><Edit className="size-4" /></Button>
-                        <Button size="icon" variant="ghost" onClick={() => onDelete(item.idRoomType)} className="opacity-0 group-hover:opacity-100 text-destructive"><Trash2 className="size-4" /></Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => startEdit(item)}
+                          className="opacity-0 group-hover:opacity-100"
+                        >
+                          <Edit className="size-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => onDelete(item.idRoomType)}
+                          className="opacity-0 group-hover:opacity-100 text-destructive"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -155,7 +223,13 @@ export function RoomTypesModal({ isOpen, onClose, data, onAdd, onEdit, onDelete 
         </div>
 
         <DialogFooter className="p-4 bg-muted/10 border-t">
-          <Button onClick={onClose} variant="outline" className="w-full sm:w-auto rounded-xl">Fermer</Button>
+          <Button
+            onClick={onClose}
+            variant="outline"
+            className="w-full sm:w-auto rounded-xl"
+          >
+            Fermer
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

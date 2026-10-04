@@ -21,7 +21,7 @@ Chart.register(
   CategoryScale,
   Tooltip,
   Filler,
-  Legend
+  Legend,
 );
 
 interface Props {
@@ -36,7 +36,9 @@ export const TrendChart: React.FC<Props> = ({ data, metric, loading }) => {
 
   const isCA = metric === "ca";
   const color = isCA ? "rgba(99, 102, 241, 1)" : "rgba(16, 185, 129, 1)";
-  const colorFill = isCA ? "rgba(99, 102, 241, 0.12)" : "rgba(16, 185, 129, 0.12)";
+  const colorFill = isCA
+    ? "rgba(99, 102, 241, 0.12)"
+    : "rgba(16, 185, 129, 0.12)";
   const label = isCA ? "Chiffre d'affaires (Ar)" : "Bénéfice (Ar)";
 
   useEffect(() => {
@@ -76,8 +78,7 @@ export const TrendChart: React.FC<Props> = ({ data, metric, loading }) => {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx) =>
-                ` ${Number(ctx.raw).toLocaleString("fr-FR")} Ar`,
+              label: (ctx) => ` ${Number(ctx.raw).toLocaleString("fr-FR")} Ar`,
             },
           },
         },
@@ -90,8 +91,7 @@ export const TrendChart: React.FC<Props> = ({ data, metric, loading }) => {
             grid: { color: "rgba(0,0,0,0.04)" },
             ticks: {
               font: { size: 11 },
-              callback: (v) =>
-                `${Number(v).toLocaleString("fr-FR")}`,
+              callback: (v) => `${Number(v).toLocaleString("fr-FR")}`,
             },
           },
         },

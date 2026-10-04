@@ -13,8 +13,8 @@
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
+  --heading: system-ui, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
   font: 18px/145% var(--sans);
@@ -52,8 +52,6 @@
   }
 }
 
-
-
 body {
   margin: 0;
 }
@@ -62,16 +60,16 @@ body {
 
 /* 🍽️ MODE RESTAURANT - Utopia */
 .theme-utopia {
-  --font-sans: 'Poppins', sans-serif;
+  --font-sans: "Poppins", sans-serif;
   /* Application de la police moderne et géométrique */
 
-  --primary: #D4AF37;
+  --primary: #d4af37;
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: #1A1C3A;
+  --secondary: #1a1c3a;
   --secondary-foreground: oklch(0.985 0 0);
-  --accent: #E5C158;
+  --accent: #e5c158;
   --accent-foreground: oklch(0.205 0 0);
-  --sidebar-primary: #1A1C3A;
+  --sidebar-primary: #1a1c3a;
   --sidebar-primary-foreground: oklch(0.985 0 0);
 }
 
@@ -79,15 +77,15 @@ body {
 .theme-sooatel {
   /* Vous pouvez garder Poppins pour l'uniformité de l'app de gestion, 
      ou utiliser une alternative comme 'Inter' si vous souhaitez une infime variation */
-  --font-sans: 'Poppins', sans-serif;
+  --font-sans: "Poppins", sans-serif;
 
-  --primary: #1D2A44;
+  --primary: #1d2a44;
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: #E8A798;
+  --secondary: #e8a798;
   --secondary-foreground: oklch(0.205 0 0);
-  --accent: #E8A798;
+  --accent: #e8a798;
   --accent-foreground: oklch(0.205 0 0);
-  --sidebar-primary: #1D2A44;
+  --sidebar-primary: #1d2a44;
   --sidebar-primary-foreground: oklch(0.985 0 0);
 }
 

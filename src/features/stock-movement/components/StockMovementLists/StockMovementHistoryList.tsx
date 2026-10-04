@@ -5,7 +5,10 @@ import { Input } from "@/components/ui/Inputs/input";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
 import { ItemService } from "@/features/items/services/item.service";
 import type { Item } from "@/features/items/types/item.type";
-import type { StockMovement, StockMovementFilters } from "../../types/stock-movement.type";
+import type {
+  StockMovement,
+  StockMovementFilters,
+} from "../../types/stock-movement.type";
 import Pagination from "@/components/ui/Pagination/pagination";
 import {
   Dialog,
@@ -19,9 +22,7 @@ const selectClass =
 
 const directionBadge = (isOut: boolean) =>
   `inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${
-    isOut
-      ? "bg-red-500/10 text-red-600"
-      : "bg-green-500/10 text-green-600"
+    isOut ? "bg-red-500/10 text-red-600" : "bg-green-500/10 text-green-600"
   }`;
 
 interface Props {
@@ -32,12 +33,20 @@ interface Props {
   onFiltersChange: (f: Partial<StockMovementFilters>) => void;
 }
 
-export function StockMovementHistoryList({ records, total, isLoading, filters, onFiltersChange }: Props) {
+export function StockMovementHistoryList({
+  records,
+  total,
+  isLoading,
+  filters,
+  onFiltersChange,
+}: Props) {
   const [items, setItems] = useState<Item[]>([]);
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
 
   useEffect(() => {
-    ItemService.getAll({ limit: 500 }).then(setItems).catch(() => {});
+    ItemService.getAll({ limit: 500 })
+      .then(setItems)
+      .catch(() => {});
   }, []);
 
   const totalPages = Math.ceil(total / filters.limit);
@@ -49,20 +58,38 @@ export function StockMovementHistoryList({ records, total, isLoading, filters, o
         <Filter className="size-4 text-muted-foreground mt-auto mb-2.5" />
 
         <div className="flex flex-col gap-1 flex-1 min-w-[180px]">
-          <label className="text-xs text-muted-foreground font-medium">Article</label>
+          <label className="text-xs text-muted-foreground font-medium">
+            Article
+          </label>
           <SearchableSelect
-            options={[{ value: "", label: "Tous les articles" }, ...items.map(it => ({ value: it.idItem, label: it.label }))]}
+            options={[
+              { value: "", label: "Tous les articles" },
+              ...items.map((it) => ({ value: it.idItem, label: it.label })),
+            ]}
             value={filters.idItem ?? ""}
-            onChange={(val) => onFiltersChange({ idItem: val ? String(val) : undefined, page: 1 })}
+            onChange={(val) =>
+              onFiltersChange({
+                idItem: val ? String(val) : undefined,
+                page: 1,
+              })
+            }
           />
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground font-medium">Sens</label>
+          <label className="text-xs text-muted-foreground font-medium">
+            Sens
+          </label>
           <select
             className={selectClass + " min-w-[130px]"}
             value={filters.direction ?? ""}
-            onChange={(e) => onFiltersChange({ direction: e.target.value !== "" ? Number(e.target.value) : undefined, page: 1 })}
+            onChange={(e) =>
+              onFiltersChange({
+                direction:
+                  e.target.value !== "" ? Number(e.target.value) : undefined,
+                page: 1,
+              })
+            }
           >
             <option value="">Tous</option>
             <option value="5">Entrée</option>
@@ -71,29 +98,48 @@ export function StockMovementHistoryList({ records, total, isLoading, filters, o
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground font-medium">Date début</label>
+          <label className="text-xs text-muted-foreground font-medium">
+            Date début
+          </label>
           <Input
             type="date"
             className="w-36"
             value={filters.startDate ?? ""}
-            onChange={(e) => onFiltersChange({ startDate: e.target.value || undefined, page: 1 })}
+            onChange={(e) =>
+              onFiltersChange({
+                startDate: e.target.value || undefined,
+                page: 1,
+              })
+            }
           />
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground font-medium">Date fin</label>
+          <label className="text-xs text-muted-foreground font-medium">
+            Date fin
+          </label>
           <Input
             type="date"
             className="w-36"
             value={filters.endDate ?? ""}
-            onChange={(e) => onFiltersChange({ endDate: e.target.value || undefined, page: 1 })}
+            onChange={(e) =>
+              onFiltersChange({ endDate: e.target.value || undefined, page: 1 })
+            }
           />
         </div>
 
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onFiltersChange({ idItem: undefined, direction: undefined, startDate: undefined, endDate: undefined, page: 1 })}
+          onClick={() =>
+            onFiltersChange({
+              idItem: undefined,
+              direction: undefined,
+              startDate: undefined,
+              endDate: undefined,
+              page: 1,
+            })
+          }
         >
           Réinitialiser
         </Button>
@@ -122,7 +168,10 @@ export function StockMovementHistoryList({ records, total, isLoading, filters, o
               </tr>
             ) : records.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-8 text-muted-foreground">
+                <td
+                  colSpan={7}
+                  className="text-center py-8 text-muted-foreground"
+                >
                   Aucun mouvement dans l&apos;historique
                 </td>
               </tr>
@@ -130,26 +179,48 @@ export function StockMovementHistoryList({ records, total, isLoading, filters, o
               records.map((m) => {
                 const isOut = m.direction === -5;
                 return (
-                  <tr key={m.idStockMovement} className="border-t hover:bg-muted/50 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{m.ref}</td>
+                  <tr
+                    key={m.idStockMovement}
+                    className="border-t hover:bg-muted/50 transition-colors"
+                  >
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      {m.ref}
+                    </td>
                     <td className="px-4 py-3">
                       <span className={directionBadge(isOut)}>
-                        {isOut ? <ArrowDownCircle className="size-3" /> : <ArrowUpCircle className="size-3" />}
+                        {isOut ? (
+                          <ArrowDownCircle className="size-3" />
+                        ) : (
+                          <ArrowUpCircle className="size-3" />
+                        )}
                         {isOut ? "Sortie" : "Entrée"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="font-medium">{m.item?.label ?? "-"}</span>
-                      {m.item?.ref && <span className="text-xs text-muted-foreground ml-1">({m.item.ref})</span>}
+                      <span className="font-medium">
+                        {m.item?.label ?? "-"}
+                      </span>
+                      {m.item?.ref && (
+                        <span className="text-xs text-muted-foreground ml-1">
+                          ({m.item.ref})
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold">
                       {Number(m.quantity).toLocaleString()}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                      {m.movementDate ? new Date(m.movementDate).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "-"}
+                      {m.movementDate
+                        ? new Date(m.movementDate).toLocaleString("fr-FR", {
+                            dateStyle: "short",
+                            timeStyle: "short",
+                          })
+                        : "-"}
                     </td>
                     <td className="px-4 py-3">
-                      {m.operator ? `${m.operator.name} ${m.operator.lastname}` : "-"}
+                      {m.operator
+                        ? `${m.operator.name} ${m.operator.lastname}`
+                        : "-"}
                     </td>
                     <td className="px-4 py-3 max-w-[250px] text-muted-foreground">
                       {m.reason ? (
@@ -188,7 +259,10 @@ export function StockMovementHistoryList({ records, total, isLoading, filters, o
         />
       </div>
 
-      <Dialog open={!!selectedReason} onOpenChange={(open) => !open && setSelectedReason(null)}>
+      <Dialog
+        open={!!selectedReason}
+        onOpenChange={(open) => !open && setSelectedReason(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Motif du mouvement</DialogTitle>

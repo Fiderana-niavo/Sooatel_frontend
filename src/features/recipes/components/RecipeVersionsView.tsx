@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { CheckCircle2, History, FlaskConical, Pencil, Trash2, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
+import {
+  CheckCircle2,
+  History,
+  FlaskConical,
+  Pencil,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  ArrowLeft,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import type { Recipe } from "../types/recipe.type";
 import { cn } from "@/utils/ui";
@@ -32,12 +41,20 @@ export const RecipeVersionsView: React.FC<Props> = ({
 
   const totalPages = Math.ceil(recipes.length / ITEMS_PER_PAGE);
   const sorted = [...recipes].sort((a, b) => b.version - a.version);
-  const paginatedRecipes = sorted.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const paginatedRecipes = sorted.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE,
+  );
 
   return (
     <div className="flex flex-col h-full animate-in fade-in duration-300">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="icon" onClick={onBack} className="shrink-0">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={onBack}
+          className="shrink-0"
+        >
           <ArrowLeft className="size-4" />
         </Button>
         <div>
@@ -58,7 +75,9 @@ export const RecipeVersionsView: React.FC<Props> = ({
               key={recipe.idRecipe}
               className={cn(
                 "p-5 rounded-2xl border flex flex-col gap-4 transition-colors",
-                recipe.isActive ? "bg-primary/5 border-primary/40 shadow-sm" : "bg-card border-border hover:shadow-md"
+                recipe.isActive
+                  ? "bg-primary/5 border-primary/40 shadow-sm"
+                  : "bg-card border-border hover:shadow-md",
               )}
             >
               <div className="flex justify-between items-start gap-4">
@@ -72,23 +91,45 @@ export const RecipeVersionsView: React.FC<Props> = ({
                     )}
                   </div>
                   <div className="text-xs text-muted-foreground mt-1.5 space-y-1">
-                    <p>Créé le {new Date(recipe.createdAt).toLocaleDateString("fr-FR")}</p>
-                    <p>Rendement : {Number(recipe.yieldQuantity) || 1} {recipe.item?.unit?.symbol ?? ""}</p>
-                    <p className={cn(
-                      "font-semibold text-sm mt-2",
-                      recipe.isActive ? "text-primary" : "text-foreground"
-                    )}>
-                      {recipe.recipeCost != null
-                        ? (() => {
-                            const yieldQty = Number(recipe.yieldQuantity) || 1;
-                            const batchCost = Number(recipe.recipeCost) * yieldQty;
-                            const perUnit = `${Number(recipe.recipeCost).toLocaleString("fr-FR", { style: "currency", currency: "MGA" })} / ${recipe.item?.unit?.symbol ?? ""}`;
-                            return yieldQty > 1
-                              ? <>{batchCost.toLocaleString("fr-FR", { style: "currency", currency: "MGA" })} <span className="text-muted-foreground font-normal text-xs">({perUnit})</span></>
-                              : perUnit;
-                          })()
-                        : <span className="text-muted-foreground italic text-xs">Coût non calculé</span>
-                      }
+                    <p>
+                      Créé le{" "}
+                      {new Date(recipe.createdAt).toLocaleDateString("fr-FR")}
+                    </p>
+                    <p>
+                      Rendement : {Number(recipe.yieldQuantity) || 1}{" "}
+                      {recipe.item?.unit?.symbol ?? ""}
+                    </p>
+                    <p
+                      className={cn(
+                        "font-semibold text-sm mt-2",
+                        recipe.isActive ? "text-primary" : "text-foreground",
+                      )}
+                    >
+                      {recipe.recipeCost != null ? (
+                        (() => {
+                          const yieldQty = Number(recipe.yieldQuantity) || 1;
+                          const batchCost =
+                            Number(recipe.recipeCost) * yieldQty;
+                          const perUnit = `${Number(recipe.recipeCost).toLocaleString("fr-FR", { style: "currency", currency: "MGA" })} / ${recipe.item?.unit?.symbol ?? ""}`;
+                          return yieldQty > 1 ? (
+                            <>
+                              {batchCost.toLocaleString("fr-FR", {
+                                style: "currency",
+                                currency: "MGA",
+                              })}{" "}
+                              <span className="text-muted-foreground font-normal text-xs">
+                                ({perUnit})
+                              </span>
+                            </>
+                          ) : (
+                            perUnit
+                          );
+                        })()
+                      ) : (
+                        <span className="text-muted-foreground italic text-xs">
+                          Coût non calculé
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>

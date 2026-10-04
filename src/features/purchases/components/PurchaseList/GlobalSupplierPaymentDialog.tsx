@@ -11,7 +11,12 @@ interface Props {
   onGoToDeliveries?: () => void;
 }
 
-export function GlobalSupplierPaymentDialog({ open, onOpenChange, onSuccess, onGoToDeliveries }: Props) {
+export function GlobalSupplierPaymentDialog({
+  open,
+  onOpenChange,
+  onSuccess,
+  onGoToDeliveries,
+}: Props) {
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
 
   useEffect(() => {
@@ -23,7 +28,7 @@ export function GlobalSupplierPaymentDialog({ open, onOpenChange, onSuccess, onG
           if (saved.idSupplier) {
             setSelectedSupplierId(saved.idSupplier);
           }
-        } catch(e) {}
+        } catch (e) {}
       }
     }
   }, [open]);
@@ -53,9 +58,13 @@ export function GlobalSupplierPaymentDialog({ open, onOpenChange, onSuccess, onG
       <div className="space-y-4">
         {!selectedSupplierId ? (
           <div className="space-y-3 py-4">
-            <label className="text-sm font-medium">Sélectionnez un fournisseur</label>
+            <label className="text-sm font-medium">
+              Sélectionnez un fournisseur
+            </label>
             {isLoading ? (
-              <div className="text-sm text-muted-foreground">Chargement des fournisseurs...</div>
+              <div className="text-sm text-muted-foreground">
+                Chargement des fournisseurs...
+              </div>
             ) : (
               <select
                 value={selectedSupplierId}
@@ -75,7 +84,12 @@ export function GlobalSupplierPaymentDialog({ open, onOpenChange, onSuccess, onG
           <div>
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-border/50">
               <span className="font-semibold text-sm">
-                Fournisseur: {suppliers.find((s: any) => s.idSupplier === selectedSupplierId)?.name}
+                Fournisseur:{" "}
+                {
+                  suppliers.find(
+                    (s: any) => s.idSupplier === selectedSupplierId,
+                  )?.name
+                }
               </span>
               <button
                 type="button"

@@ -18,7 +18,12 @@ interface ManualKeyBlockProps {
   onBack: () => void;
 }
 
-function ManualKeyBlock({ token, expiresAt, onUseKey, onBack }: ManualKeyBlockProps) {
+function ManualKeyBlock({
+  token,
+  expiresAt,
+  onUseKey,
+  onBack,
+}: ManualKeyBlockProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -36,7 +41,9 @@ function ManualKeyBlock({ token, expiresAt, onUseKey, onBack }: ManualKeyBlockPr
   return (
     <div className="animate-in fade-in slide-in-from-left-8 duration-500 mt-8 md:mt-0">
       <div className="mb-8 text-center md:text-left">
-        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Clé de récupération</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
+          Clé de récupération
+        </h2>
         <p className="text-slate-500">
           Aucun email associé. Transmettez cette clé à l'utilisateur concerné.
         </p>
@@ -45,12 +52,18 @@ function ManualKeyBlock({ token, expiresAt, onUseKey, onBack }: ManualKeyBlockPr
       <div className="space-y-6">
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Clé unique</span>
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Clé unique
+            </span>
             <button
               onClick={handleCopy}
               className="flex items-center gap-1.5 text-xs font-medium text-[#223c56] hover:text-[#e4a192] transition-colors"
             >
-              {copied ? <Check className="size-3.5 text-green-500" /> : <Copy className="size-3.5" />}
+              {copied ? (
+                <Check className="size-3.5 text-green-500" />
+              ) : (
+                <Copy className="size-3.5" />
+              )}
               {copied ? "Copié !" : "Copier"}
             </button>
           </div>
@@ -65,7 +78,10 @@ function ManualKeyBlock({ token, expiresAt, onUseKey, onBack }: ManualKeyBlockPr
           <ol className="list-decimal list-inside space-y-1 text-amber-700">
             <li>Copiez la clé ci-dessus.</li>
             <li>Transmettez-la à l'utilisateur via un canal sécurisé.</li>
-            <li>L'utilisateur doit l'entrer dans l'onglet <strong>Clé Manager</strong>.</li>
+            <li>
+              L'utilisateur doit l'entrer dans l'onglet{" "}
+              <strong>Clé Manager</strong>.
+            </li>
           </ol>
         </div>
 
@@ -96,9 +112,17 @@ interface LoginPageProps {
 }
 
 export function LoginPage({ onLogin }: LoginPageProps) {
-  const [view, setView] = useState<"login" | "forgotPassword" | "resetPassword">("login");
-  const [resetContext, setResetContext] = useState<{ key: string; username: string } | null>(null);
-  const [manualKey, setManualKey] = useState<{ token: string; expiresAt: string } | null>(null);
+  const [view, setView] = useState<
+    "login" | "forgotPassword" | "resetPassword"
+  >("login");
+  const [resetContext, setResetContext] = useState<{
+    key: string;
+    username: string;
+  } | null>(null);
+  const [manualKey, setManualKey] = useState<{
+    token: string;
+    expiresAt: string;
+  } | null>(null);
 
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -112,8 +136,14 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     }
   }, []);
 
-  const [snackbar, setSnackbar] = useState<{ message: string, type: SnackbarType, isOpen: boolean }>({
-    message: "", type: "info", isOpen: false
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: SnackbarType;
+    isOpen: boolean;
+  }>({
+    message: "",
+    type: "info",
+    isOpen: false,
   });
 
   const showSnackbar = (message: string, type: SnackbarType = "info") => {
@@ -124,8 +154,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const setPermissions = useAppStore((s) => s.setPermissions);
 
   const loginMutation = useMutation({
-    mutationFn: ({ username, password }: { username: string; password: string }) =>
-      AuthService.login({ username, password }),
+    mutationFn: ({
+      username,
+      password,
+    }: {
+      username: string;
+      password: string;
+    }) => AuthService.login({ username, password }),
     onSuccess: (payload) => {
       localStorage.setItem("authToken", payload.accessToken);
       localStorage.setItem("refreshToken", payload.refreshToken);
@@ -149,16 +184,25 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   };
 
   const requestResetMutation = useMutation({
-    mutationFn: (email: string) => AuthService.requestPasswordReset({ username: email }),
+    mutationFn: (email: string) =>
+      AuthService.requestPasswordReset({ username: email }),
   });
 
   const validateKeyMutation = useMutation({
-    mutationFn: ({ key, username }: { key: string; username: string }) => AuthService.validateResetKey({ key, username }),
+    mutationFn: ({ key, username }: { key: string; username: string }) =>
+      AuthService.validateResetKey({ key, username }),
   });
 
   const changePasswordMutation = useMutation({
-    mutationFn: ({ key, username, newPassword }: { key: string; username: string; newPassword: string }) =>
-      AuthService.changePassword({ key, username, newPassword }),
+    mutationFn: ({
+      key,
+      username,
+      newPassword,
+    }: {
+      key: string;
+      username: string;
+      newPassword: string;
+    }) => AuthService.changePassword({ key, username, newPassword }),
   });
 
   const handleForgotEmail = (email: string) => {
@@ -166,7 +210,10 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       requestResetMutation.mutate(email, {
         onSuccess: (data) => {
           if (data.method === "email") {
-            showSnackbar("Un email de réinitialisation a été envoyé si ce compte existe.", "info");
+            showSnackbar(
+              "Un email de réinitialisation a été envoyé si ce compte existe.",
+              "info",
+            );
             setView("login");
           } else {
             setManualKey({ token: data.token, expiresAt: data.expiresAt });
@@ -183,17 +230,23 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
   const handleForgotKey = (key: string, username: string) => {
     return new Promise<void>((resolve, reject) => {
-      validateKeyMutation.mutate({ key, username }, {
-        onSuccess: () => {
-          setResetContext({ key, username });
-          setView("resetPassword");
-          resolve();
+      validateKeyMutation.mutate(
+        { key, username },
+        {
+          onSuccess: () => {
+            setResetContext({ key, username });
+            setView("resetPassword");
+            resolve();
+          },
+          onError: (err: Error) => {
+            showSnackbar(
+              err.message ?? "Clé ou nom d'utilisateur incorrect.",
+              "error",
+            );
+            reject(err);
+          },
         },
-        onError: (err: Error) => {
-          showSnackbar(err.message ?? "Clé ou nom d'utilisateur incorrect.", "error");
-          reject(err);
-        },
-      });
+      );
     });
   };
 
@@ -207,43 +260,52 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         { key: resetContext.key, username: resetContext.username, newPassword },
         {
           onSuccess: () => {
-            showSnackbar("Votre mot de passe a été réinitialisé avec succès.", "success");
+            showSnackbar(
+              "Votre mot de passe a été réinitialisé avec succès.",
+              "success",
+            );
             setResetContext(null);
             setView("login");
             resolve();
           },
           onError: (err: Error) => {
-            showSnackbar(err.message ?? "Erreur lors de la réinitialisation.", "error");
+            showSnackbar(
+              err.message ?? "Erreur lors de la réinitialisation.",
+              "error",
+            );
             reject(err);
           },
-        }
+        },
       );
     });
   };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-slate-50">
-
-            <div className="absolute inset-0 w-full h-full">
-                <div className={`absolute top-0 left-1/4 w-96 h-96 rounded-full blur-[120px] mix-blend-multiply opacity-20 animate-in fade-in duration-1000 bg-[#223c56]`} />
-                <div className={`absolute bottom-0 right-1/4 w-[30rem] h-[30rem] rounded-full blur-[140px] mix-blend-multiply opacity-25 animate-in fade-in duration-1000 delay-300 bg-[#e4a192]`} />
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] bg-[size:24px_24px]" />
+      <div className="absolute inset-0 w-full h-full">
+        <div
+          className={`absolute top-0 left-1/4 w-96 h-96 rounded-full blur-[120px] mix-blend-multiply opacity-20 animate-in fade-in duration-1000 bg-[#223c56]`}
+        />
+        <div
+          className={`absolute bottom-0 right-1/4 w-[30rem] h-[30rem] rounded-full blur-[140px] mix-blend-multiply opacity-25 animate-in fade-in duration-1000 delay-300 bg-[#e4a192]`}
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] bg-[size:24px_24px]" />
       </div>
 
       <div className="relative z-10 w-full max-w-[1000px] mx-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-white border border-slate-200 rounded-[2.5rem] p-4 md:p-6 shadow-2xl shadow-[#223c56]/10">
-
-                <div className="hidden md:flex flex-col justify-center items-start space-y-8 p-8 h-full rounded-[2rem] bg-[#223c56] relative overflow-hidden shadow-inner">
-          <div className={`absolute top-0 right-0 w-64 h-64 blur-[80px] bg-white/10 rounded-full`} />
+        <div className="hidden md:flex flex-col justify-center items-start space-y-8 p-8 h-full rounded-[2rem] bg-[#223c56] relative overflow-hidden shadow-inner">
+          <div
+            className={`absolute top-0 right-0 w-64 h-64 blur-[80px] bg-white/10 rounded-full`}
+          />
 
           <div className="space-y-4 relative z-10">
             <h1 className="text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
               Bienvenue sur <br />
-              <span className="text-[#e4a192]">
-                Sooatel Hôtel
-              </span>
+              <span className="text-[#e4a192]">Sooatel Hôtel</span>
             </h1>
             <p className="text-white/70 text-lg max-w-sm leading-relaxed">
-              Connectez-vous pour accéder à votre tableau de bord, gérer vos opérations et piloter vos activités avec précision.
+              Connectez-vous pour accéder à votre tableau de bord, gérer vos
+              opérations et piloter vos activités avec précision.
             </p>
           </div>
 
@@ -254,10 +316,14 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         </div>
 
         <div className="p-6 md:p-8 flex flex-col justify-center relative min-h-[400px]">
-                    <div className="absolute top-2 right-2 md:top-2 md:right-2 z-20 group opacity-90 hover:opacity-100 transition-opacity">
+          <div className="absolute top-2 right-2 md:top-2 md:right-2 z-20 group opacity-90 hover:opacity-100 transition-opacity">
             <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white p-1 shadow-sm border border-slate-100 transition-transform duration-300 hover:-translate-y-0.5">
               <div className="w-full h-full rounded-full overflow-hidden bg-[#223c56]">
-                <img src={sooatelLogo} alt="Sooatel Logo" className="w-full h-full object-cover" />
+                <img
+                  src={sooatelLogo}
+                  alt="Sooatel Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>

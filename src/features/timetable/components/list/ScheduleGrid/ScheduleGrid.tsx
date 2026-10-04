@@ -1,5 +1,9 @@
 import { ScheduleCell } from "../ScheduleCell/ScheduleCell";
-import type { GeneratedScheduleRow, AvailableEmployee, RequirementSlot } from "../../../types/timetable.type";
+import type {
+  GeneratedScheduleRow,
+  AvailableEmployee,
+  RequirementSlot,
+} from "../../../types/timetable.type";
 import { DAY_LABELS_SHORT } from "@/constants/app.constants";
 
 interface ScheduleGridProps {
@@ -39,14 +43,20 @@ export function ScheduleGrid({
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground text-sm gap-2">
         <span className="text-3xl">📋</span>
         <p>Aucun besoin en effectif configuré.</p>
-        <p className="text-xs">Allez dans "Paramètres de Planification" pour configurer les postes et shifts.</p>
+        <p className="text-xs">
+          Allez dans "Paramètres de Planification" pour configurer les postes et
+          shifts.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="overflow-x-auto rounded-xl border shadow-sm">
-      <table className="w-full text-sm border-collapse" style={{ minWidth: `${Math.max(900, days.length * 140)}px` }}>
+      <table
+        className="w-full text-sm border-collapse"
+        style={{ minWidth: `${Math.max(900, days.length * 140)}px` }}
+      >
         <thead>
           <tr className="bg-muted/60 border-b">
             <th className="text-left px-4 py-3 font-semibold text-xs text-muted-foreground uppercase tracking-wider w-40 sticky left-0 bg-muted/60 z-10">
@@ -56,7 +66,10 @@ export function ScheduleGrid({
               const d = new Date(date + "T00:00:00Z");
               const dow = d.getUTCDay();
               const day = d.getUTCDate();
-              const month = d.toLocaleDateString("fr-FR", { month: "short", timeZone: "UTC" });
+              const month = d.toLocaleDateString("fr-FR", {
+                month: "short",
+                timeZone: "UTC",
+              });
               const isWeekend = dow === 0 || dow === 6;
               return (
                 <th
@@ -65,7 +78,10 @@ export function ScheduleGrid({
                   draggable={!!onColumnSwap}
                   onDragStart={(e) => {
                     if (onColumnSwap) {
-                      e.dataTransfer.setData("application/json", JSON.stringify({ date }));
+                      e.dataTransfer.setData(
+                        "application/json",
+                        JSON.stringify({ date }),
+                      );
                       e.dataTransfer.effectAllowed = "move";
                     }
                   }}
@@ -79,14 +95,20 @@ export function ScheduleGrid({
                     if (onColumnSwap) {
                       e.preventDefault();
                       try {
-                        const source = JSON.parse(e.dataTransfer.getData("application/json"));
+                        const source = JSON.parse(
+                          e.dataTransfer.getData("application/json"),
+                        );
                         onColumnSwap(source.date, date);
                       } catch (err) {
                         console.error("Drag parse error", err);
                       }
                     }
                   }}
-                  title={onColumnSwap ? "Glisser-déposer pour échanger cette journée entière" : undefined}
+                  title={
+                    onColumnSwap
+                      ? "Glisser-déposer pour échanger cette journée entière"
+                      : undefined
+                  }
                 >
                   <div>{DAY_LABELS_SHORT[dow]}</div>
                   <div className="text-foreground font-bold text-sm normal-case">
@@ -117,11 +139,14 @@ export function ScheduleGrid({
                           {slot.shiftLabel ?? "Shift personnalisé"}
                         </div>
                         <div className="text-[10px] text-primary mt-0.5">
-                          {slot.requiredCount} poste{slot.requiredCount > 1 ? "s" : ""}
+                          {slot.requiredCount} poste
+                          {slot.requiredCount > 1 ? "s" : ""}
                         </div>
                       </div>
                     ) : (
-                      <div className="text-[10px] text-muted-foreground pl-2">↳ #{slotIdx + 1}</div>
+                      <div className="text-[10px] text-muted-foreground pl-2">
+                        ↳ #{slotIdx + 1}
+                      </div>
                     )}
                   </td>
 
@@ -134,7 +159,10 @@ export function ScheduleGrid({
                       : [];
 
                     return (
-                      <td key={date} className="px-2 py-1.5 align-middle min-w-[130px]">
+                      <td
+                        key={date}
+                        className="px-2 py-1.5 align-middle min-w-[130px]"
+                      >
                         <ScheduleCell
                           row={cellRow}
                           date={date}
@@ -147,7 +175,13 @@ export function ScheduleGrid({
                               updated.idShiftType = slot.idShiftType;
                               updated.shiftLabel = slot.shiftLabel;
                             }
-                            onRowChange(date, slot.idShiftType, slot.idJobTitle, slotIdx, updated);
+                            onRowChange(
+                              date,
+                              slot.idShiftType,
+                              slot.idJobTitle,
+                              slotIdx,
+                              updated,
+                            );
                           }}
                         />
                       </td>
@@ -155,7 +189,7 @@ export function ScheduleGrid({
                   })}
                 </tr>
               );
-            })
+            }),
           )}
         </tbody>
       </table>

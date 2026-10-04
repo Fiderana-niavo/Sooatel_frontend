@@ -12,7 +12,6 @@ interface TeamRotationPanelProps {
   onGenerate: () => void;
 }
 
-
 function formatShiftLabel(shift: ShiftType): string {
   return `${shift.label} (${shift.customStartTime} – ${shift.customEndTime})`;
 }
@@ -27,9 +26,7 @@ export function TeamRotationPanel({
   onRotationShiftChange,
   onGenerate,
 }: TeamRotationPanelProps) {
-
   const toggleTeam = (id: string) => {
-
     if (selectedTeamIds.includes(id)) {
       onSelectedTeamsChange(selectedTeamIds.filter((t) => t !== id));
     } else {
@@ -66,7 +63,8 @@ export function TeamRotationPanel({
             Shift de rotation
           </label>
           <p className="text-xs text-muted-foreground">
-            La durée de ce shift détermine la période au bout de laquelle les équipes changent de quart.
+            La durée de ce shift détermine la période au bout de laquelle les
+            équipes changent de quart.
           </p>
         </div>
         <select
@@ -86,9 +84,13 @@ export function TeamRotationPanel({
       <div className="grid grid-cols-1 gap-6">
         {/* Teams selection */}
         <div>
-          <p className="text-sm font-semibold text-secondary mb-3">Équipes à inclure dans la rotation</p>
+          <p className="text-sm font-semibold text-secondary mb-3">
+            Équipes à inclure dans la rotation
+          </p>
           {teams.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Aucune équipe trouvée.</p>
+            <p className="text-sm text-muted-foreground">
+              Aucune équipe trouvée.
+            </p>
           ) : (
             <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
               {teams.map((team) => (
@@ -103,9 +105,13 @@ export function TeamRotationPanel({
                     className="size-4 rounded border-border text-primary focus:ring-primary/50"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{team.teamName}</div>
+                    <div className="font-medium text-sm truncate">
+                      {team.teamName}
+                    </div>
                     {team.description && (
-                      <div className="text-xs text-muted-foreground truncate">{team.description}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {team.description}
+                      </div>
                     )}
                   </div>
                 </label>
@@ -115,17 +121,24 @@ export function TeamRotationPanel({
 
           {selectedTeamIds.length > 0 && (
             <div className="mt-4 p-4 bg-primary/5 rounded-xl border border-primary/20">
-              <p className="text-sm font-semibold text-primary mb-3">Ordre de rotation :</p>
+              <p className="text-sm font-semibold text-primary mb-3">
+                Ordre de rotation :
+              </p>
               <div className="space-y-2">
                 {selectedTeamIds.map((id, index) => {
                   const team = teams.find((t) => t.idTeam === id);
                   if (!team) return null;
                   return (
-                    <div key={id} className="flex items-center gap-3 bg-background p-2 rounded-lg border shadow-sm">
+                    <div
+                      key={id}
+                      className="flex items-center gap-3 bg-background p-2 rounded-lg border shadow-sm"
+                    >
                       <span className="flex items-center justify-center size-6 rounded-full bg-primary/10 text-primary font-bold text-xs shrink-0">
                         {index + 1}
                       </span>
-                      <span className="flex-1 font-medium text-sm truncate">{team.teamName}</span>
+                      <span className="flex-1 font-medium text-sm truncate">
+                        {team.teamName}
+                      </span>
                       <div className="flex gap-1 shrink-0">
                         <button
                           type="button"
@@ -166,7 +179,9 @@ export function TeamRotationPanel({
         ) : (
           <RefreshCw className="size-4" />
         )}
-        {isGenerating ? "Génération en cours..." : "Générer le planning par équipe"}
+        {isGenerating
+          ? "Génération en cours..."
+          : "Générer le planning par équipe"}
       </button>
     </div>
   );

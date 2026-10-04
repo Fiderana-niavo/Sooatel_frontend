@@ -12,15 +12,27 @@ interface Props {
   onClose: () => void;
 }
 
-function PaymentStatusBadge({ status }: { status: DeliveryPaymentSummary["paymentStatus"] }) {
+function PaymentStatusBadge({
+  status,
+}: {
+  status: DeliveryPaymentSummary["paymentStatus"];
+}) {
   const map: Record<string, { label: string; cls: string }> = {
     UNPAID: { label: "Impayé", cls: "bg-red-100 text-red-800 border-red-200" },
-    PARTIAL: { label: "Partiel", cls: "bg-yellow-100 text-yellow-800 border-yellow-200" },
-    PAID: { label: "Payé", cls: "bg-green-100 text-green-800 border-green-200" },
+    PARTIAL: {
+      label: "Partiel",
+      cls: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    },
+    PAID: {
+      label: "Payé",
+      cls: "bg-green-100 text-green-800 border-green-200",
+    },
   };
   const cfg = map[status];
   return (
-    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${cfg.cls}`}>
+    <span
+      className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${cfg.cls}`}
+    >
       {cfg.label}
     </span>
   );
@@ -44,7 +56,9 @@ export function DeliveryPaymentDialog({ idDelivery, onClose }: Props) {
 
   const handleSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ["deliveries"] });
-    queryClient.invalidateQueries({ queryKey: ["delivery-payment-summary", idDelivery] });
+    queryClient.invalidateQueries({
+      queryKey: ["delivery-payment-summary", idDelivery],
+    });
     onClose();
   };
 
@@ -55,7 +69,9 @@ export function DeliveryPaymentDialog({ idDelivery, onClose }: Props) {
       <ConfirmDialog
         open
         title="Paiement fournisseur"
-        onOpenChange={(open) => { if (!open) onClose(); }}
+        onOpenChange={(open) => {
+          if (!open) onClose();
+        }}
         onConfirm={() => {}}
         hideConfirmButton
         cancelText="Fermer"
@@ -79,7 +95,9 @@ export function DeliveryPaymentDialog({ idDelivery, onClose }: Props) {
     <ConfirmDialog
       open={!!idDelivery}
       title="Paiement de la livraison"
-      onOpenChange={(open) => { if (!open) onClose(); }}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
       onConfirm={() => setShowFullForm(true)}
       loading={summaryQuery.isLoading}
       confirmText="Payer cette livraison"
@@ -98,7 +116,9 @@ export function DeliveryPaymentDialog({ idDelivery, onClose }: Props) {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Total livraison</span>
-              <span className="font-medium">{formatCurrency(summary.totalAmount)}</span>
+              <span className="font-medium">
+                {formatCurrency(summary.totalAmount)}
+              </span>
             </div>
             {summary.totalPaid > 0 && (
               <div className="flex justify-between text-green-700 dark:text-green-400">
@@ -108,7 +128,11 @@ export function DeliveryPaymentDialog({ idDelivery, onClose }: Props) {
             )}
             <div className="flex justify-between font-semibold border-t border-border pt-2">
               <span>Reste à payer</span>
-              <span className={summary.balanceDue <= 0 ? "text-green-600" : "text-foreground"}>
+              <span
+                className={
+                  summary.balanceDue <= 0 ? "text-green-600" : "text-foreground"
+                }
+              >
                 {formatCurrency(Math.max(0, summary.balanceDue))}
               </span>
             </div>
@@ -116,14 +140,19 @@ export function DeliveryPaymentDialog({ idDelivery, onClose }: Props) {
 
           {summary.payments && summary.payments.length > 0 && (
             <div className="rounded-lg border border-border bg-card p-4 space-y-3">
-              <h4 className="text-sm font-semibold">Historique des paiements</h4>
+              <h4 className="text-sm font-semibold">
+                Historique des paiements
+              </h4>
               <div className="space-y-2">
                 {summary.payments.map((p, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm border-b border-border/50 pb-2 last:border-0 last:pb-0">
+                  <div
+                    key={i}
+                    className="flex items-center justify-between text-sm border-b border-border/50 pb-2 last:border-0 last:pb-0"
+                  >
                     <div className="flex flex-col">
                       <span className="font-medium flex items-center gap-1.5 flex-wrap">
                         {p.ref}
-                        </span>
+                      </span>
                       <div className="text-xs text-muted-foreground flex items-center gap-1">
                         {new Date(p.date).toLocaleDateString()} - {p.method}
                       </div>
@@ -134,7 +163,10 @@ export function DeliveryPaymentDialog({ idDelivery, onClose }: Props) {
                       </span>
                       <button
                         title="Modifier ce paiement"
-                        onClick={() => { setIdPaymentToEdit(p.idPayment); setShowFullForm(true); }}
+                        onClick={() => {
+                          setIdPaymentToEdit(p.idPayment);
+                          setShowFullForm(true);
+                        }}
                         className="text-muted-foreground hover:text-primary transition-colors"
                       >
                         <Edit2 className="h-4 w-4" />
@@ -153,7 +185,8 @@ export function DeliveryPaymentDialog({ idDelivery, onClose }: Props) {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Cliquez sur <strong>"Payer cette livraison"</strong> pour continuer.
+              Cliquez sur <strong>"Payer cette livraison"</strong> pour
+              continuer.
               <button
                 onClick={() => setShowFullForm(true)}
                 className="ml-2 text-primary hover:underline inline-flex items-center gap-1"
@@ -168,4 +201,3 @@ export function DeliveryPaymentDialog({ idDelivery, onClose }: Props) {
     </ConfirmDialog>
   );
 }
-

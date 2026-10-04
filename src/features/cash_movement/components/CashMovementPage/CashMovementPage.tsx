@@ -4,7 +4,9 @@ import { CashMovementList } from "../../movement/components/CashMovementList/Cas
 import { CashJournalPage } from "../CashJournalPage/CashJournalPage";
 
 export function CashMovementPage() {
-  const [activeSubTab, setActiveSubTab] = useState<"journals" | "outflows" | "inflows" | "categories">("journals");
+  const [activeSubTab, setActiveSubTab] = useState<
+    "journals" | "outflows" | "inflows" | "categories"
+  >("journals");
 
   const tabs = [
     { key: "journals" as const, label: "Journaux" },
@@ -16,7 +18,7 @@ export function CashMovementPage() {
   return (
     <div className="flex flex-col gap-6 w-full h-full">
       <div className="flex items-center gap-4 border-b border-border pb-2">
-        {tabs.map(tab => (
+        {tabs.map((tab) => (
           <button
             key={tab.key}
             className={`pb-2 text-sm font-semibold transition-colors relative ${

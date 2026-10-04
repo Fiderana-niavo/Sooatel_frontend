@@ -34,7 +34,6 @@ import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { TimetablePage } from "@/features/timetable";
 import { useAppStore } from "@/store/app.store";
 
-
 function App() {
   const navigate = useNavigate();
   const [appMode, setAppMode] = useState<"utopia" | "sooatel">(() => {
@@ -83,7 +82,9 @@ function App() {
     return savedTab || "Tableau de bord";
   });
 
-  const [employeesPageTitle, setEmployeesPageTitle] = useState("Gestion des Employés");
+  const [employeesPageTitle, setEmployeesPageTitle] = useState(
+    "Gestion des Employés",
+  );
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -97,19 +98,21 @@ function App() {
   });
 
   useEffect(() => {
-    const modeName = appMode === "utopia" ? "Restaurant Utopia" : "Hôtel Sooatel";
+    const modeName =
+      appMode === "utopia" ? "Restaurant Utopia" : "Hôtel Sooatel";
     document.title = `${modeName} - ${activeTab}`;
 
-    let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+    let link: HTMLLinkElement | null =
+      document.querySelector("link[rel~='icon']");
     if (!link) {
-      link = document.createElement('link');
-      link.rel = 'icon';
+      link = document.createElement("link");
+      link.rel = "icon";
       document.head.appendChild(link);
     }
 
     let ActiveIcon = null;
     for (const group of NAVIGATION_GROUPS) {
-      const foundItem = group.items.find(item => item.title === activeTab);
+      const foundItem = group.items.find((item) => item.title === activeTab);
       if (foundItem) {
         ActiveIcon = foundItem.icon;
         break;
@@ -118,14 +121,18 @@ function App() {
 
     if (ActiveIcon) {
       const svgString = renderToStaticMarkup(
-        createElement(ActiveIcon, { color: "#1e293b", size: 32, strokeWidth: 2.5 })
+        createElement(ActiveIcon, {
+          color: "#1e293b",
+          size: 32,
+          strokeWidth: 2.5,
+        }),
       );
       const base64Svg = btoa(unescape(encodeURIComponent(svgString)));
 
-      link.type = 'image/svg+xml';
+      link.type = "image/svg+xml";
       link.href = `data:image/svg+xml;base64,${base64Svg}`;
     } else {
-      link.type = 'image/jpeg';
+      link.type = "image/jpeg";
       link.href = appMode === "utopia" ? utopiaLogo : sooatelLogo;
     }
   }, [activeTab, appMode]);
@@ -170,223 +177,285 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={
-        isAuthenticated ? <Navigate to="/" replace /> : <LoginPage onLogin={handleLogin} />
-      } />
-      <Route path="/" element={
-        isAuthenticated ? (
-          <SidebarProvider className={appMode === "utopia" ? "theme-utopia" : "theme-sooatel"}>
-            <AppSidebar
-              appMode={appMode}
-              setAppMode={setAppMode}
-              activeTab={activeTab}
-              setActiveTab={handleTabChange}
-            />
-            <SidebarInset className="bg-secondary/5">
-              <main className="w-full flex flex-col min-h-svh transition-colors duration-300 p-4 md:px-8 md:pb-8 md:pt-[14px]">
-                <div className="w-full mb-8 relative">
-                  <div className="absolute left-0 top-1">
-                    <SidebarTrigger className="text-secondary hover:bg-secondary/20 hover:text-secondary-foreground -ml-4 md:-ml-6" />
+      <Route
+        path="/login"
+        element={
+          isAuthenticated ? (
+            <Navigate to="/" replace />
+          ) : (
+            <LoginPage onLogin={handleLogin} />
+          )
+        }
+      />
+      <Route
+        path="/"
+        element={
+          isAuthenticated ? (
+            <SidebarProvider
+              className={
+                appMode === "utopia" ? "theme-utopia" : "theme-sooatel"
+              }
+            >
+              <AppSidebar
+                appMode={appMode}
+                setAppMode={setAppMode}
+                activeTab={activeTab}
+                setActiveTab={handleTabChange}
+              />
+              <SidebarInset className="bg-secondary/5">
+                <main className="w-full flex flex-col min-h-svh transition-colors duration-300 p-4 md:px-8 md:pb-8 md:pt-[14px]">
+                  <div className="w-full mb-8 relative">
+                    <div className="absolute left-0 top-1">
+                      <SidebarTrigger className="text-secondary hover:bg-secondary/20 hover:text-secondary-foreground -ml-4 md:-ml-6" />
+                    </div>
+
+                    <div className="w-full max-w-5xl mx-auto flex flex-col items-start justify-center text-left pl-12 xl:pl-0">
+                      <h1 className="font-extrabold text-3xl md:text-4xl text-secondary tracking-tight uppercase">
+                        {activeTab === "Gestion des Utilisateurs"
+                          ? employeesPageTitle
+                          : activeTab === "Chambres & Évènements"
+                            ? "Configuration de l'Hôtel"
+                            : activeTab === "Catalogue & Menus"
+                              ? "Catalogue du Restaurant"
+                              : activeTab === "Tableau de bord"
+                                ? appMode === "utopia"
+                                  ? "Tableau de Bord"
+                                  : "Vue d'ensemble"
+                                : activeTab}
+                      </h1>
+                      <span className="text-primary font-bold text-sm md:text-base uppercase tracking-widest mt-1">
+                        {appMode === "utopia"
+                          ? "Utopia Restaurant"
+                          : "Sooatel Hôtel"}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="w-full max-w-5xl mx-auto flex flex-col items-start justify-center text-left pl-12 xl:pl-0">
-                    <h1 className="font-extrabold text-3xl md:text-4xl text-secondary tracking-tight uppercase">
-                      {activeTab === "Gestion des Utilisateurs"
-                        ? employeesPageTitle
-                        : activeTab === "Chambres & Évènements"
-                          ? "Configuration de l'Hôtel"
-                          : activeTab === "Catalogue & Menus"
-                            ? "Catalogue du Restaurant"
-                            : activeTab === "Tableau de bord"
-                              ? (appMode === "utopia" ? "Tableau de Bord" : "Vue d'ensemble")
-                              : activeTab}
-                    </h1>
-                    <span className="text-primary font-bold text-sm md:text-base uppercase tracking-widest mt-1">
-                      {appMode === "utopia" ? "Utopia Restaurant" : "Sooatel Hôtel"}
-                    </span>
-                  </div>
-                </div>
+                  <section className="bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-xl p-8 md:p-12 border border-border/50 flex-1 w-full max-w-5xl mx-auto space-y-10 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
 
-                <section className="bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-xl p-8 md:p-12 border border-border/50 flex-1 w-full max-w-5xl mx-auto space-y-10 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
+                    {activeTab !== "Gestion des Utilisateurs" &&
+                      activeTab !== "Rôles et Permissions" &&
+                      activeTab !== "Équipes & Quarts" &&
+                      activeTab !== "Congés & Absences" &&
+                      activeTab !== "Congés à venir" &&
+                      activeTab !== "Types de Congés" &&
+                      activeTab !== "Emploi du Temps" &&
+                      activeTab !== "Paramètres Globaux" &&
+                      activeTab !== "Chambres & Évènements" &&
+                      activeTab !== "Catalogue & Menus" &&
+                      activeTab !== "Caisse & PDV" &&
+                      activeTab !== "Historique des Ventes" &&
+                      activeTab !== "Revenus" &&
+                      activeTab !== "Tableau de bord" &&
+                      activeTab !== "Mouvements de Caisse" &&
+                      activeTab !== "Fournisseurs & Achats" &&
+                      activeTab !== "Commandes Fournisseurs" &&
+                      activeTab !== "Livraisons Fournisseurs" &&
+                      activeTab !== "Recettes" &&
+                      activeTab !== "Mouvements" &&
+                      activeTab !== "Production de Plats" &&
+                      activeTab !== "Inventaire Physique" && (
+                        <div>
+                          <h2 className="text-2xl font-bold mb-2">
+                            Bienvenue sur{" "}
+                            {appMode === "utopia" ? "Utopia" : "Sooatel"}
+                          </h2>
+                          <p className="text-muted-foreground m-0 text-lg">
+                            Vous visualisez actuellement la page{" "}
+                            <span className="font-bold text-primary">
+                              {activeTab}
+                            </span>
+                            .
+                          </p>
+                        </div>
+                      )}
 
-                  {activeTab !== "Gestion des Utilisateurs" && activeTab !== "Rôles et Permissions" && activeTab !== "Équipes & Quarts" && activeTab !== "Congés & Absences" && activeTab !== "Congés à venir" && activeTab !== "Types de Congés" && activeTab !== "Emploi du Temps" && activeTab !== "Paramètres Globaux" && activeTab !== "Chambres & Évènements" && activeTab !== "Catalogue & Menus" && activeTab !== "Caisse & PDV" && activeTab !== "Historique des Ventes" && activeTab !== "Revenus" && activeTab !== "Tableau de bord" && activeTab !== "Mouvements de Caisse" && activeTab !== "Fournisseurs & Achats" && activeTab !== "Commandes Fournisseurs" && activeTab !== "Livraisons Fournisseurs" && activeTab !== "Recettes" && activeTab !== "Mouvements" && activeTab !== "Production de Plats" && activeTab !== "Inventaire Physique" && (
-                    <div>
-                      <h2 className="text-2xl font-bold mb-2">Bienvenue sur {appMode === "utopia" ? "Utopia" : "Sooatel"}</h2>
-                      <p className="text-muted-foreground m-0 text-lg">
-                        Vous visualisez actuellement la page <span className="font-bold text-primary">{activeTab}</span>.
-                      </p>
-                    </div>
-                  )}
-
-                  {activeTab === "Gestion des Utilisateurs" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="employee.read">
-                        <EmployeesPage setPageTitle={setEmployeesPageTitle} />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Rôles et Permissions" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full !mt-0 md:!-mt-4">
-                      <ProtectedRoute permission="security.access">
-                        <RolesPage />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Congés & Absences" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="hr.access">
-                        <LeavesPage />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Congés à venir" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="hr.access">
-                        <UpcomingLeavesPage />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Types de Congés" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                      <ProtectedRoute permission="hr.access">
-                        <LeaveTypesPage />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Équipes & Quarts" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="hr.schedule">
-                        <PlanningPage />
-                      </ProtectedRoute>
-                    </div>
-
-                  ) : activeTab === "Emploi du Temps" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                      <ProtectedRoute permission="hr.schedule">
-                        <TimetablePage />
-                      </ProtectedRoute>
-                    </div>
-
-                  ) : activeTab === "Paramètres Globaux" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="settings.access">
-                        <SettingsPage />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Chambres & Évènements" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="hotel.access">
-                        <HotelConfigPage />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Catalogue & Menus" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="restaurant.access">
-                        <RestaurantCatalogPage />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Caisse & PDV" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="sales.pos">
-                        <SalesPosPage
-                          onGoToHistory={() => setActiveTab("Historique des Ventes")}
-                          saleToEdit={editingSale}
-                          onClearEdit={() => {
-                            setEditingSale(null);
-                          }}
-                        />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Historique des Ventes" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="sales.pos">
-                        <SalesListPage
-                          onEditSale={(sale) => {
-                            setEditingSale(sale);
-                            setActiveTab("Caisse & PDV");
-                          }}
-                        />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Revenus" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="sales.pos">
-                        <RevenuePage />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Recettes" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="stock.manage">
-                        <RecipesPage />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Tableau de bord" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="sale.manage">
-                        <DashboardPage />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Mouvements de Caisse" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="restaurant.purchases">
-                        <CashMovementPage />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Fournisseurs & Achats" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="supplier.manage">
-                        <SuppliersPage />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Commandes Fournisseurs" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="stock.manage">
-                        <PurchasesContainer onGoToDeliveries={() => setActiveTab("Livraisons Fournisseurs")} />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Livraisons Fournisseurs" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="stock.manage">
-                        <DeliveryListPage onGoToPurchases={() => setActiveTab("Commandes Fournisseurs")} />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Gestion des Produits & Inventaire" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="stock.manage">
-                        <InventoryCatalogPage onGoToDeliveries={() => setActiveTab("Livraisons Fournisseurs")} />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Inventaire Physique" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="stock.manage">
-                        <InventoryPage />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Mouvements" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="stock.read">
-                        <StockMovementPage />
-                      </ProtectedRoute>
-                    </div>
-                  ) : activeTab === "Production de Plats" ? (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                      <ProtectedRoute permission="stock.manage">
-                        <DishProductionPage />
-                      </ProtectedRoute>
-                    </div>
-                  ) : (
-                    <div className="bg-muted/30 rounded-2xl p-6 border border-border/50 flex flex-col items-center justify-center min-h-[300px] text-center">
-                      <h3 className="text-xl font-semibold mb-2">Contenu : {activeTab}</h3>
-                      <p className="text-muted-foreground">Cette section est en cours de développement.</p>
-                    </div>
-                  )}
-                </section>
-              </main>
-            </SidebarInset>
-          </SidebarProvider>
-        ) : (
-          <Navigate to="/login" replace />
-        )
-      } />
+                    {activeTab === "Gestion des Utilisateurs" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="employee.read">
+                          <EmployeesPage setPageTitle={setEmployeesPageTitle} />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Rôles et Permissions" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full !mt-0 md:!-mt-4">
+                        <ProtectedRoute permission="security.access">
+                          <RolesPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Congés & Absences" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="hr.access">
+                          <LeavesPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Congés à venir" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="hr.access">
+                          <UpcomingLeavesPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Types de Congés" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <ProtectedRoute permission="hr.access">
+                          <LeaveTypesPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Équipes & Quarts" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="hr.schedule">
+                          <PlanningPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Emploi du Temps" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <ProtectedRoute permission="hr.schedule">
+                          <TimetablePage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Paramètres Globaux" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="settings.access">
+                          <SettingsPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Chambres & Évènements" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="hotel.access">
+                          <HotelConfigPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Catalogue & Menus" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="restaurant.access">
+                          <RestaurantCatalogPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Caisse & PDV" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="sales.pos">
+                          <SalesPosPage
+                            onGoToHistory={() =>
+                              setActiveTab("Historique des Ventes")
+                            }
+                            saleToEdit={editingSale}
+                            onClearEdit={() => {
+                              setEditingSale(null);
+                            }}
+                          />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Historique des Ventes" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="sales.pos">
+                          <SalesListPage
+                            onEditSale={(sale) => {
+                              setEditingSale(sale);
+                              setActiveTab("Caisse & PDV");
+                            }}
+                          />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Revenus" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="sales.pos">
+                          <RevenuePage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Recettes" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="stock.manage">
+                          <RecipesPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Tableau de bord" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="sale.manage">
+                          <DashboardPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Mouvements de Caisse" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="restaurant.purchases">
+                          <CashMovementPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Fournisseurs & Achats" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="supplier.manage">
+                          <SuppliersPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Commandes Fournisseurs" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="stock.manage">
+                          <PurchasesContainer
+                            onGoToDeliveries={() =>
+                              setActiveTab("Livraisons Fournisseurs")
+                            }
+                          />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Livraisons Fournisseurs" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="stock.manage">
+                          <DeliveryListPage
+                            onGoToPurchases={() =>
+                              setActiveTab("Commandes Fournisseurs")
+                            }
+                          />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Gestion des Produits & Inventaire" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="stock.manage">
+                          <InventoryCatalogPage
+                            onGoToDeliveries={() =>
+                              setActiveTab("Livraisons Fournisseurs")
+                            }
+                          />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Inventaire Physique" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="stock.manage">
+                          <InventoryPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Mouvements" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="stock.read">
+                          <StockMovementPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Production de Plats" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="stock.manage">
+                          <DishProductionPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : (
+                      <div className="bg-muted/30 rounded-2xl p-6 border border-border/50 flex flex-col items-center justify-center min-h-[300px] text-center">
+                        <h3 className="text-xl font-semibold mb-2">
+                          Contenu : {activeTab}
+                        </h3>
+                        <p className="text-muted-foreground">
+                          Cette section est en cours de développement.
+                        </p>
+                      </div>
+                    )}
+                  </section>
+                </main>
+              </SidebarInset>
+            </SidebarProvider>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-  )
+  );
 }
 
 export default App;

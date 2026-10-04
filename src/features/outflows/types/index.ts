@@ -34,4 +34,13 @@ export interface CashOutflowDto {
   status?: number;
   idOutflowCategory?: string | null;
 }
-export interface CashJournal { idJournal: string; ref: string; journalOpening: string; journalClosing?: string | null; expectedClosingBalance: number; actualClosingBalance?: number | null; cashDiscrepancy?: number | null; idCashier: string; }
+export interface CashJournal {
+  idJournal: string;
+  ref: string;
+  journalOpening: string;
+  journalClosing?: string | null;
+  expectedClosingBalance: number;
+  actualClosingBalance?: number | null;
+  cashDiscrepancy?: number | null;
+  idCashier: string;
+}

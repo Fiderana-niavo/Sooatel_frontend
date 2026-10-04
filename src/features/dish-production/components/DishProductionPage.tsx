@@ -8,7 +8,11 @@ import { dishProductionService } from "../services/dish-production.service";
 import { DishProductionForm } from "./DishProductionForm";
 import { DishProductionDraftList } from "./DishProductionDraftList";
 import { DishProductionHistoryList } from "./DishProductionHistoryList";
-import type { DishProduction, DishProductionDto, DishProductionFilters } from "../types";
+import type {
+  DishProduction,
+  DishProductionDto,
+  DishProductionFilters,
+} from "../types";
 
 const DRAFT_STATUS = 5;
 const VALIDATED_STATUS = 0;
@@ -23,16 +27,25 @@ type Tab = "drafts" | "history";
 
 const tabClass = (active: boolean) =>
   `flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-    active ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+    active
+      ? "bg-background shadow-sm text-foreground"
+      : "text-muted-foreground hover:text-foreground"
   }`;
 
 export function DishProductionPage() {
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>("drafts");
   const [formOpen, setFormOpen] = useState(false);
-  const [selectedProduction, setSelectedProduction] = useState<DishProduction | null>(null);
-  const [historyFilters, setHistoryFilters] = useState<DishProductionFilters>(DEFAULT_HISTORY_FILTERS);
-  const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; open: boolean }>({
+  const [selectedProduction, setSelectedProduction] =
+    useState<DishProduction | null>(null);
+  const [historyFilters, setHistoryFilters] = useState<DishProductionFilters>(
+    DEFAULT_HISTORY_FILTERS,
+  );
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: SnackbarType;
+    open: boolean;
+  }>({
     message: "",
     type: "info",
     open: false,
@@ -44,7 +57,8 @@ export function DishProductionPage() {
   /* ---------- Queries ---------- */
   const draftsResult = useQuery({
     queryKey: ["dish-productions", "drafts"],
-    queryFn: () => dishProductionService.getAll({ status: DRAFT_STATUS, limit: 100 }),
+    queryFn: () =>
+      dishProductionService.getAll({ status: DRAFT_STATUS, limit: 100 }),
   });
 
   const historyResult = useQuery({
@@ -61,37 +75,75 @@ export function DishProductionPage() {
 
   const createMutation = useMutation({
     mutationFn: (dto: DishProductionDto) => dishProductionService.create(dto),
-    onSuccess: () => { invalidate(); showSnackbar("Brouillon créé", "success"); closeForm(); },
-    onError: (err: Error) => showSnackbar(err.message || "Erreur lors de la création", "error"),
+    onSuccess: () => {
+      invalidate();
+      showSnackbar("Brouillon créé", "success");
+      closeForm();
+    },
+    onError: (err: Error) =>
+      showSnackbar(err.message || "Erreur lors de la création", "error"),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, dto }: { id: string; dto: DishProductionDto }) => dishProductionService.update(id, dto),
-    onSuccess: () => { invalidate(); showSnackbar("Production mise à jour", "success"); closeForm(); },
-    onError: (err: Error) => showSnackbar(err.message || "Erreur lors de la modification", "error"),
+    mutationFn: ({ id, dto }: { id: string; dto: DishProductionDto }) =>
+      dishProductionService.update(id, dto),
+    onSuccess: () => {
+      invalidate();
+      showSnackbar("Production mise à jour", "success");
+      closeForm();
+    },
+    onError: (err: Error) =>
+      showSnackbar(err.message || "Erreur lors de la modification", "error"),
   });
 
   const validateMutation = useMutation({
     mutationFn: (id: string) => dishProductionService.validate(id),
-    onSuccess: () => { invalidate(); showSnackbar("Production validée. Stock mis à jour avec succès !", "success"); },
-    onError: (err: Error) => showSnackbar(err.message || "Erreur lors de la validation. Vérifiez le stock des ingrédients.", "error"),
+    onSuccess: () => {
+      invalidate();
+      showSnackbar(
+        "Production validée. Stock mis à jour avec succès !",
+        "success",
+      );
+    },
+    onError: (err: Error) =>
+      showSnackbar(
+        err.message ||
+          "Erreur lors de la validation. Vérifiez le stock des ingrédients.",
+        "error",
+      ),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => dishProductionService.delete(id),
-    onSuccess: () => { invalidate(); showSnackbar("Brouillon supprimé", "success"); },
-    onError: (err: Error) => showSnackbar(err.message || "Erreur lors de la suppression", "error"),
+    onSuccess: () => {
+      invalidate();
+      showSnackbar("Brouillon supprimé", "success");
+    },
+    onError: (err: Error) =>
+      showSnackbar(err.message || "Erreur lors de la suppression", "error"),
   });
 
   /* ---------- Handlers ---------- */
-  const openNewForm = () => { setSelectedProduction(null); setFormOpen(true); };
-  const closeForm = () => { setFormOpen(false); setSelectedProduction(null); };
+  const openNewForm = () => {
+    setSelectedProduction(null);
+    setFormOpen(true);
+  };
+  const closeForm = () => {
+    setFormOpen(false);
+    setSelectedProduction(null);
+  };
 
-  const handleEdit = (m: DishProduction) => { setSelectedProduction(m); setFormOpen(true); };
+  const handleEdit = (m: DishProduction) => {
+    setSelectedProduction(m);
+    setFormOpen(true);
+  };
 
   const handleSave = async (dto: DishProductionDto) => {
     if (selectedProduction) {
-      await updateMutation.mutateAsync({ id: selectedProduction.idDishProduction, dto });
+      await updateMutation.mutateAsync({
+        id: selectedProduction.idDishProduction,
+        dto,
+      });
     } else {
       await createMutation.mutateAsync(dto);
     }
@@ -162,13 +214,19 @@ export function DishProductionPage() {
       {/* Form Drawer */}
       {formOpen && (
         <DishProductionForm
-          initial={selectedProduction ? {
-            idDishProduction: selectedProduction.idDishProduction,
-            idItem: selectedProduction.item?.idItem ?? selectedProduction.idItem,
-            quantity: selectedProduction.quantity,
-            notes: selectedProduction.notes ?? "",
-            productionDate: selectedProduction.productionDate,
-          } : undefined}
+          initial={
+            selectedProduction
+              ? {
+                  idDishProduction: selectedProduction.idDishProduction,
+                  idItem:
+                    selectedProduction.item?.idItem ??
+                    selectedProduction.idItem,
+                  quantity: selectedProduction.quantity,
+                  notes: selectedProduction.notes ?? "",
+                  productionDate: selectedProduction.productionDate,
+                }
+              : undefined
+          }
           onClose={closeForm}
           onSave={handleSave}
         />

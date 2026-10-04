@@ -16,15 +16,17 @@ export const fetchSalesDependencies = async (): Promise<SalesDependencies> => {
       SaleService.getMenuItems().catch(() => ({ payload: [] })),
       RoomService.getSelectOptions().catch(() => []),
       SaleService.getPaymentMethods().catch(() => ({ payload: [] })),
-      SaleService.getSalers().catch(() => ({ payload: [] }))
+      SaleService.getSalers().catch(() => ({ payload: [] })),
     ]);
 
     let salers: SelectOptionDto[] = [];
     if (salersRes.payload) {
-      salers = salersRes.payload.map((s: { id?: string; value?: string; label: string }) => ({
-        value: s.value || s.id || "",
-        label: s.label
-      }));
+      salers = salersRes.payload.map(
+        (s: { id?: string; value?: string; label: string }) => ({
+          value: s.value || s.id || "",
+          label: s.label,
+        }),
+      );
     }
 
     let menuItems: MenuItemRef[] = [];
@@ -32,7 +34,7 @@ export const fetchSalesDependencies = async (): Promise<SalesDependencies> => {
       menuItems = menusRes.payload.map((m: any) => ({
         idMenu: m.value,
         name: m.label || "Plat",
-        salePrice: Number(m.salePrice)
+        salePrice: Number(m.salePrice),
       }));
     }
 
@@ -40,7 +42,7 @@ export const fetchSalesDependencies = async (): Promise<SalesDependencies> => {
     if (pmRes.payload) {
       paymentMethods = pmRes.payload.map((pm: any) => ({
         idPaymentMethod: pm.value,
-        methodName: pm.label
+        methodName: pm.label,
       }));
     }
 
@@ -48,7 +50,7 @@ export const fetchSalesDependencies = async (): Promise<SalesDependencies> => {
       rooms: roomsOptions,
       salers,
       menuItems,
-      paymentMethods
+      paymentMethods,
     };
   } catch (err) {
     console.error("Failed to fetch dependencies", err);
@@ -61,35 +63,39 @@ export interface SalesListDependencies {
   menuOptions: { value: string; label: string }[];
 }
 
-export const fetchSalesListDependencies = async (): Promise<SalesListDependencies> => {
-  try {
-    const [pmRes, menuRes] = await Promise.all([
-      SaleService.getPaymentMethods().catch(() => ({ payload: [] })),
-      SaleService.getMenuItems().catch(() => ({ payload: [] }))
-    ]);
+export const fetchSalesListDependencies =
+  async (): Promise<SalesListDependencies> => {
+    try {
+      const [pmRes, menuRes] = await Promise.all([
+        SaleService.getPaymentMethods().catch(() => ({ payload: [] })),
+        SaleService.getMenuItems().catch(() => ({ payload: [] })),
+      ]);
 
-    let paymentMethods: PaymentMethodRef[] = [];
-    if (pmRes.payload) {
-      paymentMethods = pmRes.payload.map((m: any) => ({
-        idPaymentMethod: m.value,
-        methodName: m.label
-      }));
+      let paymentMethods: PaymentMethodRef[] = [];
+      if (pmRes.payload) {
+        paymentMethods = pmRes.payload.map((m: any) => ({
+          idPaymentMethod: m.value,
+          methodName: m.label,
+        }));
+      }
+
+      let menuOptions = [{ value: "", label: "Tous les produits" }];
+      if (menuRes.payload) {
+        menuOptions = [
+          ...menuOptions,
+          ...menuRes.payload.map((m: any) => ({
+            value: m.value,
+            label: m.label,
+          })),
+        ];
+      }
+
+      return { paymentMethods, menuOptions };
+    } catch (err) {
+      console.error("Failed to fetch list dependencies", err);
+      return {
+        paymentMethods: [],
+        menuOptions: [{ value: "", label: "Tous les produits" }],
+      };
     }
-
-    let menuOptions = [{ value: "", label: "Tous les produits" }];
-    if (menuRes.payload) {
-      menuOptions = [
-        ...menuOptions,
-        ...menuRes.payload.map((m: any) => ({
-          value: m.value,
-          label: m.label
-        }))
-      ];
-    }
-
-    return { paymentMethods, menuOptions };
-  } catch (err) {
-    console.error("Failed to fetch list dependencies", err);
-    return { paymentMethods: [], menuOptions: [{ value: "", label: "Tous les produits" }] };
-  }
-};
+  };

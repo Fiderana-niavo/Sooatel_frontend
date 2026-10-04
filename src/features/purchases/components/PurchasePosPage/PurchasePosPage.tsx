@@ -18,7 +18,15 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
 import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
 
-export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries }: { onGoToList?: () => void, idPurchaseToEdit?: string, onGoToDeliveries?: (idPurchase: string) => void }) {
+export function PurchasePosPage({
+  onGoToList,
+  idPurchaseToEdit,
+  onGoToDeliveries,
+}: {
+  onGoToList?: () => void;
+  idPurchaseToEdit?: string;
+  onGoToDeliveries?: (idPurchase: string) => void;
+}) {
   const [purchaseData, setPurchaseData] = useState<CreatePurchaseDto>({
     purchaseDate: toIsoDateTime(new Date()),
     idSupplier: "",
@@ -28,7 +36,11 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
 
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({ message: "", type: "info", isOpen: false });
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: SnackbarType;
+    isOpen: boolean;
+  }>({ message: "", type: "info", isOpen: false });
   const [submitError, setSubmitError] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const initializedForId = useRef<string | undefined | null>(null);
@@ -56,13 +68,13 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
   const { data: editPurchase } = useQuery({
     queryKey: ["purchase", idPurchaseToEdit],
     queryFn: () => purchaseService.getById(idPurchaseToEdit!),
-    enabled: !!idPurchaseToEdit
+    enabled: !!idPurchaseToEdit,
   });
 
   const { data: editDetails } = useQuery({
     queryKey: ["purchaseDetails", idPurchaseToEdit],
     queryFn: () => purchaseService.getDetails(idPurchaseToEdit!),
-    enabled: !!idPurchaseToEdit
+    enabled: !!idPurchaseToEdit,
   });
 
   useEffect(() => {
@@ -91,22 +103,23 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
 
   const { data: suppliers } = useQuery({
     queryKey: ["suppliers"],
-    queryFn: () => getSuppliers({ limit: 100 })
+    queryFn: () => getSuppliers({ limit: 100 }),
   });
 
   const { data: employees } = useQuery({
     queryKey: ["employees"],
-    queryFn: () => EmployeeService.getAll({ limit: 100 })
+    queryFn: () => EmployeeService.getAll({ limit: 100 }),
   });
 
   const { data: paymentMethods } = useQuery({
     queryKey: ["payment-methods"],
-    queryFn: () => purchaseService.getPaymentMethods()
+    queryFn: () => purchaseService.getPaymentMethods(),
   });
 
   const { data: suppliedItems, refetch: refetchSuppliedItems } = useQuery({
     queryKey: ["suppliedItems", purchaseData.idSupplier],
-    queryFn: () => purchaseService.getSuppliedItemsBySupplier(purchaseData.idSupplier),
+    queryFn: () =>
+      purchaseService.getSuppliedItemsBySupplier(purchaseData.idSupplier),
     enabled: !!purchaseData.idSupplier,
   });
 
@@ -119,43 +132,58 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
     },
     onError: (error: any) => {
       const respData = error.response?.data;
-      const msg = (respData?.message && respData.message !== "Request failed" ? respData.message : null) 
-               || (respData?.error && respData.error !== "Request failed" ? respData.error : null) 
-               || "Erreur lors de la création de la commande";
+      const msg =
+        (respData?.message && respData.message !== "Request failed"
+          ? respData.message
+          : null) ||
+        (respData?.error && respData.error !== "Request failed"
+          ? respData.error
+          : null) ||
+        "Erreur lors de la création de la commande";
       showSnackbar(msg, "error");
-    }
+    },
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: CreatePurchaseDto) => purchaseService.update(idPurchaseToEdit!, data),
+    mutationFn: (data: CreatePurchaseDto) =>
+      purchaseService.update(idPurchaseToEdit!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["purchases"] });
-      queryClient.invalidateQueries({ queryKey: ["purchase", idPurchaseToEdit] });
-      queryClient.invalidateQueries({ queryKey: ["purchaseDetails", idPurchaseToEdit] });
+      queryClient.invalidateQueries({
+        queryKey: ["purchase", idPurchaseToEdit],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["purchaseDetails", idPurchaseToEdit],
+      });
       showSnackbar("Commande modifiée avec succès", "success");
       if (onGoToList) onGoToList();
     },
     onError: (error: any) => {
       const respData = error.response?.data;
-      const msg = (respData?.message && respData.message !== "Request failed" ? respData.message : null) 
-               || (respData?.error && respData.error !== "Request failed" ? respData.error : null) 
-               || "Erreur lors de la modification de la commande";
+      const msg =
+        (respData?.message && respData.message !== "Request failed"
+          ? respData.message
+          : null) ||
+        (respData?.error && respData.error !== "Request failed"
+          ? respData.error
+          : null) ||
+        "Erreur lors de la modification de la commande";
       if (msg.includes("livraison en cours")) {
         setSubmitError(msg);
       } else {
         showSnackbar(msg, "error");
       }
-    }
+    },
   });
 
   const handleInfoChange = (field: keyof CreatePurchaseDto, value: any) => {
-    setPurchaseData(prev => {
+    setPurchaseData((prev) => {
       // If supplier changes, clear existing details and add one empty row
       if (field === "idSupplier") {
         return {
           ...prev,
           [field]: value,
-          details: [{ idSuppliedItem: "", quantity: 1, unitPrice: 0 }]
+          details: [{ idSuppliedItem: "", quantity: 1, unitPrice: 0 }],
         };
       }
       if (field === "deliveryDone") {
@@ -175,7 +203,7 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
       }
       return {
         ...prev,
-        [field]: value
+        [field]: value,
       };
     });
   };
@@ -184,7 +212,9 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
     setPurchaseData((prev) => {
       const newDetails = [...prev.details];
       (newDetails[index] as any)[field] = value;
-      const newDeliveryLines = prev.deliveryLines ? [...prev.deliveryLines] : undefined;
+      const newDeliveryLines = prev.deliveryLines
+        ? [...prev.deliveryLines]
+        : undefined;
       if (newDeliveryLines && newDeliveryLines[index]) {
         (newDeliveryLines[index] as any)[field] = value;
       }
@@ -197,21 +227,36 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
   };
 
   const handleAddItem = () => {
-    setPurchaseData(prev => ({
+    setPurchaseData((prev) => ({
       ...prev,
-      details: [...prev.details, { idSuppliedItem: "", quantity: 1, unitPrice: 0 }]
+      details: [
+        ...prev.details,
+        { idSuppliedItem: "", quantity: 1, unitPrice: 0 },
+      ],
     }));
   };
 
   const handleRemoveItem = (index: number) => {
     const newDetails = [...purchaseData.details];
     newDetails.splice(index, 1);
-    setPurchaseData(prev => ({ ...prev, details: newDetails }));
+    setPurchaseData((prev) => ({ ...prev, details: newDetails }));
   };
 
-  const totalAmount = purchaseData.details.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+  const totalAmount = purchaseData.details.reduce(
+    (sum, item) => sum + item.quantity * item.unitPrice,
+    0,
+  );
 
-  const isFormValid = purchaseData.idSupplier && purchaseData.idPurchaser && purchaseData.details.length > 0 && purchaseData.details.every(d => d.idSuppliedItem && d.quantity > 0 && d.unitPrice >= 0) && (!purchaseData.advanceAmount || purchaseData.advanceAmount <= 0 || purchaseData.idPaymentMethod);
+  const isFormValid =
+    purchaseData.idSupplier &&
+    purchaseData.idPurchaser &&
+    purchaseData.details.length > 0 &&
+    purchaseData.details.every(
+      (d) => d.idSuppliedItem && d.quantity > 0 && d.unitPrice >= 0,
+    ) &&
+    (!purchaseData.advanceAmount ||
+      purchaseData.advanceAmount <= 0 ||
+      purchaseData.idPaymentMethod);
 
   const executeSubmit = () => {
     if (idPurchaseToEdit) {
@@ -224,20 +269,26 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) {
-      showSnackbar("Veuillez remplir correctement tous les champs obligatoires.", "error");
+      showSnackbar(
+        "Veuillez remplir correctement tous les champs obligatoires.",
+        "error",
+      );
       return;
     }
 
     if (purchaseData.deliveryDone && !idPurchaseToEdit) {
-      const linesToCheck = (purchaseData.deliveryLines && purchaseData.deliveryLines.length > 0)
-        ? purchaseData.deliveryLines
-        : purchaseData.details;
+      const linesToCheck =
+        purchaseData.deliveryLines && purchaseData.deliveryLines.length > 0
+          ? purchaseData.deliveryLines
+          : purchaseData.details;
 
-      const hasValidDeliveryQty = linesToCheck.some((l) => Number(l.quantity) > 0);
+      const hasValidDeliveryQty = linesToCheck.some(
+        (l) => Number(l.quantity) > 0,
+      );
       if (!hasValidDeliveryQty) {
         showSnackbar(
           "Pour une livraison directe, au moins une quantité reçue doit être supérieure à 0. Si aucune marchandise n'est reçue maintenant, veuillez décocher 'Livraison déjà effectuée ?'.",
-          "error"
+          "error",
         );
         return;
       }
@@ -248,8 +299,14 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
     }
   };
 
-  const supplierOptions = suppliers?.records?.map(s => ({ value: s.idSupplier, label: s.name })) || [];
-  const employeeOptions = employees?.records?.map(e => ({ value: e.idEmployee, label: `${e.name || ''} ${e.lastname || ''}`.trim() })) || [];
+  const supplierOptions =
+    suppliers?.records?.map((s) => ({ value: s.idSupplier, label: s.name })) ||
+    [];
+  const employeeOptions =
+    employees?.records?.map((e) => ({
+      value: e.idEmployee,
+      label: `${e.name || ""} ${e.lastname || ""}`.trim(),
+    })) || [];
   const pmOptions = paymentMethods || [];
 
   return (
@@ -290,70 +347,88 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
           {/* Bottom Options: Delivery & Payment (Creation Only) */}
           {!idPurchaseToEdit && (
             <div className="border-t border-border p-6 space-y-6">
-              <h3 className="text-lg font-semibold text-foreground">Options de Livraison & Règlement</h3>
+              <h3 className="text-lg font-semibold text-foreground">
+                Options de Livraison & Règlement
+              </h3>
 
-            <div className="flex items-center gap-3 bg-primary/5 p-4 rounded-lg border border-primary/20">
-              <input
-                id="delivery-done-checkbox"
-                type="checkbox"
-                className="w-5 h-5 rounded border-border accent-primary cursor-pointer"
-                checked={!!purchaseData.deliveryDone}
-                onChange={(e) => handleInfoChange("deliveryDone", e.target.checked)}
-              />
-              <div>
-                <label htmlFor="delivery-done-checkbox" className="text-base font-semibold cursor-pointer select-none text-foreground">
-                  Livraison déjà effectuée ?
-                </label>
-                <p className="text-xs text-muted-foreground">
-                  {purchaseData.deliveryDone
-                    ? "La commande sera confirmée. La livraison sera enregistrée en statut 'Ouverte'. Les paiements se feront après sa validation."
-                    : "Cochez cette case si les articles sont livrés sur place au moment de la commande."}
-                </p>
-              </div>
-            </div>
-
-            {!purchaseData.deliveryDone && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 rounded-lg border border-border/30 bg-muted/10">
+              <div className="flex items-center gap-3 bg-primary/5 p-4 rounded-lg border border-primary/20">
+                <input
+                  id="delivery-done-checkbox"
+                  type="checkbox"
+                  className="w-5 h-5 rounded border-border accent-primary cursor-pointer"
+                  checked={!!purchaseData.deliveryDone}
+                  onChange={(e) =>
+                    handleInfoChange("deliveryDone", e.target.checked)
+                  }
+                />
                 <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Acompte / Avance (Optionnel)
+                  <label
+                    htmlFor="delivery-done-checkbox"
+                    className="text-base font-semibold cursor-pointer select-none text-foreground"
+                  >
+                    Livraison déjà effectuée ?
                   </label>
-                  <CurrencyInput
-                    placeholder="0"
-                    value={purchaseData.advanceAmount}
-                    onChange={(val) => handleInfoChange("advanceAmount", val)}
-                    currencySuffix="Ar"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Montant crédité sur la balance du fournisseur comme avance.
+                  <p className="text-xs text-muted-foreground">
+                    {purchaseData.deliveryDone
+                      ? "La commande sera confirmée. La livraison sera enregistrée en statut 'Ouverte'. Les paiements se feront après sa validation."
+                      : "Cochez cette case si les articles sont livrés sur place au moment de la commande."}
                   </p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Méthode de paiement</label>
-                  <SearchableSelect
-                    value={purchaseData.idPaymentMethod || ""}
-                    onChange={(val) => handleInfoChange("idPaymentMethod", val)}
-                    options={pmOptions}
-                    placeholder="Sélectionner..."
-                    disabled={!purchaseData.advanceAmount || purchaseData.advanceAmount <= 0}
-                  />
-                </div>
               </div>
-            )}
 
-            {purchaseData.deliveryDone && purchaseData.details.length > 0 && (
-              <PurchaseDeliveryForm
-                details={purchaseData.details}
-                deliveryLines={purchaseData.deliveryLines}
-                suppliedItems={suppliedItems || []}
-                onChangeDeliveryLines={(lines) =>
-                  setPurchaseData((prev) => ({ ...prev, deliveryLines: lines }))
-                }
-              />
-            )}
-          </div>
-        )}
-      </div>
+              {!purchaseData.deliveryDone && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 rounded-lg border border-border/30 bg-muted/10">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Acompte / Avance (Optionnel)
+                    </label>
+                    <CurrencyInput
+                      placeholder="0"
+                      value={purchaseData.advanceAmount}
+                      onChange={(val) => handleInfoChange("advanceAmount", val)}
+                      currencySuffix="Ar"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Montant crédité sur la balance du fournisseur comme
+                      avance.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Méthode de paiement
+                    </label>
+                    <SearchableSelect
+                      value={purchaseData.idPaymentMethod || ""}
+                      onChange={(val) =>
+                        handleInfoChange("idPaymentMethod", val)
+                      }
+                      options={pmOptions}
+                      placeholder="Sélectionner..."
+                      disabled={
+                        !purchaseData.advanceAmount ||
+                        purchaseData.advanceAmount <= 0
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+
+              {purchaseData.deliveryDone && purchaseData.details.length > 0 && (
+                <PurchaseDeliveryForm
+                  details={purchaseData.details}
+                  deliveryLines={purchaseData.deliveryLines}
+                  suppliedItems={suppliedItems || []}
+                  onChangeDeliveryLines={(lines) =>
+                    setPurchaseData((prev) => ({
+                      ...prev,
+                      deliveryLines: lines,
+                    }))
+                  }
+                />
+              )}
+            </div>
+          )}
+        </div>
 
         {submitError && (
           <div className="flex flex-col gap-2 bg-red-500/10 px-4 py-3 rounded-md mb-6">
@@ -361,18 +436,23 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
               {submitError}
             </div>
-            {submitError.includes("livraison en cours") && onGoToDeliveries && idPurchaseToEdit && (
-              <Button
-                variant="outline"
-                className="w-full mt-1 text-sm text-red-600 border-red-200 hover:bg-red-500/20"
-                onClick={() => {
-                  sessionStorage.setItem("purchasePosSavedState", JSON.stringify({ idPurchaseToEdit, purchaseData }));
-                  onGoToDeliveries(idPurchaseToEdit);
-                }}
-              >
-                Voir les livraisons en cours
-              </Button>
-            )}
+            {submitError.includes("livraison en cours") &&
+              onGoToDeliveries &&
+              idPurchaseToEdit && (
+                <Button
+                  variant="outline"
+                  className="w-full mt-1 text-sm text-red-600 border-red-200 hover:bg-red-500/20"
+                  onClick={() => {
+                    sessionStorage.setItem(
+                      "purchasePosSavedState",
+                      JSON.stringify({ idPurchaseToEdit, purchaseData }),
+                    );
+                    onGoToDeliveries(idPurchaseToEdit);
+                  }}
+                >
+                  Voir les livraisons en cours
+                </Button>
+              )}
           </div>
         )}
 
@@ -383,9 +463,15 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
           <Button
             type="submit"
             className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8"
-            disabled={!isFormValid || createMutation.isPending || updateMutation.isPending}
+            disabled={
+              !isFormValid ||
+              createMutation.isPending ||
+              updateMutation.isPending
+            }
           >
-            {createMutation.isPending || updateMutation.isPending ? "Enregistrement..." : (
+            {createMutation.isPending || updateMutation.isPending ? (
+              "Enregistrement..."
+            ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
                 Valider la commande ({formatCurrency(totalAmount)})
@@ -405,13 +491,22 @@ export function PurchasePosPage({ onGoToList, idPurchaseToEdit, onGoToDeliveries
             refetchSuppliedItems();
             setIsAddProductModalOpen(false);
             const newDetails = [...purchaseData.details];
-            if (newDetails.length > 0 && !newDetails[newDetails.length - 1].idSuppliedItem) {
-              newDetails[newDetails.length - 1].idSuppliedItem = newSuppliedItem.idSuppliedItem;
-              newDetails[newDetails.length - 1].unitPrice = newSuppliedItem.supplierProduct?.actualPrice || 0;
+            if (
+              newDetails.length > 0 &&
+              !newDetails[newDetails.length - 1].idSuppliedItem
+            ) {
+              newDetails[newDetails.length - 1].idSuppliedItem =
+                newSuppliedItem.idSuppliedItem;
+              newDetails[newDetails.length - 1].unitPrice =
+                newSuppliedItem.supplierProduct?.actualPrice || 0;
             } else {
-              newDetails.push({ idSuppliedItem: newSuppliedItem.idSuppliedItem, quantity: 1, unitPrice: newSuppliedItem.supplierProduct?.actualPrice || 0 });
+              newDetails.push({
+                idSuppliedItem: newSuppliedItem.idSuppliedItem,
+                quantity: 1,
+                unitPrice: newSuppliedItem.supplierProduct?.actualPrice || 0,
+              });
             }
-            setPurchaseData(prev => ({ ...prev, details: newDetails }));
+            setPurchaseData((prev) => ({ ...prev, details: newDetails }));
           }}
         />
       )}

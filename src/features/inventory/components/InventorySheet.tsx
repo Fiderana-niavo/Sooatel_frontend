@@ -1,6 +1,15 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, TrendingDown, TrendingUp, Minus, Loader2, CheckCircle, Package, ListChecks } from "lucide-react";
+import {
+  Search,
+  TrendingDown,
+  TrendingUp,
+  Minus,
+  Loader2,
+  CheckCircle,
+  Package,
+  ListChecks,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
@@ -25,18 +34,33 @@ const gapClass = (gap: number | null) => {
 
 const GapIcon = ({ gap }: { gap: number | null }) => {
   if (gap === null || gap === 0) return <Minus className="size-3.5" />;
-  return gap > 0
-    ? <TrendingUp className="size-3.5 text-green-600" />
-    : <TrendingDown className="size-3.5 text-red-600" />;
+  return gap > 0 ? (
+    <TrendingUp className="size-3.5 text-green-600" />
+  ) : (
+    <TrendingDown className="size-3.5 text-red-600" />
+  );
 };
 
 export function InventorySheet({ onSuccess, onError }: Props) {
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<"all" | "drafts">("all");
-  const [filters, setFilters] = useState({ page: 1, limit: 10, search: "", idProductType: "" });
+  const [filters, setFilters] = useState({
+    page: 1,
+    limit: 10,
+    search: "",
+    idProductType: "",
+  });
 
   const [drafts, setDrafts] = useState<Record<string, InventoryRow>>({});
   const [submitted, setSubmitted] = useState(false);
+
+  // Format for datetime-local is YYYY-MM-DDThh:mm
+  const [inventoryDate, setInventoryDate] = useState(() => {
+    const now = new Date();
+    // Adjust to local time format YYYY-MM-DDThh:mm
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  });
 
   const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
 
@@ -46,13 +70,21 @@ export function InventorySheet({ onSuccess, onError }: Props) {
   }, [filters.search]);
 
   const itemsResult = useQuery({
-    queryKey: ["items", "inventory-sheet", filters.page, filters.limit, debouncedSearch, filters.idProductType],
-    queryFn: () => ItemService.getAllPaginated({
-      page: filters.page,
-      limit: filters.limit,
-      search: debouncedSearch || undefined,
-      idProductType: filters.idProductType || undefined,
-    }),
+    queryKey: [
+      "items",
+      "inventory-sheet",
+      filters.page,
+      filters.limit,
+      debouncedSearch,
+      filters.idProductType,
+    ],
+    queryFn: () =>
+      ItemService.getAllPaginated({
+        page: filters.page,
+        limit: filters.limit,
+        search: debouncedSearch || undefined,
+        idProductType: filters.idProductType || undefined,
+      }),
     enabled: activeTab === "all",
   });
 
@@ -63,32 +95,38 @@ export function InventorySheet({ onSuccess, onError }: Props) {
 
   const itemTypeOptions = [
     { value: "", label: "Tous les types" },
-    ...(itemTypesResult.data?.map(t => ({ value: t.idProductType, label: t.label })) ?? [])
+    ...(itemTypesResult.data?.map((t) => ({
+      value: t.idProductType,
+      label: t.label,
+    })) ?? []),
   ];
 
   const setPhysical = (item: Item | InventoryRow, val: string) => {
     setDrafts((prev) => {
       const next = { ...prev };
-      if (val === "") {
-        delete next[item.idItem];
-      } else {
-        next[item.idItem] = {
-          idItem: item.idItem,
-          label: item.label,
-          unit: "unit" in item && typeof item.unit === "object" && item.unit !== null ? (item.unit as any).symbol : (item as any).unit ?? "",
-          theoretical: Number((item as any).quantity ?? (item as any).theoretical ?? 0),
-          physical: Number(val),
-          weightedAverageCost: Number((item as any).weightedAverageCost ?? 0),
-        };
-      }
+      next[item.idItem] = {
+        idItem: item.idItem,
+        label: item.label,
+        unit:
+          "unit" in item && typeof item.unit === "object" && item.unit !== null
+            ? (item.unit as any).symbol
+            : ((item as any).unit ?? ""),
+        theoretical: Number(
+          (item as any).quantity ?? (item as any).theoretical ?? 0,
+        ),
+        physical: val,
+        weightedAverageCost: Number((item as any).weightedAverageCost ?? 0),
+      };
       return next;
     });
   };
 
   const mutation = useMutation({
     mutationFn: () => {
-      const lines = Object.values(drafts).map((r) => ({ idItem: r.idItem, physicalQty: Number(r.physical) }));
-      return inventoryService.submitInventory(lines);
+      const lines = Object.values(drafts)
+        .filter((r) => r.physical !== "")
+        .map((r) => ({ idItem: r.idItem, physicalQty: Number(r.physical) }));
+      return inventoryService.submitInventory({ lines, inventoryDate });
     },
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ["items"] });
@@ -99,7 +137,8 @@ export function InventorySheet({ onSuccess, onError }: Props) {
     onError: (err: Error) => onError(err.message),
   });
 
-  const dirtyCount = Object.keys(drafts).length;
+  const validDrafts = Object.values(drafts).filter((r) => r.physical !== "");
+  const dirtyCount = validDrafts.length;
 
   if (submitted) {
     return (
@@ -107,9 +146,19 @@ export function InventorySheet({ onSuccess, onError }: Props) {
         <CheckCircle className="size-14 text-green-500" />
         <h3 className="text-xl font-semibold">Inventaire soumis avec succès</h3>
         <p className="text-muted-foreground text-sm max-w-sm">
-          Les ajustements de stock ont été créés automatiquement pour chaque article modifié.
+          Les ajustements de stock ont été créés automatiquement pour chaque
+          article modifié.
         </p>
-        <Button onClick={() => { setSubmitted(false); setDrafts({}); setActiveTab("all"); }}>
+        <Button
+          onClick={() => {
+            setSubmitted(false);
+            setDrafts({});
+            setActiveTab("all");
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            setInventoryDate(now.toISOString().slice(0, 16));
+          }}
+        >
           Faire un nouvel inventaire
         </Button>
       </div>
@@ -117,27 +166,43 @@ export function InventorySheet({ onSuccess, onError }: Props) {
   }
 
   const renderRow = (row: InventoryRow | Item, isDraftRow: boolean) => {
-    const theoretical = isDraftRow ? (row as InventoryRow).theoretical : Number((row as Item).quantity ?? 0);
+    const theoretical = isDraftRow
+      ? (row as InventoryRow).theoretical
+      : Number((row as Item).quantity ?? 0);
     const draftValue = drafts[row.idItem]?.physical;
-    const physicalStr = draftValue !== undefined ? String(draftValue) : "";
-    const isModified = physicalStr !== "";
+    const physicalStr =
+      draftValue !== undefined ? String(draftValue) : String(theoretical);
+    const isModified = draftValue !== undefined && draftValue !== "";
 
-    const gap = physicalStr !== "" ? Number(physicalStr) - theoretical : null;
-    const cmup = isDraftRow ? (row as InventoryRow).weightedAverageCost : Number((row as Item & { weightedAverageCost?: number }).weightedAverageCost ?? 0);
+    const gap =
+      draftValue !== undefined && draftValue !== ""
+        ? Number(draftValue) - theoretical
+        : null;
+    const cmup = isDraftRow
+      ? (row as InventoryRow).weightedAverageCost
+      : Number(
+          (row as Item & { weightedAverageCost?: number })
+            .weightedAverageCost ?? 0,
+        );
 
     let gapValue = gap !== null ? gap * cmup : null;
     if (gapValue === -0) gapValue = 0;
 
-    const unitStr = isDraftRow ? (row as InventoryRow).unit : (row as Item).unit?.symbol ?? "";
+    const unitStr = isDraftRow
+      ? (row as InventoryRow).unit
+      : ((row as Item).unit?.symbol ?? "");
 
     return (
       <tr
         key={row.idItem}
-        className={`border-b border-border/30 transition-colors ${isModified ? "bg-blue-500/5" : "hover:bg-muted/30"
-          }`}
+        className={`border-b border-border/30 transition-colors ${
+          isModified ? "bg-blue-500/5" : "hover:bg-muted/30"
+        }`}
       >
         <td className="px-4 py-3 font-medium">{row.label}</td>
-        <td className="px-4 py-3 text-right text-muted-foreground">{unitStr}</td>
+        <td className="px-4 py-3 text-right text-muted-foreground">
+          {unitStr}
+        </td>
         <td className="px-4 py-3 text-right tabular-nums">
           {theoretical.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}
         </td>
@@ -146,7 +211,7 @@ export function InventorySheet({ onSuccess, onError }: Props) {
             type="number"
             min={0}
             className="h-8 w-28 text-right tabular-nums ml-auto"
-            placeholder={String(theoretical)}
+            placeholder="—"
             value={physicalStr}
             onChange={(e) => setPhysical(row, e.target.value)}
           />
@@ -154,12 +219,16 @@ export function InventorySheet({ onSuccess, onError }: Props) {
         <td className={`px-4 py-3 text-right tabular-nums ${gapClass(gap)}`}>
           <span className="flex items-center justify-end gap-1">
             <GapIcon gap={gap} />
-            {gap !== null ? (gap > 0 ? "+" : "") + gap.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) : "—"}
+            {gap !== null
+              ? (gap > 0 ? "+" : "") +
+                gap.toLocaleString("fr-FR", { maximumFractionDigits: 2 })
+              : "—"}
           </span>
         </td>
         <td className={`px-4 py-3 text-right tabular-nums ${gapClass(gap)}`}>
           {gapValue !== null
-            ? (gapValue > 0 ? "+" : "") + gapValue.toLocaleString("fr-FR", { maximumFractionDigits: 0 })
+            ? (gapValue > 0 ? "+" : "") +
+              gapValue.toLocaleString("fr-FR", { maximumFractionDigits: 0 })
             : "—"}
         </td>
       </tr>
@@ -168,25 +237,33 @@ export function InventorySheet({ onSuccess, onError }: Props) {
 
   const records = itemsResult.data?.records ?? [];
   const total = itemsResult.data?.total ?? 0;
-  const draftRows = Object.values(drafts);
-  const filteredDrafts = draftRows.filter(r => r.label.toLowerCase().includes(filters.search.toLowerCase()));
+  const draftRows = validDrafts;
+  const filteredDrafts = draftRows.filter((r) =>
+    r.label.toLowerCase().includes(filters.search.toLowerCase()),
+  );
 
   return (
     <div className="flex flex-col gap-4 animate-in fade-in duration-300">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
+      <div className="flex items-start justify-between gap-3 flex-wrap w-full">
         <div className="flex items-center gap-2 bg-muted p-1 rounded-lg">
           <button
             onClick={() => setActiveTab("all")}
-            className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === "all" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
+            className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              activeTab === "all"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
           >
             <Package className="size-4" />
             Tous les articles
           </button>
           <button
             onClick={() => setActiveTab("drafts")}
-            className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === "drafts" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
+            className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              activeTab === "drafts"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
           >
             <ListChecks className="size-4" />
             Articles saisis
@@ -198,30 +275,54 @@ export function InventorySheet({ onSuccess, onError }: Props) {
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="relative">
+        <div className="grid grid-cols-[auto_208px] gap-x-3 gap-y-3">
+          {/* Ligne 1 */}
+          <div className="relative w-[380px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
-              className="pl-9 w-64 h-9"
+              className="pl-9 w-full h-9"
               placeholder="Rechercher un article..."
               value={filters.search}
-              onChange={(e) => setFilters(p => ({ ...p, search: e.target.value, page: 1 }))}
+              onChange={(e) =>
+                setFilters((p) => ({ ...p, search: e.target.value, page: 1 }))
+              }
             />
           </div>
-          <div className="w-48">
+          <div className="w-full">
             <SearchableSelect
               options={itemTypeOptions}
               value={filters.idProductType}
-              onChange={(val) => setFilters(p => ({ ...p, idProductType: String(val), page: 1 }))}
+              onChange={(val) =>
+                setFilters((p) => ({
+                  ...p,
+                  idProductType: String(val),
+                  page: 1,
+                }))
+              }
               placeholder="Tous les types"
             />
           </div>
+
+          {/* Ligne 2 */}
+          <div className="flex items-center justify-between gap-2 w-[380px]">
+            <span className="text-sm text-muted-foreground font-medium whitespace-nowrap">
+              Date d'inventaire :
+            </span>
+            <Input
+              type="datetime-local"
+              className="h-9 w-[220px]"
+              value={inventoryDate}
+              onChange={(e) => setInventoryDate(e.target.value)}
+            />
+          </div>
           <Button
-            className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-4"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white h-9 px-4"
             onClick={() => mutation.mutate()}
-            disabled={mutation.isPending || dirtyCount === 0}
+            disabled={mutation.isPending}
           >
-            {mutation.isPending ? <Loader2 className="size-4 mr-2 animate-spin" /> : null}
+            {mutation.isPending ? (
+              <Loader2 className="size-4 mr-2 animate-spin" />
+            ) : null}
             Soumettre l'inventaire
           </Button>
         </div>
@@ -231,12 +332,24 @@ export function InventorySheet({ onSuccess, onError }: Props) {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-muted/50 border-b border-border/50">
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Article</th>
-              <th className="text-right px-4 py-3 font-medium text-muted-foreground">Unité</th>
-              <th className="text-right px-4 py-3 font-medium text-muted-foreground">Stock théorique</th>
-              <th className="text-right px-4 py-3 font-medium text-muted-foreground w-36">Qté physique</th>
-              <th className="text-right px-4 py-3 font-medium text-muted-foreground">Écart</th>
-              <th className="text-right px-4 py-3 font-medium text-muted-foreground">Valeur écart (MGA)</th>
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">
+                Article
+              </th>
+              <th className="text-right px-4 py-3 font-medium text-muted-foreground">
+                Unité
+              </th>
+              <th className="text-right px-4 py-3 font-medium text-muted-foreground">
+                Stock théorique
+              </th>
+              <th className="text-right px-4 py-3 font-medium text-muted-foreground w-36">
+                Qté physique
+              </th>
+              <th className="text-right px-4 py-3 font-medium text-muted-foreground">
+                Écart
+              </th>
+              <th className="text-right px-4 py-3 font-medium text-muted-foreground">
+                Valeur écart (MGA)
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -249,23 +362,27 @@ export function InventorySheet({ onSuccess, onError }: Props) {
                 </tr>
               ) : records.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-muted-foreground">
+                  <td
+                    colSpan={6}
+                    className="text-center py-12 text-muted-foreground"
+                  >
                     Aucun article trouvé.
                   </td>
                 </tr>
               ) : (
                 records.map((item) => renderRow(item, false))
               )
+            ) : filteredDrafts.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="text-center py-12 text-muted-foreground"
+                >
+                  Aucun article saisi.
+                </td>
+              </tr>
             ) : (
-              filteredDrafts.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-center py-12 text-muted-foreground">
-                    Aucun article saisi.
-                  </td>
-                </tr>
-              ) : (
-                filteredDrafts.map((row) => renderRow(row, true))
-              )
+              filteredDrafts.map((row) => renderRow(row, true))
             )}
           </tbody>
         </table>
@@ -276,7 +393,7 @@ export function InventorySheet({ onSuccess, onError }: Props) {
           <Pagination
             currentPage={filters.page}
             totalPages={Math.ceil(total / filters.limit)}
-            onPageChange={(p) => setFilters(prev => ({ ...prev, page: p }))}
+            onPageChange={(p) => setFilters((prev) => ({ ...prev, page: p }))}
           />
         </div>
       )}

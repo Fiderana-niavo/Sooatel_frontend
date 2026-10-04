@@ -11,7 +11,10 @@ interface UsePaymentLinesProps {
   paymentMethods: PaymentMethodRef[];
 }
 
-export function usePaymentLines({ totalAmount, paymentMethods }: UsePaymentLinesProps) {
+export function usePaymentLines({
+  totalAmount,
+  paymentMethods,
+}: UsePaymentLinesProps) {
   const [lines, setLines] = useState<PaymentLineDto[]>([]);
 
   const totalCovered = lines.reduce((s, l) => s + (Number(l.amount) || 0), 0);
@@ -26,7 +29,9 @@ export function usePaymentLines({ totalAmount, paymentMethods }: UsePaymentLines
 
   const addLine = () => {
     const usedMethodIds = new Set(lines.map((l) => l.idPaymentMethod));
-    const nextMethod = paymentMethods.find((pm) => !usedMethodIds.has(pm.value));
+    const nextMethod = paymentMethods.find(
+      (pm) => !usedMethodIds.has(pm.value),
+    );
     const amountForLine = Math.max(0, remaining);
     setLines((prev) => [
       ...prev,
@@ -39,17 +44,31 @@ export function usePaymentLines({ totalAmount, paymentMethods }: UsePaymentLines
   };
 
   const updateLine = (index: number, patch: Partial<PaymentLineDto>) => {
-    setLines((prev) => prev.map((l, i) => (i === index ? { ...l, ...patch } : l)));
+    setLines((prev) =>
+      prev.map((l, i) => (i === index ? { ...l, ...patch } : l)),
+    );
   };
 
   const autoFill = () => {
     if (paymentMethods.length === 0 || totalAmount <= 0) return;
-    setLines([{ idPaymentMethod: paymentMethods[0].value, amount: totalAmount }]);
+    setLines([
+      { idPaymentMethod: paymentMethods[0].value, amount: totalAmount },
+    ]);
   };
 
   const reset = (initial?: PaymentLineDto[]) => {
     setLines(initial ?? []);
   };
 
-  return { lines, setLines, totalCovered, remaining, addLine, removeLine, updateLine, autoFill, reset };
+  return {
+    lines,
+    setLines,
+    totalCovered,
+    remaining,
+    addLine,
+    removeLine,
+    updateLine,
+    autoFill,
+    reset,
+  };
 }

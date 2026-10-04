@@ -17,14 +17,17 @@ export function InventoryPage() {
   return (
     <div className="flex flex-col h-full space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight mb-1">Inventaire Physique</h2>
+        <h2 className="text-2xl font-bold tracking-tight mb-1">
+          Inventaire Physique
+        </h2>
         <p className="text-muted-foreground">
-          Saisissez les quantités physiques comptées pour ajuster les écarts avec le stock théorique.
+          Saisissez les quantités physiques comptées pour ajuster les écarts
+          avec le stock théorique.
         </p>
       </div>
 
       <div className="flex-1 bg-card rounded-xl border border-border/50 p-6 shadow-sm overflow-hidden">
-        <InventorySheet 
+        <InventorySheet
           onSuccess={(msg) => showSnackbar(msg, "success")}
           onError={(msg) => showSnackbar(msg, "error")}
         />

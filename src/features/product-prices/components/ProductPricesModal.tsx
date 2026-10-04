@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
 import { Tag, Edit, Trash2, Plus, X, Check } from "lucide-react";
@@ -14,7 +21,14 @@ interface ProductPricesModalProps {
   onDelete: (id: string) => void;
 }
 
-export function ProductPricesModal({ isOpen, onClose, data, onAdd, onEdit, onDelete }: ProductPricesModalProps) {
+export function ProductPricesModal({
+  isOpen,
+  onClose,
+  data,
+  onAdd,
+  onEdit,
+  onDelete,
+}: ProductPricesModalProps) {
   const [newValue, setNewValue] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
@@ -122,19 +136,38 @@ export function ProductPricesModal({ isOpen, onClose, data, onAdd, onEdit, onDel
                   <div className="flex items-center gap-1 shrink-0">
                     {editingId === item.idProductPrice ? (
                       <>
-                        <Button size="icon" variant="ghost" onClick={saveEdit} className="text-green-600">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={saveEdit}
+                          className="text-green-600"
+                        >
                           <Check className="size-4" />
                         </Button>
-                        <Button size="icon" variant="ghost" onClick={cancelEdit}>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={cancelEdit}
+                        >
                           <X className="size-4" />
                         </Button>
                       </>
                     ) : (
                       <>
-                        <Button size="icon" variant="ghost" onClick={() => startEdit(item)} className="opacity-0 group-hover:opacity-100">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => startEdit(item)}
+                          className="opacity-0 group-hover:opacity-100"
+                        >
                           <Edit className="size-4" />
                         </Button>
-                        <Button size="icon" variant="ghost" onClick={() => onDelete(item.idProductPrice)} className="opacity-0 group-hover:opacity-100 text-destructive">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => onDelete(item.idProductPrice)}
+                          className="opacity-0 group-hover:opacity-100 text-destructive"
+                        >
                           <Trash2 className="size-4" />
                         </Button>
                       </>
@@ -147,7 +180,11 @@ export function ProductPricesModal({ isOpen, onClose, data, onAdd, onEdit, onDel
         </div>
 
         <DialogFooter className="p-4 bg-muted/10 border-t">
-          <Button onClick={onClose} variant="outline" className="w-full sm:w-auto rounded-xl">
+          <Button
+            onClick={onClose}
+            variant="outline"
+            className="w-full sm:w-auto rounded-xl"
+          >
             Fermer
           </Button>
         </DialogFooter>

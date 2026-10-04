@@ -16,27 +16,29 @@ interface ShiftTypesTabProps {
   onDelete: (id: string) => void;
 }
 
-export function ShiftTypesTab({ 
-  shifts, 
-  isEditing, 
-  editForm, 
-  setEditForm, 
+export function ShiftTypesTab({
+  shifts,
+  isEditing,
+  editForm,
+  setEditForm,
   setIsEditing,
   onCreate,
   onEdit,
   onSave,
-  onDelete 
+  onDelete,
 }: ShiftTypesTabProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredShifts = shifts.filter(s => s.label.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredShifts = shifts.filter((s) =>
+    s.label.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input 
+          <Input
             placeholder="Rechercher un type d'horaire..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -53,64 +55,109 @@ export function ShiftTypesTab({
         <table className="w-full text-left text-sm whitespace-nowrap">
           <thead className="bg-muted/50 border-b">
             <tr>
-              <th className="px-6 py-4 font-medium text-muted-foreground">Libellé</th>
-              <th className="px-6 py-4 font-medium text-muted-foreground">Heure de début</th>
-              <th className="px-6 py-4 font-medium text-muted-foreground">Heure de fin</th>
-              <th className="px-6 py-4 font-medium text-muted-foreground">Description</th>
-              <th className="px-6 py-4 font-medium text-center text-muted-foreground">Actions</th>
+              <th className="px-6 py-4 font-medium text-muted-foreground">
+                Libellé
+              </th>
+              <th className="px-6 py-4 font-medium text-muted-foreground">
+                Heure de début
+              </th>
+              <th className="px-6 py-4 font-medium text-muted-foreground">
+                Heure de fin
+              </th>
+              <th className="px-6 py-4 font-medium text-muted-foreground">
+                Description
+              </th>
+              <th className="px-6 py-4 font-medium text-center text-muted-foreground">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
-            {isEditing && !shifts.find(s => s.idShiftType === isEditing) && (
+            {isEditing && !shifts.find((s) => s.idShiftType === isEditing) && (
               <tr className="border-b bg-muted/10">
                 <td className="px-6 py-3">
-                  <Input 
+                  <Input
                     autoFocus
                     placeholder="Libellé"
                     value={editForm.label || ""}
-                    onChange={(e) => setEditForm({...editForm, label: e.target.value})}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, label: e.target.value })
+                    }
                     className="h-8"
                   />
                 </td>
                 <td className="px-6 py-3">
-                  <Input 
+                  <Input
                     type="time"
                     value={editForm.customStartTime || ""}
-                    onChange={(e) => setEditForm({...editForm, customStartTime: e.target.value})}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        customStartTime: e.target.value,
+                      })
+                    }
                     className="h-8"
                   />
                 </td>
                 <td className="px-6 py-3">
-                  <Input 
+                  <Input
                     type="time"
                     value={editForm.customEndTime || ""}
-                    onChange={(e) => setEditForm({...editForm, customEndTime: e.target.value})}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        customEndTime: e.target.value,
+                      })
+                    }
                     className="h-8"
                   />
                 </td>
                 <td className="px-6 py-3">
-                  <Input 
+                  <Input
                     placeholder="Description"
                     value={editForm.description || ""}
-                    onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, description: e.target.value })
+                    }
                     className="h-8"
                   />
                 </td>
                 <td className="px-6 py-3 text-center space-x-2">
-                  <Button size="sm" onClick={onSave} disabled={!editForm.label?.trim() || !editForm.customStartTime || !editForm.customEndTime}>Enregistrer</Button>
-                  <Button size="sm" variant="ghost" onClick={() => setIsEditing(null)}>Annuler</Button>
+                  <Button
+                    size="sm"
+                    onClick={onSave}
+                    disabled={
+                      !editForm.label?.trim() ||
+                      !editForm.customStartTime ||
+                      !editForm.customEndTime
+                    }
+                  >
+                    Enregistrer
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setIsEditing(null)}
+                  >
+                    Annuler
+                  </Button>
                 </td>
               </tr>
             )}
 
             {filteredShifts.map((shift) => (
-              <tr key={shift.idShiftType} className="border-b hover:bg-muted/30 transition-colors">
+              <tr
+                key={shift.idShiftType}
+                className="border-b hover:bg-muted/30 transition-colors"
+              >
                 <td className="px-6 py-4">
                   {isEditing === shift.idShiftType ? (
-                    <Input 
+                    <Input
                       autoFocus
                       value={editForm.label || ""}
-                      onChange={(e) => setEditForm({...editForm, label: e.target.value})}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, label: e.target.value })
+                      }
                       className="h-8"
                     />
                   ) : (
@@ -122,10 +169,15 @@ export function ShiftTypesTab({
                 </td>
                 <td className="px-6 py-4">
                   {isEditing === shift.idShiftType ? (
-                    <Input 
+                    <Input
                       type="time"
                       value={editForm.customStartTime || ""}
-                      onChange={(e) => setEditForm({...editForm, customStartTime: e.target.value})}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          customStartTime: e.target.value,
+                        })
+                      }
                       className="h-8"
                     />
                   ) : (
@@ -134,10 +186,15 @@ export function ShiftTypesTab({
                 </td>
                 <td className="px-6 py-4">
                   {isEditing === shift.idShiftType ? (
-                    <Input 
+                    <Input
                       type="time"
                       value={editForm.customEndTime || ""}
-                      onChange={(e) => setEditForm({...editForm, customEndTime: e.target.value})}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          customEndTime: e.target.value,
+                        })
+                      }
                       className="h-8"
                     />
                   ) : (
@@ -146,9 +203,14 @@ export function ShiftTypesTab({
                 </td>
                 <td className="px-6 py-4 text-muted-foreground">
                   {isEditing === shift.idShiftType ? (
-                    <Input 
+                    <Input
                       value={editForm.description || ""}
-                      onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          description: e.target.value,
+                        })
+                      }
                       className="h-8"
                     />
                   ) : (
@@ -158,15 +220,37 @@ export function ShiftTypesTab({
                 <td className="px-6 py-4 text-center">
                   {isEditing === shift.idShiftType ? (
                     <div className="flex justify-center gap-2">
-                      <Button size="sm" onClick={onSave} disabled={!editForm.label?.trim()}>Enregistrer</Button>
-                      <Button size="sm" variant="ghost" onClick={() => setIsEditing(null)}>Annuler</Button>
+                      <Button
+                        size="sm"
+                        onClick={onSave}
+                        disabled={!editForm.label?.trim()}
+                      >
+                        Enregistrer
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setIsEditing(null)}
+                      >
+                        Annuler
+                      </Button>
                     </div>
                   ) : (
                     <div className="flex justify-center gap-2">
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => onEdit(shift)}>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        onClick={() => onEdit(shift)}
+                      >
                         <Edit className="size-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(shift.idShiftType)}>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => onDelete(shift.idShiftType)}
+                      >
                         <Trash2 className="size-4" />
                       </Button>
                     </div>
@@ -174,10 +258,13 @@ export function ShiftTypesTab({
                 </td>
               </tr>
             ))}
-            
+
             {filteredShifts.length === 0 && !isEditing && (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                <td
+                  colSpan={5}
+                  className="px-6 py-8 text-center text-muted-foreground"
+                >
                   Aucun horaire trouvé.
                 </td>
               </tr>

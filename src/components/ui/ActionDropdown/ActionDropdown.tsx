@@ -17,7 +17,10 @@ interface ActionDropdownProps {
   icon?: ReactNode;
 }
 
-export const ActionDropdown: React.FC<ActionDropdownProps> = ({ items, icon }) => {
+export const ActionDropdown: React.FC<ActionDropdownProps> = ({
+  items,
+  icon,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -26,8 +29,10 @@ export const ActionDropdown: React.FC<ActionDropdownProps> = ({ items, icon }) =
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        buttonRef.current && !buttonRef.current.contains(event.target as Node) &&
-        dropdownRef.current && !dropdownRef.current.contains(event.target as Node)
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
       }
@@ -39,7 +44,7 @@ export const ActionDropdown: React.FC<ActionDropdownProps> = ({ items, icon }) =
 
     document.addEventListener("mousedown", handleClickOutside);
     window.addEventListener("scroll", handleScroll, true);
-    
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       window.removeEventListener("scroll", handleScroll, true);
@@ -51,22 +56,25 @@ export const ActionDropdown: React.FC<ActionDropdownProps> = ({ items, icon }) =
     if (!isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       const dropdownHeightEstimate = visibleItems.length * 36 + 16; // Approx 36px per item + padding
-      
+
       let top = rect.bottom + window.scrollY + 4; // 4px gap
       // If not enough space below, open upwards
-      if (rect.bottom + dropdownHeightEstimate > window.innerHeight && rect.top > dropdownHeightEstimate) {
+      if (
+        rect.bottom + dropdownHeightEstimate > window.innerHeight &&
+        rect.top > dropdownHeightEstimate
+      ) {
         top = rect.top + window.scrollY - dropdownHeightEstimate - 4;
       }
 
       setCoords({
         top,
-        left: rect.right - 192 + window.scrollX // 192px = w-48
+        left: rect.right - 192 + window.scrollX, // 192px = w-48
       });
     }
     setIsOpen(!isOpen);
   };
 
-  const visibleItems = items.filter(item => !item.hidden);
+  const visibleItems = items.filter((item) => !item.hidden);
 
   if (visibleItems.length === 0) return null;
 
@@ -82,32 +90,37 @@ export const ActionDropdown: React.FC<ActionDropdownProps> = ({ items, icon }) =
       >
         {icon || <MoreVertical className="h-4 w-4 text-muted-foreground" />}
       </Button>
-      
-      {isOpen && createPortal(
-        <div
-          ref={dropdownRef}
-          className="absolute z-[9999] w-48 rounded-xl shadow-lg p-1 bg-card border animate-in fade-in zoom-in-95 duration-100"
-          style={{ top: coords.top, left: coords.left, pointerEvents: "auto" }}
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <div className="flex flex-col" role="menu">
-            {visibleItems.map((item, index) => (
-              <button
-                key={index}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsOpen(false);
-                  item.onClick();
-                }}
-                className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors ${item.className || 'text-foreground'}`}
-              >
-                {item.icon} {item.label}
-              </button>
-            ))}
-          </div>
-        </div>,
-        document.body
-      )}
+
+      {isOpen &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            className="absolute z-[9999] w-48 rounded-xl shadow-lg p-1 bg-card border animate-in fade-in zoom-in-95 duration-100"
+            style={{
+              top: coords.top,
+              left: coords.left,
+              pointerEvents: "auto",
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col" role="menu">
+              {visibleItems.map((item, index) => (
+                <button
+                  key={index}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpen(false);
+                    item.onClick();
+                  }}
+                  className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors ${item.className || "text-foreground"}`}
+                >
+                  {item.icon} {item.label}
+                </button>
+              ))}
+            </div>
+          </div>,
+          document.body,
+        )}
     </>
   );
 };

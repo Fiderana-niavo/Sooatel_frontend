@@ -25,13 +25,19 @@ export const SalesListFilters: React.FC<SalesListFiltersProps> = ({
   onMenuFilterChange,
   menuOptions,
   paymentStatusFilter,
-  onPaymentStatusFilterChange
+  onPaymentStatusFilterChange,
 }) => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">{showCancelled ? "Ventes annulées" : "Historique des ventes"}</h2>
-        <p className="text-muted-foreground mt-1 text-sm">{showCancelled ? "Consultez les ventes qui ont été annulées." : "Consultez et gérez toutes les ventes enregistrées."}</p>
+        <h2 className="text-2xl font-bold tracking-tight">
+          {showCancelled ? "Ventes annulées" : "Historique des ventes"}
+        </h2>
+        <p className="text-muted-foreground mt-1 text-sm">
+          {showCancelled
+            ? "Consultez les ventes qui ont été annulées."
+            : "Consultez et gérez toutes les ventes enregistrées."}
+        </p>
       </div>
 
       <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">

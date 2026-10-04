@@ -17,12 +17,13 @@ export function AccountCredentials({
   onRolesChange,
   availableRoles,
 }: AccountCredentialsProps) {
-
   return (
     <div className="space-y-4 p-4 border rounded-lg bg-muted/20 animate-in fade-in slide-in-from-top-2 duration-300">
       <h3 className="text-lg font-semibold">Identifiants de connexion</h3>
       <div className="space-y-2">
-        <label className="text-sm font-medium">Nom d'utilisateur <span className="text-destructive">*</span></label>
+        <label className="text-sm font-medium">
+          Nom d'utilisateur <span className="text-destructive">*</span>
+        </label>
         <Input
           value={username}
           onChange={(e) => onUsernameChange(e.target.value)}
@@ -43,7 +44,9 @@ export function AccountCredentials({
           emptyMessage="Aucun rôle trouvé."
         />
         <p className="text-xs text-muted-foreground">
-          Sélectionnez un ou plusieurs rôles pour définir les permissions globales. Les permissions individuelles pourront être modifiées après la création.
+          Sélectionnez un ou plusieurs rôles pour définir les permissions
+          globales. Les permissions individuelles pourront être modifiées après
+          la création.
         </p>
       </div>
     </div>

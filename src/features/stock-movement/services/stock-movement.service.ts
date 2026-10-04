@@ -1,6 +1,10 @@
 import axios from "axios";
 import type { ApiResponse, PaginatedResponse } from "@/types/api.type";
-import type { StockMovement, StockMovementDto, StockMovementFilters } from "../types/stock-movement.type";
+import type {
+  StockMovement,
+  StockMovementDto,
+  StockMovementFilters,
+} from "../types/stock-movement.type";
 
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 
@@ -8,15 +12,17 @@ const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 const extractError = (err: unknown, fallback: string): Error => {
   const e = err as Record<string, any>;
   const msg =
-    e?.response?.data?.error ||
-    e?.response?.data?.message ||
-    fallback;
+    e?.response?.data?.message || e?.response?.data?.error || fallback;
   return new Error(msg);
 };
 
 export const stockMovementService = {
-  getAll: async (filters: Partial<StockMovementFilters> = {}): Promise<PaginatedResponse<StockMovement>> => {
-    const { data } = await axios.get<ApiResponse<PaginatedResponse<StockMovement>>>(`${BASE}/stock-movements`, {
+  getAll: async (
+    filters: Partial<StockMovementFilters> = {},
+  ): Promise<PaginatedResponse<StockMovement>> => {
+    const { data } = await axios.get<
+      ApiResponse<PaginatedResponse<StockMovement>>
+    >(`${BASE}/stock-movements`, {
       params: filters,
     });
     return data.payload;
@@ -24,7 +30,10 @@ export const stockMovementService = {
 
   create: async (dto: StockMovementDto): Promise<StockMovement> => {
     try {
-      const { data } = await axios.post<ApiResponse<StockMovement>>(`${BASE}/stock-movements`, dto);
+      const { data } = await axios.post<ApiResponse<StockMovement>>(
+        `${BASE}/stock-movements`,
+        dto,
+      );
       return data.payload;
     } catch (err) {
       throw extractError(err, "Impossible de créer le mouvement.");

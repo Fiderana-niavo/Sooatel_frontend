@@ -6,46 +6,53 @@ const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 
 export class ItemService {
   static async getAll(params?: Record<string, any>): Promise<Item[]> {
-    const res = await axios.get<ApiResponse<{ records: Item[] } | Item[]>>(`${BASE}/items`, { params });
-    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    const res = await axios.get<ApiResponse<{ records: Item[] } | Item[]>>(
+      `${BASE}/items`,
+      { params },
+    );
+    if (!res.data.ok) throw new Error(res.data.error || "Erreur API");
     if (Array.isArray(res.data.payload)) {
       return res.data.payload;
     }
     return (res.data.payload as { records: Item[] }).records || [];
   }
 
-  static async getAllPaginated(params?: Record<string, any>): Promise<{ records: Item[], total: number }> {
-    const res = await axios.get<ApiResponse<{ records: Item[], total: number } | Item[]>>(`${BASE}/items`, { params });
-    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+  static async getAllPaginated(
+    params?: Record<string, any>,
+  ): Promise<{ records: Item[]; total: number }> {
+    const res = await axios.get<
+      ApiResponse<{ records: Item[]; total: number } | Item[]>
+    >(`${BASE}/items`, { params });
+    if (!res.data.ok) throw new Error(res.data.error || "Erreur API");
     if (Array.isArray(res.data.payload)) {
       return { records: res.data.payload, total: res.data.payload.length };
     }
-    return { 
-      records: res.data.payload.records || [], 
-      total: res.data.payload.total || 0 
+    return {
+      records: res.data.payload.records || [],
+      total: res.data.payload.total || 0,
     };
   }
 
   static async getById(id: string): Promise<Item> {
     const res = await axios.get<ApiResponse<Item>>(`${BASE}/items/${id}`);
-    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    if (!res.data.ok) throw new Error(res.data.error || "Erreur API");
     return res.data.payload;
   }
 
   static async create(data: CreateItemDto): Promise<Item> {
     const res = await axios.post<ApiResponse<Item>>(`${BASE}/items`, data);
-    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    if (!res.data.ok) throw new Error(res.data.error || "Erreur API");
     return res.data.payload;
   }
 
   static async update(id: string, data: Partial<CreateItemDto>): Promise<Item> {
     const res = await axios.put<ApiResponse<Item>>(`${BASE}/items/${id}`, data);
-    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    if (!res.data.ok) throw new Error(res.data.error || "Erreur API");
     return res.data.payload;
   }
 
   static async delete(id: string): Promise<void> {
     const res = await axios.delete<ApiResponse<void>>(`${BASE}/items/${id}`);
-    if (!res.data.ok) throw new Error(res.data.error || 'Erreur API');
+    if (!res.data.ok) throw new Error(res.data.error || "Erreur API");
   }
 }

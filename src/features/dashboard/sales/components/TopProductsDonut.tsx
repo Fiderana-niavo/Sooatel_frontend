@@ -57,9 +57,7 @@ export const TopProductsDonut: React.FC<Props> = ({
             borderColor: "transparent",
             borderWidth: 0,
             hoverOffset: 4,
-            offset: products.map((p) => 
-              p.idMenu === selectedIdMenu ? 6 : 0
-            ),
+            offset: products.map((p) => (p.idMenu === selectedIdMenu ? 6 : 0)),
           },
         ],
       },

@@ -1,6 +1,12 @@
 import { toIsoDateTime } from "@/utils/date";
 import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
 import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
@@ -42,23 +48,31 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   paymentMethods,
   actionLoading,
   onConfirm,
-  saleDate
+  saleDate,
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm rounded-xl p-6 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg font-bold">Encaisser la vente</DialogTitle>
+          <DialogTitle className="text-lg font-bold">
+            Encaisser la vente
+          </DialogTitle>
         </DialogHeader>
 
         <div className="py-2">
           <div className="mb-4">
-            <label className="text-sm font-medium mb-1 block">Reste à payer</label>
-            <div className="text-2xl font-bold text-primary">{balanceDue.toLocaleString("fr-FR")} Ar</div>
+            <label className="text-sm font-medium mb-1 block">
+              Reste à payer
+            </label>
+            <div className="text-2xl font-bold text-primary">
+              {balanceDue.toLocaleString("fr-FR")} Ar
+            </div>
           </div>
 
           <div className="mb-4">
-            <label className="text-sm font-medium mb-1 block">Date du paiement</label>
+            <label className="text-sm font-medium mb-1 block">
+              Date du paiement
+            </label>
             <Input
               type="datetime-local"
               max={toIsoDateTime(new Date())}
@@ -78,15 +92,24 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 onChange={(e) => onIsPartialChange(e.target.checked)}
                 className="accent-primary"
               />
-              <label htmlFor="isPartial" className="text-sm font-medium cursor-pointer">Payer une partie seulement (Tranche)</label>
+              <label
+                htmlFor="isPartial"
+                className="text-sm font-medium cursor-pointer"
+              >
+                Payer une partie seulement (Tranche)
+              </label>
             </div>
             {isPartial && (
               <div className="pl-6">
-                <label className="text-xs text-muted-foreground mb-1 block">Montant à encaisser (Ar)</label>
+                <label className="text-xs text-muted-foreground mb-1 block">
+                  Montant à encaisser (Ar)
+                </label>
                 <CurrencyInput
                   max={balanceDue}
                   value={amount ? Number(amount) : undefined}
-                  onChange={(val) => onAmountChange(val !== undefined ? String(val) : "")} 
+                  onChange={(val) =>
+                    onAmountChange(val !== undefined ? String(val) : "")
+                  }
                   placeholder="Entrez le montant..."
                   className="w-full"
                 />
@@ -95,7 +118,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           </div>
 
           <div className="mb-4">
-            <label className="text-sm font-medium mb-1 block">Code de Paiement (Optionnel)</label>
+            <label className="text-sm font-medium mb-1 block">
+              Code de Paiement (Optionnel)
+            </label>
             <Input
               type="text"
               placeholder="Ex: Ref chèque, Mvola..."
@@ -106,10 +131,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           </div>
 
           <div className="mb-2">
-            <label className="text-sm font-medium mb-2 block">Mode de paiement</label>
+            <label className="text-sm font-medium mb-2 block">
+              Mode de paiement
+            </label>
             <div className="flex flex-col gap-2">
-              {paymentMethods.map(m => (
-                <label key={m.idPaymentMethod} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${methodId === m.idPaymentMethod ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'hover:bg-secondary/10'}`}>
+              {paymentMethods.map((m) => (
+                <label
+                  key={m.idPaymentMethod}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${methodId === m.idPaymentMethod ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-secondary/10"}`}
+                >
                   <input
                     type="radio"
                     name="paymentMethod"
@@ -126,7 +156,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         </div>
 
         <DialogFooter className="mt-2 flex justify-end gap-3">
-          <Button variant="outline" disabled={actionLoading} onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            disabled={actionLoading}
+            onClick={() => onOpenChange(false)}
+          >
             Annuler
           </Button>
           <Button disabled={actionLoading || !methodId} onClick={onConfirm}>

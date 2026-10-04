@@ -22,19 +22,26 @@ export const ConfirmPurchaseDialog: React.FC<ConfirmPurchaseDialogProps> = ({
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const confirmedPurchase = await purchaseService.confirm(purchase!.idPurchase);
+      const confirmedPurchase = await purchaseService.confirm(
+        purchase!.idPurchase,
+      );
       return confirmedPurchase;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["purchases"] });
-      queryClient.invalidateQueries({ queryKey: ["purchase", purchase!.idPurchase] });
+      queryClient.invalidateQueries({
+        queryKey: ["purchase", purchase!.idPurchase],
+      });
       queryClient.invalidateQueries({ queryKey: ["supplierBalance"] });
       if (onConfirmed) onConfirmed();
       onClose();
     },
     onError: (err: unknown) => {
       const respData = (err as any)?.response?.data;
-      const msg = respData?.error || respData?.message || "Erreur lors de la confirmation.";
+      const msg =
+        respData?.error ||
+        respData?.message ||
+        "Erreur lors de la confirmation.";
       setError(msg);
     },
   });
@@ -54,17 +61,22 @@ export const ConfirmPurchaseDialog: React.FC<ConfirmPurchaseDialogProps> = ({
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
             Vous êtes sur le point de confirmer la commande{" "}
-            <span className="font-semibold text-foreground">{purchase.ref}</span>.
+            <span className="font-semibold text-foreground">
+              {purchase.ref}
+            </span>
+            .
           </p>
 
           <div className="bg-muted/40 border border-border/50 rounded-lg p-4 text-sm space-y-1 text-muted-foreground">
             <p>
-              Une commande <span className="font-medium text-foreground">CONFIRMÉE</span> ne peut plus être supprimée.
+              Une commande{" "}
+              <span className="font-medium text-foreground">CONFIRMÉE</span> ne
+              peut plus être supprimée.
             </p>
-            <p>Elle pourra être modifiée ou annulée sous certaines conditions.</p>
+            <p>
+              Elle pourra être modifiée ou annulée sous certaines conditions.
+            </p>
           </div>
-
-
 
           {error && (
             <div className="flex items-center gap-2 text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-md">

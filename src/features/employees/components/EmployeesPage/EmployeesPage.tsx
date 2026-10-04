@@ -62,13 +62,16 @@ export function EmployeesPage({
 
   const [searchParams, setSearchParams] = useSearchParams();
   const view =
-    (searchParams.get("action") as "list" | "create" | "edit" | "details" | "deactivations") ||
-    "list";
+    (searchParams.get("action") as
+      "list" | "create" | "edit" | "details" | "deactivations") || "list";
   const [selectedEmployeeDetail, setSelectedEmployeeDetail] =
     useState<EmployeeDetail | null>(null);
 
   const setView = useCallback(
-    (newView: "list" | "create" | "edit" | "details" | "deactivations", id?: string) => {
+    (
+      newView: "list" | "create" | "edit" | "details" | "deactivations",
+      id?: string,
+    ) => {
       if (newView === "list") {
         setSearchParams({});
       } else {
@@ -203,8 +206,10 @@ export function EmployeesPage({
     } catch (err: any) {
       console.error(err);
       showSnackbar(
-        err.response?.data?.error || err.message || "Erreur lors du chargement des employés.",
-        "error"
+        err.response?.data?.error ||
+          err.message ||
+          "Erreur lors du chargement des employés.",
+        "error",
       );
     }
   }, [
@@ -255,8 +260,10 @@ export function EmployeesPage({
     } catch (err: any) {
       console.error(err);
       showSnackbar(
-        err.response?.data?.error || err.message || "Erreur lors de la récupération de la planification.",
-        "error"
+        err.response?.data?.error ||
+          err.message ||
+          "Erreur lors de la récupération de la planification.",
+        "error",
       );
     }
   };
@@ -275,8 +282,10 @@ export function EmployeesPage({
     } catch (err: any) {
       console.error(err);
       showSnackbar(
-        err.response?.data?.error || err.message || "Erreur lors de la génération de la clé.",
-        "error"
+        err.response?.data?.error ||
+          err.message ||
+          "Erreur lors de la génération de la clé.",
+        "error",
       );
     }
   };
@@ -309,8 +318,7 @@ export function EmployeesPage({
           "",
       );
       setNewAssignmentDate(
-        selectedEmployeeDetail.job.assignmentDate ||
-          toIsoDate(new Date()),
+        selectedEmployeeDetail.job.assignmentDate || toIsoDate(new Date()),
       );
       setNewEndDate(selectedEmployeeDetail.job.endDate || "");
       setNewHasFixedSchedule(
@@ -368,6 +376,7 @@ export function EmployeesPage({
       jobTitle: selectedEmployeeDetail.job?.jobTitle || null,
       isInternship: !!selectedEmployeeDetail.internship,
       hasAccount: !!selectedEmployeeDetail.userAccount,
+      status: selectedStatus === "active" ? 1 : 0,
     };
   };
 
@@ -428,8 +437,10 @@ export function EmployeesPage({
     } catch (err: any) {
       console.error(err);
       showSnackbar(
-        err.response?.data?.error || err.message || "Erreur lors du changement de poste.",
-        "error"
+        err.response?.data?.error ||
+          err.message ||
+          "Erreur lors du changement de poste.",
+        "error",
       );
     }
   };
@@ -461,8 +472,10 @@ export function EmployeesPage({
     } catch (err: any) {
       console.error(err);
       showSnackbar(
-        err.response?.data?.error || err.message || "Erreur lors de la clôture du contrat.",
-        "error"
+        err.response?.data?.error ||
+          err.message ||
+          "Erreur lors de la clôture du contrat.",
+        "error",
       );
     }
   };
@@ -497,8 +510,10 @@ export function EmployeesPage({
     } catch (err: any) {
       console.error(err);
       showSnackbar(
-        err.response?.data?.error || err.message || "Erreur lors de la sauvegarde de la planification.",
-        "error"
+        err.response?.data?.error ||
+          err.message ||
+          "Erreur lors de la sauvegarde de la planification.",
+        "error",
       );
     }
   };
@@ -516,8 +531,10 @@ export function EmployeesPage({
     } catch (err: any) {
       console.error(err);
       showSnackbar(
-        err.response?.data?.error || err.message || "Erreur lors de la récupération de l'employé.",
-        "error"
+        err.response?.data?.error ||
+          err.message ||
+          "Erreur lors de la récupération de l'employé.",
+        "error",
       );
     }
   };
@@ -530,8 +547,10 @@ export function EmployeesPage({
     } catch (err: any) {
       console.error(err);
       showSnackbar(
-        err.response?.data?.error || err.message || "Erreur lors de la récupération des détails.",
-        "error"
+        err.response?.data?.error ||
+          err.message ||
+          "Erreur lors de la récupération des détails.",
+        "error",
       );
     }
   };
@@ -558,8 +577,10 @@ export function EmployeesPage({
     } catch (err: any) {
       console.error(err);
       showSnackbar(
-        err.response?.data?.error || err.message || "Erreur lors de la suppression de l'employé.",
-        "error"
+        err.response?.data?.error ||
+          err.message ||
+          "Erreur lors de la suppression de l'employé.",
+        "error",
       );
     } finally {
       setIsDeleting(false);
@@ -691,12 +712,14 @@ export function EmployeesPage({
                       Désactivations récentes suite à une fin de contrat
                     </h4>
                     <p className="text-sm mt-1">
-                      {totalRecentDeactivations} compte(s) utilisateur(s) ont été désactivés automatiquement lors des 3 derniers jours car leur contrat est arrivé à échéance.
+                      {totalRecentDeactivations} compte(s) utilisateur(s) ont
+                      été désactivés automatiquement lors des 3 derniers jours
+                      car leur contrat est arrivé à échéance.
                     </p>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="text-amber-800 hover:text-amber-900 hover:bg-amber-100 h-8"
                     onClick={() => setView("deactivations")}
                   >
@@ -706,53 +729,53 @@ export function EmployeesPage({
               </div>
             </div>
           )}
-          
+
           <EmployeesTable
-          employees={employeesList}
-          searchTerm={searchTerm}
-          onSearchChange={(val) => {
-            setSearchTerm(val);
-          }}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          onCreate={handleCreate}
-          onEdit={handleEdit}
-          onViewDetails={handleViewDetails}
-          onDelete={promptDelete}
-          onChangeJob={openChangeJobModal}
-          onEditPlanning={handleEditPlanning}
-          onTerminateContract={openTerminateContractModal}
-          onRenewContract={openRenewContractModal}
-          jobTitles={jobTitles}
-          selectedJobTitleId={selectedJobTitleId}
-          onJobTitleChange={(id) => {
-            setSelectedJobTitleId(id);
-            setCurrentPage(1);
-          }}
-          selectedInternship={selectedInternship}
-          onInternshipChange={(val) => {
-            setSelectedInternship(val);
-            setCurrentPage(1);
-          }}
-          selectedUserAccount={selectedUserAccount}
-          onUserAccountChange={(val) => {
-            setSelectedUserAccount(val);
-            setCurrentPage(1);
-          }}
-          sortBy={sortBy}
-          onSortByChange={(val) => {
-            setSortBy(val);
-            setCurrentPage(1);
-          }}
-          sortOrder={sortOrder}
-          onSortOrderChange={(val) => {
-            setSortOrder(val);
-            setCurrentPage(1);
-          }}
-          selectedStatus={selectedStatus}
-          onStatusChange={handleStatusChange}
-        />
+            employees={employeesList}
+            searchTerm={searchTerm}
+            onSearchChange={(val) => {
+              setSearchTerm(val);
+            }}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            onCreate={handleCreate}
+            onEdit={handleEdit}
+            onViewDetails={handleViewDetails}
+            onDelete={promptDelete}
+            onChangeJob={openChangeJobModal}
+            onEditPlanning={handleEditPlanning}
+            onTerminateContract={openTerminateContractModal}
+            onRenewContract={openRenewContractModal}
+            jobTitles={jobTitles}
+            selectedJobTitleId={selectedJobTitleId}
+            onJobTitleChange={(id) => {
+              setSelectedJobTitleId(id);
+              setCurrentPage(1);
+            }}
+            selectedInternship={selectedInternship}
+            onInternshipChange={(val) => {
+              setSelectedInternship(val);
+              setCurrentPage(1);
+            }}
+            selectedUserAccount={selectedUserAccount}
+            onUserAccountChange={(val) => {
+              setSelectedUserAccount(val);
+              setCurrentPage(1);
+            }}
+            sortBy={sortBy}
+            onSortByChange={(val) => {
+              setSortBy(val);
+              setCurrentPage(1);
+            }}
+            sortOrder={sortOrder}
+            onSortOrderChange={(val) => {
+              setSortOrder(val);
+              setCurrentPage(1);
+            }}
+            selectedStatus={selectedStatus}
+            onStatusChange={handleStatusChange}
+          />
         </div>
       )}
 
@@ -816,8 +839,8 @@ export function EmployeesPage({
 
       {view === "details" && selectedEmployeeDetail && (
         <div className="max-w-4xl mx-auto bg-card border rounded-[2rem] p-8 md:p-10 shadow-lg shadow-black/5 space-y-8 animate-in fade-in duration-300">
-          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 border-b pb-6">
-            <div>
+          <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-6 border-b pb-6">
+            <div className="pr-4 md:pr-10">
               <div className="flex items-center gap-3">
                 <h3 className="text-3xl font-extrabold tracking-tight text-secondary">
                   {selectedEmployeeDetail.name}{" "}
@@ -842,12 +865,13 @@ export function EmployeesPage({
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 gap-2 w-fit xl:ml-auto">
               <Can permission="employee.update">
                 <Button
                   variant="outline"
                   onClick={handleEditClick}
-                  className="rounded-xl px-4 gap-2 font-medium border-border hover:bg-muted"
+                  size="sm"
+                  className="w-full rounded-lg gap-2"
                 >
                   <Edit className="size-4 text-muted-foreground" />
                   Modifier le profil
@@ -858,7 +882,8 @@ export function EmployeesPage({
                   <Button
                     variant="outline"
                     onClick={handleEditPlanningClick}
-                    className="rounded-xl px-4 gap-2 font-medium border-border hover:bg-muted text-primary"
+                    size="sm"
+                    className="w-full rounded-lg gap-2"
                   >
                     <CalendarDays className="size-4" />
                     Disponibilités
@@ -869,7 +894,9 @@ export function EmployeesPage({
                 {selectedStatus === "active" ? (
                   <Button
                     onClick={handleChangeJobClick}
-                    className="rounded-xl px-4 gap-2 bg-primary hover:bg-primary/90 text-white font-medium"
+                    variant="outline"
+                    size="sm"
+                    className="w-full rounded-lg gap-2"
                   >
                     <Briefcase className="size-4" />
                     Changer de poste
@@ -880,7 +907,9 @@ export function EmployeesPage({
                       const item = getSelectedEmployeeListItem();
                       if (item) openRenewContractModal(item);
                     }}
-                    className="rounded-xl px-4 gap-2 bg-green-600 hover:bg-green-700 text-white font-medium"
+                    variant="outline"
+                    size="sm"
+                    className="w-full rounded-lg gap-2 text-green-600 border-green-200 hover:bg-green-50"
                   >
                     <Briefcase className="size-4" />
                     Renouveler le contrat
@@ -890,7 +919,9 @@ export function EmployeesPage({
               <Can permission="employee.delete">
                 <Button
                   onClick={handleDeleteClick}
-                  className="rounded-xl px-4 gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium"
+                  variant="destructive"
+                  size="sm"
+                  className="w-full rounded-lg gap-2"
                 >
                   <Trash2 className="size-4" />
                   Supprimer
@@ -899,15 +930,15 @@ export function EmployeesPage({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div>
-                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">
+          <div className="flex flex-col max-w-4xl mx-auto w-full divide-y divide-border/50">
+            <div className="flex flex-col divide-y divide-border/50">
+              <div className="py-6">
+                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-5">
                   Informations Personnelles
                 </h4>
-                <div className="bg-muted/15 border rounded-2xl p-5 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
                   <div>
-                    <span className="text-xs text-muted-foreground block">
+                    <span className="text-xs text-muted-foreground block mb-1">
                       Nom Complet
                     </span>
                     <span className="font-semibold text-foreground text-base">
@@ -916,7 +947,7 @@ export function EmployeesPage({
                     </span>
                   </div>
                   <div>
-                    <span className="text-xs text-muted-foreground block">
+                    <span className="text-xs text-muted-foreground block mb-1">
                       Date de naissance
                     </span>
                     <span className="font-medium text-foreground">
@@ -931,8 +962,8 @@ export function EmployeesPage({
                         : "-"}
                     </span>
                   </div>
-                  <div>
-                    <span className="text-xs text-muted-foreground block">
+                  <div className="md:col-span-2">
+                    <span className="text-xs text-muted-foreground block mb-1">
                       Adresse
                     </span>
                     <span className="font-medium text-foreground">
@@ -942,13 +973,13 @@ export function EmployeesPage({
                 </div>
               </div>
 
-              <div>
-                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">
+              <div className="py-6">
+                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-5">
                   Informations de Contact
                 </h4>
-                <div className="bg-muted/15 border rounded-2xl p-5 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
                   <div>
-                    <span className="text-xs text-muted-foreground block">
+                    <span className="text-xs text-muted-foreground block mb-1">
                       E-mail de contact
                     </span>
                     <span className="font-medium text-foreground">
@@ -956,7 +987,7 @@ export function EmployeesPage({
                     </span>
                   </div>
                   <div>
-                    <span className="text-xs text-muted-foreground block">
+                    <span className="text-xs text-muted-foreground block mb-1">
                       Numéro de téléphone
                     </span>
                     <span className="font-medium text-foreground">
@@ -967,43 +998,51 @@ export function EmployeesPage({
               </div>
 
               {selectedEmployeeDetail.internship && (
-                <div>
-                  <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">
+                <div className="py-6">
+                  <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-5">
                     Détails du Stage
                   </h4>
-                  <div className="bg-muted/15 border rounded-2xl p-5 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
                     <div>
-                      <span className="text-xs text-muted-foreground block">
+                      <span className="text-xs text-muted-foreground block mb-1">
                         École d'origine
                       </span>
                       <span className="text-sm font-medium text-foreground">
                         {selectedEmployeeDetail.internship.schoolName || "-"}
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 border-t pt-3">
-                      <div className="flex flex-col gap-1 p-3 bg-muted/30 rounded-lg">
-                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+                      <div>
+                        <span className="text-xs text-muted-foreground block mb-1">
                           Tuteur Académique
                         </span>
-                        <div className="font-medium text-sm">
+                        <span className="font-medium text-foreground block">
                           {selectedEmployeeDetail.internship
                             .academicSupervisorName || "-"}
-                        </div>
-                        {selectedEmployeeDetail.internship.academicSupervisorEmail && (
+                        </span>
+                        {selectedEmployeeDetail.internship
+                          .academicSupervisorEmail && (
                           <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                             <Mail className="size-3" />
-                            {selectedEmployeeDetail.internship.academicSupervisorEmail}
+                            {
+                              selectedEmployeeDetail.internship
+                                .academicSupervisorEmail
+                            }
                           </div>
                         )}
-                        {selectedEmployeeDetail.internship.academicSupervisorNumber && (
+                        {selectedEmployeeDetail.internship
+                          .academicSupervisorNumber && (
                           <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                             <Phone className="size-3" />
-                            {selectedEmployeeDetail.internship.academicSupervisorNumber}
+                            {
+                              selectedEmployeeDetail.internship
+                                .academicSupervisorNumber
+                            }
                           </div>
                         )}
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground block">
+                        <span className="text-xs text-muted-foreground block mb-1">
                           Tuteur Professionnel
                         </span>
                         <span className="font-medium text-foreground">
@@ -1017,16 +1056,16 @@ export function EmployeesPage({
               )}
             </div>
 
-            <div className="space-y-6">
-              <div>
-                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">
+            <div className="flex flex-col divide-y divide-border/50">
+              <div className="py-6">
+                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-5">
                   Informations du Poste
                 </h4>
                 {selectedEmployeeDetail.job ? (
-                  <div className="bg-muted/15 border rounded-2xl p-5 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
                       <div>
-                        <span className="text-xs text-muted-foreground block">
+                        <span className="text-xs text-muted-foreground block mb-1">
                           Poste actuel
                         </span>
                         <span className="font-semibold text-foreground">
@@ -1034,7 +1073,7 @@ export function EmployeesPage({
                         </span>
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground block">
+                        <span className="text-xs text-muted-foreground block mb-1">
                           Type de contrat
                         </span>
                         <span className="font-semibold text-foreground">
@@ -1044,9 +1083,9 @@ export function EmployeesPage({
                         </span>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 border-t pt-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12 border-t pt-4">
                       <div>
-                        <span className="text-xs text-muted-foreground block">
+                        <span className="text-xs text-muted-foreground block mb-1">
                           Date d'assignation
                         </span>
                         <span className="font-medium text-foreground">
@@ -1058,7 +1097,7 @@ export function EmployeesPage({
                         </span>
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground block">
+                        <span className="text-xs text-muted-foreground block mb-1">
                           Date de fin
                         </span>
                         <span className="font-medium text-foreground">
@@ -1072,7 +1111,7 @@ export function EmployeesPage({
                     </div>
                     <div className="border-t pt-3 flex items-center justify-between">
                       <div>
-                        <span className="text-xs text-muted-foreground block">
+                        <span className="text-xs text-muted-foreground block mb-1">
                           Gestion des horaires
                         </span>
                         <span className="font-medium text-foreground">
@@ -1086,19 +1125,19 @@ export function EmployeesPage({
                       />
                     </div>
                     {selectedStatus === "active" ? (
-                      <div className="border-t pt-3 mt-2">
+                      <div className="flex justify-end mt-2">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={handleTerminateContractClick}
-                          className="w-full text-xs font-semibold gap-2 border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 rounded-xl"
+                          className="w-fit text-xs font-semibold gap-2 border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 rounded-lg"
                         >
                           <UserX className="size-3.5" />
                           Terminer le contrat
                         </Button>
                       </div>
                     ) : (
-                      <div className="border-t pt-3 mt-2">
+                      <div className="flex justify-end mt-2">
                         <Button
                           variant="outline"
                           size="sm"
@@ -1106,7 +1145,7 @@ export function EmployeesPage({
                             const item = getSelectedEmployeeListItem();
                             if (item) openRenewContractModal(item);
                           }}
-                          className="w-full text-xs font-semibold gap-2 border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700 rounded-xl"
+                          className="w-fit text-xs font-semibold gap-2 border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700 rounded-lg"
                         >
                           <Briefcase className="size-3.5" />
                           Renouveler le contrat
@@ -1121,26 +1160,26 @@ export function EmployeesPage({
                 )}
               </div>
 
-              <div>
-                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">
+              <div className="py-6">
+                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-5">
                   Équipe & Planification
                 </h4>
-                <div className="bg-muted/15 border rounded-2xl p-5 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
                   <div>
-                    <span className="text-xs text-muted-foreground block">
+                    <span className="text-xs text-muted-foreground block mb-1">
                       Équipe Assignée
                     </span>
                     <span className="font-semibold text-foreground">
                       {selectedEmployeeDetail.team?.teamName || "Aucune équipe"}
                     </span>
                   </div>
-                  <div className="border-t pt-3">
+                  <div className="md:col-span-2 border-t pt-4">
                     <span className="text-xs text-muted-foreground block mb-2">
                       Disponibilités / Horaires Spécifiques
                     </span>
                     {selectedEmployeeDetail.availabilities &&
                     selectedEmployeeDetail.availabilities.length > 0 ? (
-                      <ul className="space-y-1">
+                      <ul className="flex flex-col w-full">
                         {selectedEmployeeDetail.availabilities.map(
                           (avail, index) => {
                             const days = [
@@ -1159,10 +1198,13 @@ export function EmployeesPage({
                             return (
                               <li
                                 key={index}
-                                className="text-sm text-foreground flex justify-between items-center bg-background px-3 py-1.5 rounded-lg border"
+                                className="text-sm flex items-center w-full py-2"
                               >
-                                <span className="font-medium">{dayName}</span>
-                                <span className="text-muted-foreground">
+                                <span className="font-semibold text-foreground">
+                                  {dayName}
+                                </span>
+                                <div className="flex-1 mx-4 border-b-2 border-dotted border-border/40"></div>
+                                <span className="text-muted-foreground font-medium">
                                   {avail.idShiftType
                                     ? avail.shiftLabel
                                     : `${avail.customStartTime} - ${avail.customEndTime}`}
@@ -1181,14 +1223,14 @@ export function EmployeesPage({
                 </div>
               </div>
 
-              <div>
-                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">
+              <div className="py-6">
+                <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-5">
                   Sécurité & Compte Utilisateur
                 </h4>
-                <div className="bg-muted/15 border rounded-2xl p-5 space-y-4">
+                <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <div>
-                      <span className="text-xs text-muted-foreground block">
+                      <span className="text-xs text-muted-foreground block mb-1">
                         Statut du compte
                       </span>
                       <span
@@ -1207,17 +1249,30 @@ export function EmployeesPage({
                   </div>
 
                   {selectedEmployeeDetail.userAccount && (
-                    <div className="border-t pt-3 space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12 border-t pt-5">
                       <div>
-                        <span className="text-xs text-muted-foreground block">
+                        <span className="text-xs text-muted-foreground block mb-1">
                           Nom d'utilisateur
                         </span>
-                        <span className="font-semibold text-foreground">
+                        <span className="font-semibold text-foreground block">
                           {selectedEmployeeDetail.userAccount.username}
                         </span>
+                        <Can permission="security.access">
+                          <div className="flex justify-start mt-3">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleGenerateKey}
+                              className="w-fit text-xs font-semibold gap-2 border-primary/20 text-primary hover:bg-primary/10 rounded-lg"
+                            >
+                              <Key className="size-3.5" />
+                              Générer une clé d'accès
+                            </Button>
+                          </div>
+                        </Can>
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground block">
+                        <span className="text-xs text-muted-foreground block mb-1">
                           Rôles système attribués
                         </span>
                         <div className="flex flex-wrap gap-1.5 mt-1.5">
@@ -1237,19 +1292,6 @@ export function EmployeesPage({
                           )}
                         </div>
                       </div>
-                      <Can permission="security.access">
-                        <div className="pt-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleGenerateKey}
-                            className="w-full text-xs font-semibold gap-2 border-primary/20 text-primary hover:bg-primary/10 rounded-xl"
-                          >
-                            <Key className="size-3.5" />
-                            Générer une clé d'accès
-                          </Button>
-                        </div>
-                      </Can>
                     </div>
                   )}
                 </div>
@@ -1270,7 +1312,7 @@ export function EmployeesPage({
         </div>
       )}
 
-            <Dialog
+      <Dialog
         open={!!changeJobEmployee}
         onOpenChange={(open) => !open && setChangeJobEmployee(null)}
       >
@@ -1288,7 +1330,7 @@ export function EmployeesPage({
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-                        <div className="space-y-1.5">
+            <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Intitulé du poste
               </label>
@@ -1306,7 +1348,7 @@ export function EmployeesPage({
               </select>
             </div>
 
-                        <div className="space-y-1.5">
+            <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Type de contrat
               </label>
@@ -1323,7 +1365,7 @@ export function EmployeesPage({
               </select>
             </div>
 
-                        <div className="space-y-1.5">
+            <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Date d'affectation
               </label>
@@ -1334,7 +1376,7 @@ export function EmployeesPage({
               />
             </div>
 
-                        <div className="space-y-1.5">
+            <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Date de fin (Optionnelle)
               </label>
@@ -1345,12 +1387,12 @@ export function EmployeesPage({
               />
             </div>
 
-                        <div className="flex items-center justify-between bg-muted/10 border border-border p-3.5 rounded-xl shadow-sm">
+            <div className="flex items-center justify-between bg-muted/10 border border-border p-3.5 rounded-xl shadow-sm">
               <div>
                 <span className="text-sm font-semibold block text-foreground">
                   Horaires de travail fixes
                 </span>
-                <span className="text-xs text-muted-foreground block">
+                <span className="text-xs text-muted-foreground block mb-1">
                   Cet employé a-t-il des horaires fixes ou variables ?
                 </span>
               </div>
@@ -1366,7 +1408,7 @@ export function EmployeesPage({
                 <span className="text-sm font-semibold block text-foreground">
                   Réactiver le compte utilisateur
                 </span>
-                <span className="text-xs text-muted-foreground block">
+                <span className="text-xs text-muted-foreground block mb-1">
                   Permettre à l'employé de se connecter à nouveau
                 </span>
               </div>
@@ -1414,7 +1456,7 @@ export function EmployeesPage({
         onSave={savePlanning}
       />
 
-            <Dialog
+      <Dialog
         open={!!terminateContractEmployee}
         onOpenChange={(open) => !open && setTerminateContractEmployee(null)}
       >
@@ -1464,7 +1506,7 @@ export function EmployeesPage({
         </DialogContent>
       </Dialog>
 
-            <Dialog
+      <Dialog
         open={!!generatedKey}
         onOpenChange={(open) => !open && setGeneratedKey(null)}
       >

@@ -2,12 +2,17 @@ import { CalendarRange } from "lucide-react";
 
 interface DateRangePickerProps {
   startDate: string; // YYYY-MM-DD
-  endDate: string;   // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
   onStartChange: (v: string) => void;
   onEndChange: (v: string) => void;
 }
 
-export function DateRangePicker({ startDate, endDate, onStartChange, onEndChange }: DateRangePickerProps) {
+export function DateRangePicker({
+  startDate,
+  endDate,
+  onStartChange,
+  onEndChange,
+}: DateRangePickerProps) {
   const handleEndChange = (v: string) => {
     // Ensure end >= start
     if (v < startDate) {

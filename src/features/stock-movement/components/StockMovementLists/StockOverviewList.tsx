@@ -59,7 +59,10 @@ export function StockOverviewList({
             options={typeOptions}
             value={filters.idProductType ?? ""}
             onChange={(val) =>
-              onFiltersChange({ idProductType: val ? String(val) : undefined, page: 1 })
+              onFiltersChange({
+                idProductType: val ? String(val) : undefined,
+                page: 1,
+              })
             }
             placeholder="Type d'article"
           />
@@ -73,8 +76,12 @@ export function StockOverviewList({
               <th className="px-4 py-3 font-medium w-12"></th>
               <th className="px-4 py-3 font-medium">Référence</th>
               <th className="px-4 py-3 font-medium">Article</th>
-              <th className="px-4 py-3 font-medium text-right">Quantité en Stock</th>
-              <th className="px-4 py-3 font-medium text-right">Seuil d'alerte</th>
+              <th className="px-4 py-3 font-medium text-right">
+                Quantité en Stock
+              </th>
+              <th className="px-4 py-3 font-medium text-right">
+                Seuil d'alerte
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -86,7 +93,10 @@ export function StockOverviewList({
               </tr>
             ) : records.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-12 text-muted-foreground">
+                <td
+                  colSpan={5}
+                  className="text-center py-12 text-muted-foreground"
+                >
                   Aucun article trouvé.
                 </td>
               </tr>
@@ -102,14 +112,18 @@ export function StockOverviewList({
                     className="border-b last:border-b-0 hover:bg-muted/20 transition-colors"
                   >
                     <td className="px-4 py-3">
-                      <div className={`p-2 rounded-lg w-fit ${isLowStock ? 'bg-red-500/10 text-red-600' : 'bg-primary/10 text-primary'}`}>
+                      <div
+                        className={`p-2 rounded-lg w-fit ${isLowStock ? "bg-red-500/10 text-red-600" : "bg-primary/10 text-primary"}`}
+                      >
                         <Package className="size-4" />
                       </div>
                     </td>
                     <td className="px-4 py-3 font-medium">{item.ref}</td>
                     <td className="px-4 py-3">{item.label}</td>
                     <td className="px-4 py-3 text-right">
-                      <span className={`font-semibold ${isLowStock ? 'text-red-600' : 'text-green-600'}`}>
+                      <span
+                        className={`font-semibold ${isLowStock ? "text-red-600" : "text-green-600"}`}
+                      >
                         {stock.toLocaleString()}
                       </span>
                       <span className="text-muted-foreground text-xs ml-1">
@@ -137,5 +151,3 @@ export function StockOverviewList({
     </div>
   );
 }
-
-

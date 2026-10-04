@@ -9,7 +9,11 @@ interface SearchableSchoolSelectProps {
   className?: string;
 }
 
-export function SearchableSchoolSelect({ value, onChange, className }: SearchableSchoolSelectProps) {
+export function SearchableSchoolSelect({
+  value,
+  onChange,
+  className,
+}: SearchableSchoolSelectProps) {
   const [schools, setSchools] = useState<School[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +32,7 @@ export function SearchableSchoolSelect({ value, onChange, className }: Searchabl
     }
   };
 
-  const options = schools.map(s => ({
+  const options = schools.map((s) => ({
     value: s.idSchool,
     label: s.name,
   }));
@@ -45,7 +49,11 @@ export function SearchableSchoolSelect({ value, onChange, className }: Searchabl
   };
 
   if (loading) {
-    return <div className="p-2 text-sm text-muted-foreground border rounded-md">Chargement des écoles...</div>;
+    return (
+      <div className="p-2 text-sm text-muted-foreground border rounded-md">
+        Chargement des écoles...
+      </div>
+    );
   }
 
   return (

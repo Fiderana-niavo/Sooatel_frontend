@@ -1,6 +1,13 @@
 import axios from "axios";
 import type { ApiResponse } from "@/types/api.type";
-import type { Recipe, RecipeListItem, RecipeDetail, CreateRecipePayload, UpdateRecipePayload, RecipeAnalysis } from "../types/recipe.type";
+import type {
+  Recipe,
+  RecipeListItem,
+  RecipeDetail,
+  CreateRecipePayload,
+  UpdateRecipePayload,
+  RecipeAnalysis,
+} from "../types/recipe.type";
 
 const BASE = `${import.meta.env.VITE_API_URL ?? "http://localhost:3000/api"}/recipes`;
 
@@ -12,19 +19,25 @@ export const RecipeService = {
   },
 
   async getVersions(idItem: string): Promise<Recipe[]> {
-    const res = await axios.get<ApiResponse<Recipe[]>>(`${BASE}/item/${idItem}/versions`);
+    const res = await axios.get<ApiResponse<Recipe[]>>(
+      `${BASE}/item/${idItem}/versions`,
+    );
     if (!res.data.ok) throw new Error(res.data.error ?? "Erreur API");
     return res.data.payload;
   },
 
   async getDetails(idRecipe: string): Promise<RecipeDetail[]> {
-    const res = await axios.get<ApiResponse<RecipeDetail[]>>(`${BASE}/${idRecipe}/details`);
+    const res = await axios.get<ApiResponse<RecipeDetail[]>>(
+      `${BASE}/${idRecipe}/details`,
+    );
     if (!res.data.ok) throw new Error(res.data.error ?? "Erreur API");
     return res.data.payload;
   },
 
   async getIngredients(idRecipe: string): Promise<RecipeAnalysis> {
-    const res = await axios.get<ApiResponse<RecipeAnalysis>>(`${BASE}/${idRecipe}/ingredients`);
+    const res = await axios.get<ApiResponse<RecipeAnalysis>>(
+      `${BASE}/${idRecipe}/ingredients`,
+    );
     if (!res.data.ok) throw new Error(res.data.error ?? "Erreur API");
     return res.data.payload;
   },
@@ -45,10 +58,14 @@ export const RecipeService = {
     if (!res.data.ok) throw new Error(res.data.error ?? "Erreur API");
   },
 
-  async setActive(idRecipe: string, force: boolean = false, checkOnly: boolean = false): Promise<{ 
-    createdNewVersion?: boolean; 
-    newVersion?: number; 
-    activatedExistingVersion?: number; 
+  async setActive(
+    idRecipe: string,
+    force: boolean = false,
+    checkOnly: boolean = false,
+  ): Promise<{
+    createdNewVersion?: boolean;
+    newVersion?: number;
+    activatedExistingVersion?: number;
     requiresConfirmation?: boolean;
     currentCost?: number;
     siblingVersion?: number;
@@ -57,7 +74,9 @@ export const RecipeService = {
     if (force) params.append("force", "true");
     if (checkOnly) params.append("checkOnly", "true");
     const qs = params.toString() ? `?${params.toString()}` : "";
-    const res = await axios.put<ApiResponse<any>>(`${BASE}/${idRecipe}/active${qs}`);
+    const res = await axios.put<ApiResponse<any>>(
+      `${BASE}/${idRecipe}/active${qs}`,
+    );
     if (!res.data.ok) throw new Error(res.data.error ?? "Erreur API");
     return res.data.payload;
   },

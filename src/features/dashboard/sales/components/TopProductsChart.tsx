@@ -51,7 +51,8 @@ export const TopProductsChart: React.FC<Props> = ({
         labels: products.map((p) => p.name),
         datasets: [
           {
-            label: metric === "ca" ? "Chiffre d'affaires (Ar)" : "Bénéfice (Ar)",
+            label:
+              metric === "ca" ? "Chiffre d'affaires (Ar)" : "Bénéfice (Ar)",
             data: products.map((p) => p.value),
             backgroundColor: COLORS,
             borderRadius: 8,
@@ -73,8 +74,7 @@ export const TopProductsChart: React.FC<Props> = ({
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx) =>
-                ` ${Number(ctx.raw).toLocaleString("fr-FR")} Ar`,
+              label: (ctx) => ` ${Number(ctx.raw).toLocaleString("fr-FR")} Ar`,
             },
           },
         },

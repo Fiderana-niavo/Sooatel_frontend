@@ -11,14 +11,20 @@ import { PermissionService } from "../../services/permission.service";
 
 export function RolesPage() {
   const [roles, setRoles] = useState<Role[]>([]);
-  const [permissionsSchema, setPermissionsSchema] = useState<PermissionCategory[]>([]);
+  const [permissionsSchema, setPermissionsSchema] = useState<
+    PermissionCategory[]
+  >([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const action = searchParams.get("action");
   const roleId = searchParams.get("id");
   const isCreating = action === "create";
   const [searchQuery, setSearchQuery] = useState("");
-  const [snackbar, setSnackbar] = useState<{ message: string, type: SnackbarType, isOpen: boolean }>({ message: "", type: "info", isOpen: false });
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: SnackbarType;
+    isOpen: boolean;
+  }>({ message: "", type: "info", isOpen: false });
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
@@ -33,20 +39,23 @@ export function RolesPage() {
     try {
       const [rolesData, permsData] = await Promise.all([
         RoleService.getAll({ limit: 100, search: searchQuery }), // Assuming we want all roles here
-        PermissionService.getAllGrouped()
+        PermissionService.getAllGrouped(),
       ]);
       setRoles(rolesData.records);
       setPermissionsSchema(permsData);
-      
+
       if (!isInitialized.current) {
         if (rolesData.first && !roleId && action !== "create") {
           setSearchParams({ id: rolesData.first.idRole });
-        } else if (rolesData.records.length > 0 && !roleId && action !== "create") {
+        } else if (
+          rolesData.records.length > 0 &&
+          !roleId &&
+          action !== "create"
+        ) {
           setSearchParams({ id: rolesData.records[0].idRole });
         }
         isInitialized.current = true;
       }
-      
     } catch (err: unknown) {
       console.error(err);
       showSnackbar("Erreur lors du chargement des données.", "error");
@@ -62,12 +71,18 @@ export function RolesPage() {
 
   useEffect(() => {
     if (roleId) {
-      RoleService.getOne(roleId).then(fullRole => {
-        setSelectedRole(fullRole);
-      }).catch(err => {
-        console.error(err);
-        showSnackbar("Erreur lors de la récupération des détails du rôle.", "error");
-      });
+      RoleService.getOne(roleId)
+        .then((fullRole) => {
+          setSelectedRole(fullRole);
+        })
+        .catch((err) => {
+          console.error(err);
+          showSnackbar(
+            "Le rôle sélectionné n'existe plus ou est introuvable.",
+            "error",
+          );
+          setSearchParams({});
+        });
     } else if (action === "create") {
       setSelectedRole(null);
     }
@@ -89,27 +104,47 @@ export function RolesPage() {
     }
   };
 
-  const handleSave = async (label: string, description: string, permissionIds: string[]) => {
+  const handleSave = async (
+    label: string,
+    description: string,
+    permissionIds: string[],
+  ) => {
     try {
       if (isCreating) {
-        const newRole = await RoleService.create({ label, description, permissionIds });
+        const newRole = await RoleService.create({
+          label,
+          description,
+          permissionIds,
+        });
         showSnackbar("Rôle créé avec succès.", "success");
         await loadData();
         handleSelectRole(newRole);
       } else if (selectedRole) {
-        await RoleService.update(selectedRole.idRole, { label, description, permissionIds });
+        await RoleService.update(selectedRole.idRole, {
+          label,
+          description,
+          permissionIds,
+        });
         showSnackbar("Rôle mis à jour avec succès.", "success");
         await loadData();
-        handleSelectRole({ ...selectedRole, label, description, permissions: [] }); // Permissions fetched in handleSelectRole
+        handleSelectRole({
+          ...selectedRole,
+          label,
+          description,
+          permissions: [],
+        }); // Permissions fetched in handleSelectRole
       }
     } catch (err: unknown) {
       console.error(err);
-      showSnackbar(err instanceof Error ? err.message : "Erreur lors de l'enregistrement.", "error");
+      showSnackbar(
+        err instanceof Error ? err.message : "Erreur lors de l'enregistrement.",
+        "error",
+      );
     }
   };
 
   const promptDelete = (roleId: string) => {
-    const roleToDelete = roles.find(r => r.idRole === roleId);
+    const roleToDelete = roles.find((r) => r.idRole === roleId);
     if (!roleToDelete) return;
 
     if (roleToDelete.label.toLowerCase() === "administrateur") {
@@ -125,15 +160,18 @@ export function RolesPage() {
     if (!roleToDelete) return;
     try {
       await RoleService.delete(roleToDelete.idRole);
-      setRoles(roles.filter(r => r.idRole !== roleToDelete.idRole));
+      setRoles(roles.filter((r) => r.idRole !== roleToDelete.idRole));
       setSelectedRole(null);
       showSnackbar("Rôle supprimé avec succès.", "success");
       if (roles.length > 1) {
-        handleSelectRole(roles.find(r => r.idRole !== roleToDelete.idRole)!);
+        handleSelectRole(roles.find((r) => r.idRole !== roleToDelete.idRole)!);
       }
     } catch (err: unknown) {
       console.error(err);
-      showSnackbar(err instanceof Error ? err.message : "Erreur lors de la suppression.", "error");
+      showSnackbar(
+        err instanceof Error ? err.message : "Erreur lors de la suppression.",
+        "error",
+      );
     } finally {
       setConfirmOpen(false);
       setRoleToDelete(null);

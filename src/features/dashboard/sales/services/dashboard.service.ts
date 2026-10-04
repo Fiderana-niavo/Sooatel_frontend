@@ -1,15 +1,24 @@
 import axios from "axios";
-import type { DashboardSummary, TopProductsResult, ProductDetail } from "../types/dashboard";
+import type {
+  DashboardSummary,
+  TopProductsResult,
+  ProductDetail,
+} from "../types/dashboard";
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 const ROOT = `${BASE}/dashboard/saledashboard`;
 
-const authHeader = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
+const authHeader = () => ({
+  Authorization: `Bearer ${localStorage.getItem("token")}`,
+});
 const params = (startDate: string, endDate: string) => ({ startDate, endDate });
 
 // ── CA ─────────────────────────────────────────────────────────────────────────
 
-const getCaSummary = async (startDate: string, endDate: string): Promise<DashboardSummary> => {
+const getCaSummary = async (
+  startDate: string,
+  endDate: string,
+): Promise<DashboardSummary> => {
   const response = await axios.get(`${ROOT}/ca/summary`, {
     params: params(startDate, endDate),
     headers: authHeader(),
@@ -17,7 +26,10 @@ const getCaSummary = async (startDate: string, endDate: string): Promise<Dashboa
   return response.data.payload as DashboardSummary;
 };
 
-const getCaTopProducts = async (startDate: string, endDate: string): Promise<TopProductsResult> => {
+const getCaTopProducts = async (
+  startDate: string,
+  endDate: string,
+): Promise<TopProductsResult> => {
   const response = await axios.get(`${ROOT}/ca/top-products`, {
     params: params(startDate, endDate),
     headers: authHeader(),
@@ -28,7 +40,7 @@ const getCaTopProducts = async (startDate: string, endDate: string): Promise<Top
 const getCaProductDetail = async (
   idMenu: string,
   startDate: string,
-  endDate: string
+  endDate: string,
 ): Promise<ProductDetail> => {
   const response = await axios.get(`${ROOT}/ca/product/${idMenu}`, {
     params: params(startDate, endDate),
@@ -39,7 +51,10 @@ const getCaProductDetail = async (
 
 // ── Bénéfice ───────────────────────────────────────────────────────────────────
 
-const getBenefitSummary = async (startDate: string, endDate: string): Promise<DashboardSummary> => {
+const getBenefitSummary = async (
+  startDate: string,
+  endDate: string,
+): Promise<DashboardSummary> => {
   const response = await axios.get(`${ROOT}/benefit/summary`, {
     params: params(startDate, endDate),
     headers: authHeader(),
@@ -49,7 +64,7 @@ const getBenefitSummary = async (startDate: string, endDate: string): Promise<Da
 
 const getBenefitTopProducts = async (
   startDate: string,
-  endDate: string
+  endDate: string,
 ): Promise<TopProductsResult> => {
   const response = await axios.get(`${ROOT}/benefit/top-products`, {
     params: params(startDate, endDate),
@@ -61,7 +76,7 @@ const getBenefitTopProducts = async (
 const getBenefitProductDetail = async (
   idMenu: string,
   startDate: string,
-  endDate: string
+  endDate: string,
 ): Promise<ProductDetail> => {
   const response = await axios.get(`${ROOT}/benefit/product/${idMenu}`, {
     params: params(startDate, endDate),

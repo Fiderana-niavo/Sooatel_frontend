@@ -1,6 +1,9 @@
 import { AlertTriangle } from "lucide-react";
 import { EmployeeSelect } from "../EmployeeSelect/EmployeeSelect";
-import type { GeneratedScheduleRow, AvailableEmployee } from "../../../types/timetable.type";
+import type {
+  GeneratedScheduleRow,
+  AvailableEmployee,
+} from "../../../types/timetable.type";
 
 interface ScheduleCellProps {
   row: GeneratedScheduleRow | null;

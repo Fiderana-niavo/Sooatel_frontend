@@ -10,7 +10,10 @@ interface ResetPasswordFormProps {
 
 const accentColor = "from-[#e4a192] to-[#d89282]";
 
-export function ResetPasswordForm({ onSubmit, onCancel }: ResetPasswordFormProps) {
+export function ResetPasswordForm({
+  onSubmit,
+  onCancel,
+}: ResetPasswordFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -32,7 +35,9 @@ export function ResetPasswordForm({ onSubmit, onCancel }: ResetPasswordFormProps
   return (
     <div className="animate-in fade-in slide-in-from-left-8 duration-500 mt-8 md:mt-0">
       <div className="mb-8 text-center md:text-left">
-        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Nouveau mot de passe</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
+          Nouveau mot de passe
+        </h2>
         <p className="text-slate-500 min-h-[40px]">
           Veuillez configurer un nouveau mot de passe pour votre compte.
         </p>
@@ -41,7 +46,9 @@ export function ResetPasswordForm({ onSubmit, onCancel }: ResetPasswordFormProps
       <form onSubmit={handleResetPassword} className="space-y-6">
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700 ml-1">Nouveau mot de passe</label>
+            <label className="text-sm font-medium text-slate-700 ml-1">
+              Nouveau mot de passe
+            </label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#223c56] transition-colors z-10">
                 <Lock className="size-5" />
@@ -57,7 +64,9 @@ export function ResetPasswordForm({ onSubmit, onCancel }: ResetPasswordFormProps
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700 ml-1">Confirmer le mot de passe</label>
+            <label className="text-sm font-medium text-slate-700 ml-1">
+              Confirmer le mot de passe
+            </label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#223c56] transition-colors z-10">
                 <Lock className="size-5" />
@@ -74,9 +83,14 @@ export function ResetPasswordForm({ onSubmit, onCancel }: ResetPasswordFormProps
         </div>
 
         <div className="space-y-4">
-          <Button 
-            type="submit" 
-            disabled={isLoading || !newPassword || !confirmPassword || newPassword !== confirmPassword}
+          <Button
+            type="submit"
+            disabled={
+              isLoading ||
+              !newPassword ||
+              !confirmPassword ||
+              newPassword !== confirmPassword
+            }
             className={`w-full py-6 rounded-xl text-base font-semibold shadow-lg shadow-[#e4a192]/30 transition-all duration-300 group
               bg-gradient-to-r ${accentColor} hover:scale-[1.02] active:scale-[0.98] border-0 text-[#223c56]
               disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed
@@ -84,9 +98,9 @@ export function ResetPasswordForm({ onSubmit, onCancel }: ResetPasswordFormProps
           >
             {isLoading ? "Enregistrement..." : "Enregistrer et se connecter"}
           </Button>
-          
-          <Button 
-            type="button" 
+
+          <Button
+            type="button"
             variant="ghost"
             onClick={onCancel}
             className="w-full text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors py-6 rounded-xl"

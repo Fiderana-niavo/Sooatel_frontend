@@ -14,7 +14,7 @@ export function PlanningPage() {
   const [shifts, setShifts] = useState<ShiftType[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
   const [teamForm, setTeamForm] = useState<Partial<Team>>({});
-  
+
   const [shiftId, setShiftId] = useState<string | null>(null);
   const [shiftForm, setShiftForm] = useState<Partial<ShiftType>>({});
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -73,7 +73,11 @@ export function PlanningPage() {
       await loadTeams();
     } catch (err: unknown) {
       console.error("Error saving team:", err);
-      alert(err instanceof Error ? err.message : "Une erreur est survenue lors de l'enregistrement de l'équipe.");
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Une erreur est survenue lors de l'enregistrement de l'équipe.",
+      );
     }
   };
 
@@ -83,7 +87,12 @@ export function PlanningPage() {
     setConfirmOpen(true);
   };
   const addShift = () => {
-    setShiftForm({ label: "", customStartTime: "08:00", customEndTime: "16:00", description: "" });
+    setShiftForm({
+      label: "",
+      customStartTime: "08:00",
+      customEndTime: "16:00",
+      description: "",
+    });
     setShiftId("new");
   };
 
@@ -93,7 +102,12 @@ export function PlanningPage() {
   };
 
   const saveShift = async () => {
-    if (!shiftForm.label?.trim() || !shiftForm.customStartTime?.trim() || !shiftForm.customEndTime?.trim()) return;
+    if (
+      !shiftForm.label?.trim() ||
+      !shiftForm.customStartTime?.trim() ||
+      !shiftForm.customEndTime?.trim()
+    )
+      return;
 
     try {
       const payload = {
@@ -113,7 +127,11 @@ export function PlanningPage() {
       await loadShifts();
     } catch (err: unknown) {
       console.error("Error saving shift:", err);
-      alert(err instanceof Error ? err.message : "Une erreur est survenue lors de l'enregistrement de l'horaire.");
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Une erreur est survenue lors de l'enregistrement de l'horaire.",
+      );
     }
   };
 
@@ -136,7 +154,11 @@ export function PlanningPage() {
       }
     } catch (err: unknown) {
       console.error("Error deleting:", err);
-      alert(err instanceof Error ? err.message : "Une erreur est survenue lors de la suppression.");
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Une erreur est survenue lors de la suppression.",
+      );
     } finally {
       setIsDeleting(false);
       setConfirmOpen(false);
@@ -153,7 +175,8 @@ export function PlanningPage() {
           Paramètres de Planification
         </h1>
         <p className="text-muted-foreground text-sm">
-          Gérez vos équipes et vos types d'horaires de travail pour la planification des employés.
+          Gérez vos équipes et vos types d'horaires de travail pour la
+          planification des employés.
         </p>
       </div>
 
@@ -184,8 +207,8 @@ export function PlanningPage() {
 
       <div className="flex-1">
         {activeTab === "teams" ? (
-          <TeamsTab 
-            teams={teams} 
+          <TeamsTab
+            teams={teams}
             isEditing={editId}
             editForm={teamForm}
             setEditForm={setTeamForm}
@@ -196,8 +219,8 @@ export function PlanningPage() {
             onDelete={promptDeleteTeam}
           />
         ) : (
-          <ShiftTypesTab 
-            shifts={shifts} 
+          <ShiftTypesTab
+            shifts={shifts}
             isEditing={shiftId}
             editForm={shiftForm}
             setEditForm={setShiftForm}

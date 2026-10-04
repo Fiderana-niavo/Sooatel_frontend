@@ -11,8 +11,6 @@ import type { StockMovementDto } from "../../types/stock-movement.type";
 const DIRECTION_IN = 5;
 const DIRECTION_OUT = -5;
 
-
-
 const headerIconClass = (isOut: boolean) =>
   `p-2 rounded-lg ${isOut ? "bg-red-500/10" : "bg-green-500/10"}`;
 
@@ -54,7 +52,7 @@ export function StockMovementForm({ initial, onClose, onSave }: Props) {
             ? toIsoDateTime(new Date(initial.movementDate))
             : toIsoDateTime(new Date()),
         }
-      : emptyForm(DIRECTION_OUT)
+      : emptyForm(DIRECTION_OUT),
   );
 
   const { data: items = [], isLoading: itemsLoading } = useQuery({
@@ -69,19 +67,31 @@ export function StockMovementForm({ initial, onClose, onSave }: Props) {
   const isEditing = !!initial?.idStockMovement;
   const isOut = form.direction === DIRECTION_OUT;
 
-  const setField = <K extends keyof StockMovementDto>(key: K, val: StockMovementDto[K]) =>
-    setForm((prev) => ({ ...prev, [key]: val }));
+  const setField = <K extends keyof StockMovementDto>(
+    key: K,
+    val: StockMovementDto[K],
+  ) => setForm((prev) => ({ ...prev, [key]: val }));
 
   const handleSubmit = async () => {
-    if (!form.idItem) { setError("Veuillez sélectionner un article."); return; }
-    if (!form.quantity || Number(form.quantity) <= 0) { setError("La quantité doit être supérieure à 0."); return; }
-    if (!form.reason.trim()) { setError("La raison est obligatoire."); return; }
+    if (!form.idItem) {
+      setError("Veuillez sélectionner un article.");
+      return;
+    }
+    if (!form.quantity || Number(form.quantity) <= 0) {
+      setError("La quantité doit être supérieure à 0.");
+      return;
+    }
+    if (!form.reason.trim()) {
+      setError("La raison est obligatoire.");
+      return;
+    }
     setError(null);
     setIsSaving(true);
     try {
       await onSave({ ...form, quantity: Number(form.quantity) });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erreur lors de l'enregistrement";
+      const msg =
+        err instanceof Error ? err.message : "Erreur lors de l'enregistrement";
       setError(msg);
     } finally {
       setIsSaving(false);
@@ -96,18 +106,27 @@ export function StockMovementForm({ initial, onClose, onSave }: Props) {
         <div className="flex items-center justify-between p-5 border-b border-border/50">
           <div className="flex items-center gap-3">
             <div className={headerIconClass(isOut)}>
-              {isOut
-                ? <ArrowDownCircle className="size-5 text-red-500" />
-                : <ArrowUpCircle className="size-5 text-green-500" />}
+              {isOut ? (
+                <ArrowDownCircle className="size-5 text-red-500" />
+              ) : (
+                <ArrowUpCircle className="size-5 text-green-500" />
+              )}
             </div>
             <div>
               <h3 className="font-semibold text-foreground">
-                {isEditing ? "Modifier le mouvement" : "Nouveau mouvement de stock"}
+                {isEditing
+                  ? "Modifier le mouvement"
+                  : "Nouveau mouvement de stock"}
               </h3>
-              <p className="text-xs text-muted-foreground">Les mouvements sont créés en brouillon</p>
+              <p className="text-xs text-muted-foreground">
+                Les mouvements sont créés en brouillon
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-muted transition-colors">
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-muted transition-colors"
+          >
             <X className="size-4 text-muted-foreground" />
           </button>
         </div>
@@ -140,10 +159,14 @@ export function StockMovementForm({ initial, onClose, onSave }: Props) {
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium">Article *</label>
             <SearchableSelect
-              options={itemsLoading ? [{ value: "", label: "Chargement..." }] : items.map((it) => ({
-                value: it.idItem,
-                label: `${it.label} — Stock actuel : ${Number(it.quantity ?? 0).toLocaleString()} ${it.unit?.symbol ?? ""}`,
-              }))}
+              options={
+                itemsLoading
+                  ? [{ value: "", label: "Chargement..." }]
+                  : items.map((it) => ({
+                      value: it.idItem,
+                      label: `${it.label} — Stock actuel : ${Number(it.quantity ?? 0).toLocaleString()} ${it.unit?.symbol ?? ""}`,
+                    }))
+              }
               value={form.idItem}
               onChange={(val) => setField("idItem", String(val))}
               placeholder="Sélectionner un article"
@@ -151,8 +174,10 @@ export function StockMovementForm({ initial, onClose, onSave }: Props) {
             />
             {selectedItem && (
               <p className="text-xs text-muted-foreground">
-                Stock disponible : <span className="font-semibold text-foreground">
-                  {Number(selectedItem.quantity ?? 0).toLocaleString()} {selectedItem.unit?.symbol ?? ""}
+                Stock disponible :{" "}
+                <span className="font-semibold text-foreground">
+                  {Number(selectedItem.quantity ?? 0).toLocaleString()}{" "}
+                  {selectedItem.unit?.symbol ?? ""}
                 </span>
               </p>
             )}
@@ -165,11 +190,15 @@ export function StockMovementForm({ initial, onClose, onSave }: Props) {
               type="number"
               min={1}
               placeholder="0"
-              value={form.quantity === ("" as unknown as number) ? "" : form.quantity}
+              value={
+                form.quantity === ("" as unknown as number) ? "" : form.quantity
+              }
               onChange={(e) =>
                 setField(
                   "quantity",
-                  e.target.value === "" ? ("" as unknown as number) : Number(e.target.value)
+                  e.target.value === ""
+                    ? ("" as unknown as number)
+                    : Number(e.target.value),
                 )
               }
             />
@@ -180,7 +209,11 @@ export function StockMovementForm({ initial, onClose, onSave }: Props) {
             <label className="text-sm font-medium">Raison *</label>
             <textarea
               className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
-              placeholder={isOut ? "Ex: Consommation interne, casse, correction..." : "Ex: Stock initial, entrée exceptionnelle..."}
+              placeholder={
+                isOut
+                  ? "Ex: Consommation interne, casse, correction..."
+                  : "Ex: Stock initial, entrée exceptionnelle..."
+              }
               value={form.reason}
               onChange={(e) => setField("reason", e.target.value)}
             />
@@ -205,7 +238,12 @@ export function StockMovementForm({ initial, onClose, onSave }: Props) {
 
         {/* Footer */}
         <div className="p-5 border-t border-border/50 flex gap-3">
-          <Button variant="outline" className="flex-1" onClick={onClose} disabled={isSaving}>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={onClose}
+            disabled={isSaving}
+          >
             Annuler
           </Button>
           <Button

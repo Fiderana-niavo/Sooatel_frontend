@@ -14,11 +14,20 @@ export interface PurchaseActionCallbacks {
 export const getPurchaseDropdownActions = (
   purchase: Purchase,
   activeTab: string,
-  callbacks: PurchaseActionCallbacks
+  callbacks: PurchaseActionCallbacks,
 ) => {
-  const isConfirmed = purchase.lifecycleStatus === 0 || purchase.lifecycleStatus === "0" || purchase.lifecycleStatus === "Confirmé";
-  const isCancelled = purchase.lifecycleStatus === -3 || purchase.lifecycleStatus === "-3" || purchase.lifecycleStatus === "Annulé";
-  const isFullyDelivered = purchase.status === 0 || purchase.status === "0" || purchase.status === "Livré";
+  const isConfirmed =
+    purchase.lifecycleStatus === 0 ||
+    purchase.lifecycleStatus === "0" ||
+    purchase.lifecycleStatus === "Confirmé";
+  const isCancelled =
+    purchase.lifecycleStatus === -3 ||
+    purchase.lifecycleStatus === "-3" ||
+    purchase.lifecycleStatus === "Annulé";
+  const isFullyDelivered =
+    purchase.status === 0 ||
+    purchase.status === "0" ||
+    purchase.status === "Livré";
 
   return [
     {
@@ -58,7 +67,8 @@ export const getPurchaseDropdownActions = (
         }
       },
       hidden: activeTab === "annulees" || isCancelled || isFullyDelivered,
-      className: "text-emerald-600 dark:text-emerald-400 hover:text-emerald-700",
+      className:
+        "text-emerald-600 dark:text-emerald-400 hover:text-emerald-700",
     },
   ];
 };

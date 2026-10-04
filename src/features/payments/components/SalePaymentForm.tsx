@@ -17,7 +17,13 @@ interface SalePaymentProps {
 }
 
 export const SalePaymentForm: React.FC<SalePaymentProps> = ({
-  payment, saleDate, paymentMethods, balanceDue, totalAmount, onChange, onClear
+  payment,
+  saleDate,
+  paymentMethods,
+  balanceDue,
+  totalAmount,
+  onChange,
+  onClear,
 }) => {
   const [showDatePrompt, setShowDatePrompt] = useState(false);
 
@@ -51,19 +57,28 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
 
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-lg font-zsemibold text-primary">Paiement</h3>
-        <Button variant="ghost" size="sm" onClick={onClear} className="text-muted-foreground hover:text-red-500 h-8 text-xs">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClear}
+          className="text-muted-foreground hover:text-red-500 h-8 text-xs"
+        >
           Annuler
         </Button>
       </div>
 
       <div className="bg-secondary/5 p-4 rounded-lg border border-border/30 text-center mb-4">
-        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mb-1">Net à Payer</p>
+        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mb-1">
+          Net à Payer
+        </p>
         <p className="text-3xl font-extrabold text-primary">{totalAmount} Ar</p>
       </div>
 
       <div className="space-y-4 flex-1">
         <div>
-          <label className="block text-sm font-medium mb-1">Montant Payé <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium mb-1">
+            Montant Payé <span className="text-red-500">*</span>
+          </label>
           <CurrencyInput
             value={payment.amount === 0 ? undefined : payment.amount}
             onChange={(val) => {
@@ -75,21 +90,30 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Mode de Paiement <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium mb-1">
+            Mode de Paiement <span className="text-red-500">*</span>
+          </label>
           <select
             className="w-full h-10 px-3 rounded-md border border-input bg-background"
             value={payment.idPaymentMethod}
             onChange={(e) => onChange("idPaymentMethod", e.target.value)}
           >
             <option value="">Sélectionner...</option>
-            {paymentMethods.map(method => (
-              <option key={method.idPaymentMethod} value={method.idPaymentMethod}>{method.methodName}</option>
+            {paymentMethods.map((method) => (
+              <option
+                key={method.idPaymentMethod}
+                value={method.idPaymentMethod}
+              >
+                {method.methodName}
+              </option>
             ))}
           </select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Code de Paiement (Optionnel)</label>
+          <label className="block text-sm font-medium mb-1">
+            Code de Paiement (Optionnel)
+          </label>
           <Input
             type="text"
             placeholder="Ex: Ref chèque, ticket, Mvola..."
@@ -99,8 +123,10 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Date de Paiement</label>
-          <Input 
+          <label className="block text-sm font-medium mb-1">
+            Date de Paiement
+          </label>
+          <Input
             type="datetime-local"
             value={payment.paymentDate || ""}
             max={toIsoDateTime(new Date())}
@@ -113,10 +139,19 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
                 Date vide. Utiliser la date de vente ?
               </span>
               <div className="flex gap-2">
-                <Button size="sm" onClick={useSaleDate} className="bg-blue-500 hover:bg-blue-600 text-white h-7 flex-1">
+                <Button
+                  size="sm"
+                  onClick={useSaleDate}
+                  className="bg-blue-500 hover:bg-blue-600 text-white h-7 flex-1"
+                >
                   <CalendarDays size={14} className="mr-1" /> Oui
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setShowDatePrompt(false)} className="h-7 flex-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowDatePrompt(false)}
+                  className="h-7 flex-1"
+                >
                   Non
                 </Button>
               </div>
@@ -128,15 +163,21 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
       <div className="mt-auto pt-4 border-t border-border/30">
         {balanceDue < 0 ? (
           <div className="flex justify-between items-center bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/20">
-            <span className="text-sm font-bold text-emerald-700">Monnaie à rendre</span>
+            <span className="text-sm font-bold text-emerald-700">
+              Monnaie à rendre
+            </span>
             <span className="text-xl font-extrabold text-emerald-600">
               {Math.abs(balanceDue).toLocaleString("fr-FR")} Ar
             </span>
           </div>
         ) : (
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-muted-foreground">Reste à payer</span>
-            <span className={`text-xl font-bold ${balanceDue > 0 ? "text-orange-500" : "text-emerald-500"}`}>
+            <span className="text-sm font-medium text-muted-foreground">
+              Reste à payer
+            </span>
+            <span
+              className={`text-xl font-bold ${balanceDue > 0 ? "text-orange-500" : "text-emerald-500"}`}
+            >
               {balanceDue.toLocaleString("fr-FR")} Ar
             </span>
           </div>

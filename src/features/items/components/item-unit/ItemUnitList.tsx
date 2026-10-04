@@ -4,7 +4,11 @@ import { useState } from "react";
 import { Input } from "@/components/ui/Inputs/input";
 import { ItemUnitFormDialog } from "./ItemUnitFormDialog";
 import type { Item } from "../../types/item.type";
-import type { ItemUnit, CreateItemUnitDto, UpdateItemUnitDto } from "../../types/item-unit.type";
+import type {
+  ItemUnit,
+  CreateItemUnitDto,
+  UpdateItemUnitDto,
+} from "../../types/item-unit.type";
 import type { UnitOfMeasure } from "../../../unit-of-measures/types";
 
 interface ItemUnitListProps {
@@ -16,7 +20,14 @@ interface ItemUnitListProps {
   onDelete: (id: string) => void;
 }
 
-export function ItemUnitList({ data: itemUnits, items, units, onAdd, onEdit, onDelete }: ItemUnitListProps) {
+export function ItemUnitList({
+  data: itemUnits,
+  items,
+  units,
+  onAdd,
+  onEdit,
+  onDelete,
+}: ItemUnitListProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRatio, setEditRatio] = useState<string>("");
@@ -27,13 +38,14 @@ export function ItemUnitList({ data: itemUnits, items, units, onAdd, onEdit, onD
     setEditingId(null);
   };
 
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center gap-4">
         <div className="flex items-center gap-3 w-full sm:w-auto">
-
-          <Button onClick={() => setIsModalOpen(true)} className="gap-2 shrink-0 rounded-xl bg-primary/90 hover:bg-primary">
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            className="gap-2 shrink-0 rounded-xl bg-primary/90 hover:bg-primary"
+          >
             <Plus className="size-4" />
             Nouvelle Unité
           </Button>
@@ -45,11 +57,18 @@ export function ItemUnitList({ data: itemUnits, items, units, onAdd, onEdit, onD
           <div className="p-4 rounded-full bg-primary/10 mb-4">
             <Plus className="size-8 text-primary" />
           </div>
-          <h3 className="text-lg font-semibold mb-1">Aucune unité alternative</h3>
+          <h3 className="text-lg font-semibold mb-1">
+            Aucune unité alternative
+          </h3>
           <p className="text-muted-foreground mb-4 max-w-sm">
-            Vous n'avez pas encore défini de ratios de conversion pour vos articles.
+            Vous n'avez pas encore défini de ratios de conversion pour vos
+            articles.
           </p>
-          <Button onClick={() => setIsModalOpen(true)} variant="outline" className="rounded-xl">
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            variant="outline"
+            className="rounded-xl"
+          >
             Ajouter une unité
           </Button>
         </div>
@@ -62,25 +81,32 @@ export function ItemUnitList({ data: itemUnits, items, units, onAdd, onEdit, onD
                   <th className="px-6 py-4 rounded-tl-2xl">Article</th>
                   <th className="px-6 py-4">Unité alternative</th>
                   <th className="px-6 py-4">Ratio (vers stock)</th>
-                  <th className="px-6 py-4 text-right rounded-tr-2xl">Actions</th>
+                  <th className="px-6 py-4 text-right rounded-tr-2xl">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
                 {itemUnits.map((iu) => (
-                  <tr key={iu.idItemUnit} className="hover:bg-muted/30 transition-colors">
+                  <tr
+                    key={iu.idItemUnit}
+                    className="hover:bg-muted/30 transition-colors"
+                  >
                     <td className="px-6 py-4 font-medium text-foreground">
                       {iu.item?.label || "Article inconnu"}
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-secondary/10 text-secondary">
-                        {iu.alternativeUnit?.label} {iu.alternativeUnit?.symbol && `(${iu.alternativeUnit.symbol})`}
+                        {iu.alternativeUnit?.label}{" "}
+                        {iu.alternativeUnit?.symbol &&
+                          `(${iu.alternativeUnit.symbol})`}
                       </span>
                     </td>
                     <td className="px-6 py-4 font-mono font-semibold text-primary">
                       {editingId === iu.idItemUnit ? (
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground">x</span>
-                          <Input 
+                          <Input
                             type="number"
                             min="0"
                             step="0.01"
@@ -88,7 +114,8 @@ export function ItemUnitList({ data: itemUnits, items, units, onAdd, onEdit, onD
                             value={editRatio}
                             onChange={(e) => setEditRatio(e.target.value)}
                             onKeyDown={(e) => {
-                              if (e.key === "Enter") handleSaveEdit(iu.idItemUnit);
+                              if (e.key === "Enter")
+                                handleSaveEdit(iu.idItemUnit);
                               if (e.key === "Escape") setEditingId(null);
                             }}
                             autoFocus
@@ -150,9 +177,9 @@ export function ItemUnitList({ data: itemUnits, items, units, onAdd, onEdit, onD
         </div>
       )}
 
-      <ItemUnitFormDialog 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <ItemUnitFormDialog
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         items={items}
         units={units}
         onAdd={(data) => {

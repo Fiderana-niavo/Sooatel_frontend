@@ -16,17 +16,34 @@ interface Props {
   index: number;
   items: Item[];
   itemUnits: ItemUnit[];
-  onChange: (index: number, field: keyof RecipeRow, value: string | null) => void;
+  onChange: (
+    index: number,
+    field: keyof RecipeRow,
+    value: string | null,
+  ) => void;
   onRemove: (index: number) => void;
   onAddAlternativeUnit?: (idIngredient: string) => void;
 }
 
-export const RecipeFormRow: React.FC<Props> = ({ row, index, items, itemUnits, onChange, onRemove, onAddAlternativeUnit }) => {
+export const RecipeFormRow: React.FC<Props> = ({
+  row,
+  index,
+  items,
+  itemUnits,
+  onChange,
+  onRemove,
+  onAddAlternativeUnit,
+}) => {
   const selectedItem = items.find((i) => i.idItem === row.idIngredient);
 
   const unitOptions = [
     ...(selectedItem
-      ? [{ value: "", label: `${selectedItem.unit?.symbol ?? "unité par défaut"} (stock)` }]
+      ? [
+          {
+            value: "",
+            label: `${selectedItem.unit?.symbol ?? "unité par défaut"} (stock)`,
+          },
+        ]
       : []),
     ...itemUnits
       .filter((u) => u.idItem === row.idIngredient)
@@ -57,7 +74,9 @@ export const RecipeFormRow: React.FC<Props> = ({ row, index, items, itemUnits, o
       <div className="flex gap-1 items-center">
         <SearchableSelect
           value={row.idItemUnit ?? ""}
-          onChange={(val) => onChange(index, "idItemUnit", val === "" ? null : val.toString())}
+          onChange={(val) =>
+            onChange(index, "idItemUnit", val === "" ? null : val.toString())
+          }
           options={unitOptions}
           placeholder="Unité..."
           disabled={!row.idIngredient}
@@ -66,7 +85,9 @@ export const RecipeFormRow: React.FC<Props> = ({ row, index, items, itemUnits, o
         <button
           type="button"
           disabled={!row.idIngredient}
-          onClick={() => onAddAlternativeUnit && onAddAlternativeUnit(row.idIngredient)}
+          onClick={() =>
+            onAddAlternativeUnit && onAddAlternativeUnit(row.idIngredient)
+          }
           className="p-1.5 shrink-0 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           title="Ajouter une unité alternative"
         >

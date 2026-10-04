@@ -28,19 +28,27 @@ export function TimetablePage() {
 
   const [mode, setMode] = useState<Mode>("team");
   const [startDate, setStartDate] = useState<string>(toIsoDate(new Date()));
-  const [endDate, setEndDate] = useState<string>(addDays(toIsoDate(new Date()), 6));
+  const [endDate, setEndDate] = useState<string>(
+    addDays(toIsoDate(new Date()), 6),
+  );
 
-  const [generatedRows, setGeneratedRows] = useState<GeneratedScheduleRow[]>([]);
+  const [generatedRows, setGeneratedRows] = useState<GeneratedScheduleRow[]>(
+    [],
+  );
   const [isDirty, setIsDirty] = useState(false);
 
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
   const [idRotationShift, setIdRotationShift] = useState<string>("");
 
-  const [overwriteWarning, setOverwriteWarning] = useState<CheckExistingResult | null>(null);
+  const [overwriteWarning, setOverwriteWarning] =
+    useState<CheckExistingResult | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCopyDialogOpen, setIsCopyDialogOpen] = useState(false);
 
-  const [snackbar, setSnackbar] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
 
   const days = buildDayRange(startDate, endDate);
 
@@ -69,16 +77,18 @@ export function TimetablePage() {
   });
 
   // When existing data loads and grid is empty, populate from existing
-  const existingRows: GeneratedScheduleRow[] = (existingQuery.data ?? []).map((s) => ({
-    idEmployee: s.idEmployee,
-    employeeName: s.employeeName,
-    idJobTitle: s.idJobTitle ?? null,
-    jobTitle: s.jobTitle ?? null,
-    scheduleDate: s.scheduleDate,
-    idShiftType: s.idShiftType,
-    shiftLabel: s.shiftLabel,
-    isOnLeave: false,
-  }));
+  const existingRows: GeneratedScheduleRow[] = (existingQuery.data ?? []).map(
+    (s) => ({
+      idEmployee: s.idEmployee,
+      employeeName: s.employeeName,
+      idJobTitle: s.idJobTitle ?? null,
+      jobTitle: s.jobTitle ?? null,
+      scheduleDate: s.scheduleDate,
+      idShiftType: s.idShiftType,
+      shiftLabel: s.shiftLabel,
+      isOnLeave: false,
+    }),
+  );
 
   // Available employees for cell selects
   const availEmpQuery = useQuery({
@@ -88,7 +98,10 @@ export function TimetablePage() {
 
   const allEmployees: AvailableEmployee[] = availEmpQuery.data ?? [];
 
-  const availableByJobTitle = useCallback((): Map<string, AvailableEmployee[]> => {
+  const availableByJobTitle = useCallback((): Map<
+    string,
+    AvailableEmployee[]
+  > => {
     const map = new Map<string, AvailableEmployee[]>();
     for (const emp of allEmployees) {
       if (!emp.idJobTitle) continue;
@@ -159,22 +172,29 @@ export function TimetablePage() {
 
     setGeneratedRows(newRows);
     setIsDirty(true);
-    setSnackbar({ message: "Journées interverties ! N'oubliez pas de valider.", type: "success" });
+    setSnackbar({
+      message: "Journées interverties ! N'oubliez pas de valider.",
+      type: "success",
+    });
   };
 
   // ─── Handlers ───────────────────────────────────────────────────────────
 
-  const handleCopy = (mappings: { sourceDate: string; targetDate: string }[]) => {
+  const handleCopy = (
+    mappings: { sourceDate: string; targetDate: string }[],
+  ) => {
     if (mappings.length === 0) return;
 
     const base = isDirty ? [...generatedRows] : [...existingRows];
-    const targetDates = mappings.map(m => m.targetDate);
-    
+    const targetDates = mappings.map((m) => m.targetDate);
+
     // We remove any existing rows on the target dates so we can overwrite them with the copied ones
     const newRows = base.filter((r) => !targetDates.includes(r.scheduleDate));
 
     for (const mapping of mappings) {
-      const rowsToCopy = base.filter((r) => r.scheduleDate === mapping.sourceDate);
+      const rowsToCopy = base.filter(
+        (r) => r.scheduleDate === mapping.sourceDate,
+      );
       const copiedRows = rowsToCopy.map((r) => ({
         ...r,
         scheduleDate: mapping.targetDate,
@@ -182,8 +202,11 @@ export function TimetablePage() {
       newRows.push(...copiedRows);
     }
 
-    const latestTarget = mappings.reduce((max, curr) => curr.targetDate > max ? curr.targetDate : max, mappings[0].targetDate);
-    
+    const latestTarget = mappings.reduce(
+      (max, curr) => (curr.targetDate > max ? curr.targetDate : max),
+      mappings[0].targetDate,
+    );
+
     // Keep original start date, but expand end date to show the newly pasted data
     if (latestTarget > endDate) {
       setEndDate(latestTarget);
@@ -191,7 +214,10 @@ export function TimetablePage() {
 
     setGeneratedRows(newRows);
     setIsDirty(true);
-    setSnackbar({ message: "Plannings copiés ! N'oubliez pas de valider.", type: "success" });
+    setSnackbar({
+      message: "Plannings copiés ! N'oubliez pas de valider.",
+      type: "success",
+    });
   };
 
   // ─── Generate by team ───────────────────────────────────────────────────
@@ -252,7 +278,10 @@ export function TimetablePage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["schedule-range"] });
-      setSnackbar({ message: "Planning enregistré avec succès.", type: "success" });
+      setSnackbar({
+        message: "Planning enregistré avec succès.",
+        type: "success",
+      });
       setIsDirty(false);
       setGeneratedRows([]);
     },
@@ -271,8 +300,16 @@ export function TimetablePage() {
       <TimetableHeader
         startDate={startDate}
         endDate={endDate}
-        onStartChange={(v) => { setStartDate(v); setIsDirty(false); setGeneratedRows([]); }}
-        onEndChange={(v) => { setEndDate(v); setIsDirty(false); setGeneratedRows([]); }}
+        onStartChange={(v) => {
+          setStartDate(v);
+          setIsDirty(false);
+          setGeneratedRows([]);
+        }}
+        onEndChange={(v) => {
+          setEndDate(v);
+          setIsDirty(false);
+          setGeneratedRows([]);
+        }}
         existingCount={existingQuery.data?.length ?? 0}
         isLoadingExisting={existingQuery.isLoading}
         isDirty={isDirty}
@@ -293,8 +330,6 @@ export function TimetablePage() {
             onRotationShiftChange={setIdRotationShift}
             onGenerate={handleGenerateByTeam}
           />
-
-
         </div>
       )}
 

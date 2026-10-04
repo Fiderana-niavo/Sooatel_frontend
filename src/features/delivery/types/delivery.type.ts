@@ -1,4 +1,7 @@
-import type { EmployeeRef, SuppliedItem } from "../../purchases/types/purchase.type";
+import type {
+  EmployeeRef,
+  SuppliedItem,
+} from "../../purchases/types/purchase.type";
 
 export const DELIVERY_STATUS_LABELS: Record<number, string> = {
   0: "Validé",

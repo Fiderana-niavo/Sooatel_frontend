@@ -1,23 +1,32 @@
 import { useState, useEffect, useCallback } from "react";
 import { Briefcase, Building, Clock } from "lucide-react";
-import { JobTitlesModal, JobRequirementsModal, JobTitleService, type JobTitle } from "@/features/job-titles";
+import {
+  JobTitlesModal,
+  JobRequirementsModal,
+  JobTitleService,
+  type JobTitle,
+} from "@/features/job-titles";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
 export function SettingsPage() {
   const [isJobTitlesModalOpen, setIsJobTitlesModalOpen] = useState(false);
-  const [isJobRequirementsModalOpen, setIsJobRequirementsModalOpen] = useState(false);
+  const [isJobRequirementsModalOpen, setIsJobRequirementsModalOpen] =
+    useState(false);
   const [jobTitles, setJobTitles] = useState<JobTitle[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: SnackbarType;
+    isOpen: boolean;
+  }>({
     message: "",
     type: "info",
     isOpen: false,
   });
-
 
   const showSnackbar = (message: string, type: SnackbarType = "info") => {
     setSnackbar({ message, type, isOpen: true });
@@ -51,7 +60,9 @@ export function SettingsPage() {
     try {
       await JobTitleService.update(id, newTitle);
       setJobTitles((prev) =>
-        prev.map((job) => (job?.idJobTitle === id ? { ...job, title: newTitle } : job))
+        prev.map((job) =>
+          job?.idJobTitle === id ? { ...job, title: newTitle } : job,
+        ),
       );
     } catch (error) {
       console.error("Failed to update job title:", error);
@@ -69,7 +80,9 @@ export function SettingsPage() {
     setIsDeleting(true);
     try {
       await JobTitleService.delete(itemToDelete);
-      setJobTitles((prev) => prev.filter((job) => job.idJobTitle !== itemToDelete));
+      setJobTitles((prev) =>
+        prev.filter((job) => job.idJobTitle !== itemToDelete),
+      );
     } catch (error) {
       console.error("Failed to delete job title:", error);
       showSnackbar("Erreur lors de la suppression du poste.", "error");
@@ -83,8 +96,7 @@ export function SettingsPage() {
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-                <div
+        <div
           onClick={() => setIsJobTitlesModalOpen(true)}
           className="bg-card border border-border/50 rounded-[2rem] p-6 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] hover:border-primary/30 transition-all cursor-pointer group"
         >
@@ -93,7 +105,8 @@ export function SettingsPage() {
           </div>
           <h3 className="text-lg font-bold mb-2">Gestion des Postes</h3>
           <p className="text-muted-foreground text-sm">
-            Configurez les intitulés de postes disponibles pour vos employés (Manager, Serveur, etc.).
+            Configurez les intitulés de postes disponibles pour vos employés
+            (Manager, Serveur, etc.).
           </p>
         </div>
 
@@ -106,21 +119,25 @@ export function SettingsPage() {
           </div>
           <h3 className="text-lg font-bold mb-2">Besoins en Personnel</h3>
           <p className="text-muted-foreground text-sm">
-            Configurez les besoins hebdomadaires (effectifs requis) pour générer les plannings automatiquement.
+            Configurez les besoins hebdomadaires (effectifs requis) pour générer
+            les plannings automatiquement.
           </p>
         </div>
 
-                <div className="bg-card border border-border/50 rounded-[2rem] p-6 opacity-60 grayscale cursor-not-allowed">
+        <div className="bg-card border border-border/50 rounded-[2rem] p-6 opacity-60 grayscale cursor-not-allowed">
           <div className="p-3 bg-secondary/10 text-secondary rounded-xl w-fit mb-4">
             <Building className="size-6" />
           </div>
-          <h3 className="text-lg font-bold mb-2">Structure de l'établissement</h3>
+          <h3 className="text-lg font-bold mb-2">
+            Structure de l'établissement
+          </h3>
           <p className="text-muted-foreground text-sm">
-            Départements, filiales et informations globales (Bientôt disponible).
+            Départements, filiales et informations globales (Bientôt
+            disponible).
           </p>
         </div>
 
-                <div className="bg-card border border-border/50 rounded-[2rem] p-6 opacity-60 grayscale cursor-not-allowed">
+        <div className="bg-card border border-border/50 rounded-[2rem] p-6 opacity-60 grayscale cursor-not-allowed">
           <div className="p-3 bg-blue-500/10 text-blue-500 rounded-xl w-fit mb-4">
             <Clock className="size-6" />
           </div>
@@ -165,4 +182,3 @@ export function SettingsPage() {
     </div>
   );
 }
-

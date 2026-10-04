@@ -10,7 +10,7 @@ export interface DeliveryActionCallbacks {
 
 export const getDeliveryDropdownActions = (
   delivery: any,
-  callbacks: DeliveryActionCallbacks
+  callbacks: DeliveryActionCallbacks,
 ) => {
   const actions: any[] = [
     {
@@ -37,7 +37,7 @@ export const getDeliveryDropdownActions = (
         icon: <Trash2 className="h-4 w-4 text-red-500" />,
         onClick: () => callbacks.onDelete(delivery.idDelivery),
         className: "text-red-500 hover:bg-red-500/10",
-      }
+      },
     );
   } else if (Number(delivery.balanceDue) > 0) {
     actions.push({

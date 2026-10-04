@@ -44,7 +44,7 @@ const Pagination: FC<PaginationProps> = ({
       const rightItemCount = 3 + 2 * siblingCount;
       const rightRange = Array.from(
         { length: rightItemCount },
-        (_, i) => totalPages - rightItemCount + i + 1
+        (_, i) => totalPages - rightItemCount + i + 1,
       );
       return [firstPageIndex, "...", ...rightRange];
     }
@@ -52,7 +52,7 @@ const Pagination: FC<PaginationProps> = ({
     if (shouldShowLeftDots && shouldShowRightDots) {
       const middleRange = Array.from(
         { length: rightSiblingIndex - leftSiblingIndex + 1 },
-        (_, i) => leftSiblingIndex + i
+        (_, i) => leftSiblingIndex + i,
       );
       return [firstPageIndex, "...", ...middleRange, "...", lastPageIndex];
     }
@@ -118,7 +118,9 @@ const Pagination: FC<PaginationProps> = ({
             aria-current={isActive ? "page" : undefined}
             className={cn(
               "rounded-md transition-colors",
-              isActive ? "pointer-events-none bg-accent text-accent-foreground border-accent" : "bg-background hover:bg-muted",
+              isActive
+                ? "pointer-events-none bg-accent text-accent-foreground border-accent"
+                : "bg-background hover:bg-muted",
             )}
           >
             {page}

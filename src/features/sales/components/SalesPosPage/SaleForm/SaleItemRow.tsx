@@ -30,13 +30,15 @@ export const SaleItemRow: React.FC<SaleItemRowProps> = ({
   onQuantityBlur,
   onPriceChange,
   onRequestRemove,
-  onConfirmPrice
+  onConfirmPrice,
 }) => {
   return (
     <div className="flex flex-col gap-2 p-4 border border-border/30 rounded-lg bg-secondary/5 relative">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
         <div className="md:col-span-4">
-          <label className="block text-xs font-medium mb-1">Plat <span className="text-red-500">*</span></label>
+          <label className="block text-xs font-medium mb-1">
+            Plat <span className="text-red-500">*</span>
+          </label>
           <SearchableSelect
             value={item.idMenu}
             onChange={(val) => onMenuChange(index, String(val))}
@@ -46,7 +48,9 @@ export const SaleItemRow: React.FC<SaleItemRowProps> = ({
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-xs font-medium mb-1">Quantité <span className="text-red-500">*</span></label>
+          <label className="block text-xs font-medium mb-1">
+            Quantité <span className="text-red-500">*</span>
+          </label>
           <Input
             type="number"
             min="1"
@@ -57,7 +61,9 @@ export const SaleItemRow: React.FC<SaleItemRowProps> = ({
         </div>
 
         <div className="md:col-span-3">
-          <label className="block text-xs font-medium mb-1">Prix Unitaire <span className="text-red-500">*</span></label>
+          <label className="block text-xs font-medium mb-1">
+            Prix Unitaire <span className="text-red-500">*</span>
+          </label>
           <div className="relative">
             <Input
               type="number"
@@ -80,7 +86,7 @@ export const SaleItemRow: React.FC<SaleItemRowProps> = ({
         <div className="md:col-span-2">
           <label className="block text-xs font-medium mb-1">Total</label>
           <div className="h-10 flex items-center whitespace-nowrap overflow-hidden font-semibold text-sm px-2 bg-muted/50 rounded-md border border-input">
-            {(item.quantity * item.unitPrice) || 0} Ar
+            {item.quantity * item.unitPrice || 0} Ar
           </div>
         </div>
 
@@ -100,9 +106,15 @@ export const SaleItemRow: React.FC<SaleItemRowProps> = ({
         <div className="flex items-center justify-between mt-2 p-2 bg-orange-500/10 border border-orange-500/30 rounded text-sm">
           <span className="text-orange-700 flex items-center">
             <AlertTriangle size={14} className="mr-2" />
-            Le prix saisi ({item.unitPrice}) est différent du prix catalogue ({selectedMenu?.salePrice}).
+            Le prix saisi ({item.unitPrice}) est différent du prix catalogue (
+            {selectedMenu?.salePrice}).
           </span>
-          <Button type="button" size="sm" onClick={() => onConfirmPrice(index)} className="bg-orange-500 hover:bg-orange-600 text-white h-7 text-xs">
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => onConfirmPrice(index)}
+            className="bg-orange-500 hover:bg-orange-600 text-white h-7 text-xs"
+          >
             <Check size={14} className="mr-1" /> Confirmer
           </Button>
         </div>

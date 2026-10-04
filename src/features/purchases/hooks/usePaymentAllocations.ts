@@ -13,7 +13,7 @@ interface UsePaymentAllocationsProps {
 function buildAllocations(
   amount: number,
   deliveries: DeliveryDestination[],
-  initialAllocation?: AllocationDto
+  initialAllocation?: AllocationDto,
 ): AllocationDto[] {
   if (amount <= 0) return [];
 
@@ -22,11 +22,17 @@ function buildAllocations(
 
   // If we have a principal delivery, fill it first
   if (initialAllocation?.idDelivery) {
-    const principal = deliveries.find((d) => d.idDelivery === initialAllocation.idDelivery);
+    const principal = deliveries.find(
+      (d) => d.idDelivery === initialAllocation.idDelivery,
+    );
     if (principal) {
       const alloc = Math.min(principal.balanceDue, available);
       if (alloc > 0) {
-        result.push({ allocationType: "DELIVERY", idDelivery: principal.idDelivery, amount: alloc });
+        result.push({
+          allocationType: "DELIVERY",
+          idDelivery: principal.idDelivery,
+          amount: alloc,
+        });
         available -= alloc;
       }
     }
@@ -38,14 +44,21 @@ function buildAllocations(
     if (result.some((a) => a.idDelivery === d.idDelivery)) continue;
     const alloc = Math.min(d.balanceDue, available);
     if (alloc > 0) {
-      result.push({ allocationType: "DELIVERY", idDelivery: d.idDelivery, amount: alloc });
+      result.push({
+        allocationType: "DELIVERY",
+        idDelivery: d.idDelivery,
+        amount: alloc,
+      });
       available -= alloc;
     }
   }
 
   // Rest goes to credit
   if (available > 0.009) {
-    result.push({ allocationType: "SUPPLIER_CREDIT", amount: Math.round(available * 100) / 100 });
+    result.push({
+      allocationType: "SUPPLIER_CREDIT",
+      amount: Math.round(available * 100) / 100,
+    });
   }
 
   return result;
@@ -57,14 +70,18 @@ export function usePaymentAllocations({
   destinations,
 }: UsePaymentAllocationsProps) {
   const [allocations, setAllocations] = useState<AllocationDto[]>(
-    initialAllocation ? [initialAllocation] : []
+    initialAllocation ? [initialAllocation] : [],
   );
 
   // Auto-dispatch whenever amount or deliveries change
   useEffect(() => {
     const numAmount = Number(amount);
     const deliveries: DeliveryDestination[] = destinations?.deliveries ?? [];
-    const newAllocations = buildAllocations(numAmount, deliveries, initialAllocation);
+    const newAllocations = buildAllocations(
+      numAmount,
+      deliveries,
+      initialAllocation,
+    );
 
     setAllocations((prev) => {
       const isIdentical =
@@ -73,13 +90,16 @@ export function usePaymentAllocations({
           (p, i) =>
             p.allocationType === newAllocations[i].allocationType &&
             p.idDelivery === newAllocations[i].idDelivery &&
-            p.amount === newAllocations[i].amount
+            p.amount === newAllocations[i].amount,
         );
       return isIdentical ? prev : newAllocations;
     });
   }, [amount, destinations]);
 
-  const totalAllocated = allocations.reduce((s, a) => s + (Number(a.amount) || 0), 0);
+  const totalAllocated = allocations.reduce(
+    (s, a) => s + (Number(a.amount) || 0),
+    0,
+  );
   const remaining = Number(amount) - totalAllocated;
 
   const removeAllocation = (index: number) => {
@@ -103,16 +123,23 @@ export function usePaymentAllocations({
     if (allocations.find((a) => a.allocationType === "SUPPLIER_CREDIT")) return;
     const rem = Number(amount) - totalAllocated;
     if (rem <= 0) return;
-    setAllocations((prev) => [...prev, { allocationType: "SUPPLIER_CREDIT", amount: rem }]);
+    setAllocations((prev) => [
+      ...prev,
+      { allocationType: "SUPPLIER_CREDIT", amount: rem },
+    ]);
   };
 
   const updateAllocationAmount = (index: number, value: number) => {
-    setAllocations((prev) => prev.map((a, i) => (i === index ? { ...a, amount: value } : a)));
+    setAllocations((prev) =>
+      prev.map((a, i) => (i === index ? { ...a, amount: value } : a)),
+    );
   };
 
   const autoDispatch = () => {
     const deliveries: DeliveryDestination[] = destinations?.deliveries ?? [];
-    setAllocations(buildAllocations(Number(amount), deliveries, initialAllocation));
+    setAllocations(
+      buildAllocations(Number(amount), deliveries, initialAllocation),
+    );
   };
 
   return {

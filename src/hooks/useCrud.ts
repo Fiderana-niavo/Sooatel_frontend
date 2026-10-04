@@ -6,7 +6,7 @@ export function useCrud<T, C = any, U = any>(
   createFn: (data: C) => Promise<T>,
   updateFn: (id: string, data: U) => Promise<T>,
   deleteFn: (id: string) => Promise<void>,
-  idKey: keyof T
+  idKey: keyof T,
 ) {
   const [data, setData] = useState<T[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -32,14 +32,18 @@ export function useCrud<T, C = any, U = any>(
 
   const handleAdd = async (
     newData: C,
-    showSnackbar: (message: string, type: SnackbarType) => void
+    showSnackbar: (message: string, type: SnackbarType) => void,
   ) => {
     try {
       const created = await createFn(newData);
       setData((prev) => [...prev, created]);
       showSnackbar("Ajout réussi.", "success");
     } catch (error: any) {
-      const msg = error.response?.data?.message || error.response?.data?.error || error.message || "Erreur lors de l'ajout.";
+      const msg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Erreur lors de l'ajout.";
       showSnackbar(msg, "error");
     }
   };
@@ -47,18 +51,24 @@ export function useCrud<T, C = any, U = any>(
   const handleEdit = async (
     id: string,
     updatedData: U,
-    showSnackbar: (message: string, type: SnackbarType) => void
+    showSnackbar: (message: string, type: SnackbarType) => void,
   ) => {
     try {
       const updated = await updateFn(id, updatedData);
       setData((prev) =>
         prev.map((item) =>
-          (item[idKey] as unknown as string) === id ? { ...item, ...updatedData, ...(updated || {}) } : item
-        )
+          (item[idKey] as unknown as string) === id
+            ? { ...item, ...updatedData, ...(updated || {}) }
+            : item,
+        ),
       );
       showSnackbar("Modification réussie.", "success");
     } catch (error: any) {
-      const msg = error.response?.data?.message || error.response?.data?.error || error.message || "Erreur lors de la modification.";
+      const msg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Erreur lors de la modification.";
       showSnackbar(msg, "error");
     }
   };
@@ -69,18 +79,24 @@ export function useCrud<T, C = any, U = any>(
   };
 
   const executeDelete = async (
-    showSnackbar: (message: string, type: SnackbarType) => void
+    showSnackbar: (message: string, type: SnackbarType) => void,
   ) => {
     if (!itemToDelete) return;
     setIsDeleting(true);
     try {
       await deleteFn(itemToDelete);
       setData((prev) =>
-        prev.filter((item) => (item[idKey] as unknown as string) !== itemToDelete)
+        prev.filter(
+          (item) => (item[idKey] as unknown as string) !== itemToDelete,
+        ),
       );
       showSnackbar("Suppression réussie.", "success");
     } catch (error: any) {
-      const msg = error.response?.data?.message || error.response?.data?.error || error.message || "Erreur lors de la suppression.";
+      const msg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Erreur lors de la suppression.";
       showSnackbar(msg, "error");
     } finally {
       setIsDeleting(false);

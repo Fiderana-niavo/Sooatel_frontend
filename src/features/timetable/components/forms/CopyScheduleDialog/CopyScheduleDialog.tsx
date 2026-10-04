@@ -17,7 +17,7 @@ export function CopyScheduleDialog({
   currentEndDate,
   onCopy,
 }: CopyScheduleDialogProps) {
-  // State: For each day in the current period, what is its target date? 
+  // State: For each day in the current period, what is its target date?
   // If target date is empty string, it's not selected for copying.
   const [mappings, setMappings] = useState<Record<string, string>>({});
 
@@ -26,7 +26,7 @@ export function CopyScheduleDialog({
   const currentDays = buildDayRange(currentStartDate, currentEndDate);
 
   const toggleDay = (day: string) => {
-    setMappings(prev => {
+    setMappings((prev) => {
       const next = { ...prev };
       if (next[day] !== undefined) {
         delete next[day];
@@ -41,13 +41,13 @@ export function CopyScheduleDialog({
   };
 
   const updateTargetDate = (day: string, target: string) => {
-    setMappings(prev => ({ ...prev, [day]: target }));
+    setMappings((prev) => ({ ...prev, [day]: target }));
   };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       const newMappings: Record<string, string> = {};
-      currentDays.forEach(day => {
+      currentDays.forEach((day) => {
         if (mappings[day] !== undefined) {
           newMappings[day] = mappings[day];
         } else {
@@ -62,12 +62,14 @@ export function CopyScheduleDialog({
     }
   };
 
-  const allSelected = currentDays.length > 0 && currentDays.every(d => mappings[d] !== undefined);
+  const allSelected =
+    currentDays.length > 0 &&
+    currentDays.every((d) => mappings[d] !== undefined);
 
   const handleCopy = () => {
     const arr = Object.entries(mappings).map(([sourceDate, targetDate]) => ({
       sourceDate,
-      targetDate
+      targetDate,
     }));
     onCopy(arr);
     onClose();
@@ -92,7 +94,9 @@ export function CopyScheduleDialog({
 
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold">Quelles journées souhaitez-vous copier ?</p>
+            <p className="text-sm font-semibold">
+              Quelles journées souhaitez-vous copier ?
+            </p>
             <label className="flex items-center gap-2 cursor-pointer text-xs font-medium bg-muted/50 px-2 py-1 rounded-md hover:bg-muted transition-colors">
               <input
                 type="checkbox"
@@ -103,14 +107,17 @@ export function CopyScheduleDialog({
               Tout sélectionner
             </label>
           </div>
-          
+
           <div className="flex flex-col gap-3">
             {currentDays.map((d) => {
               const isSelected = mappings[d] !== undefined;
               const target = mappings[d] || "";
 
               return (
-                <div key={d} className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${isSelected ? "bg-primary/5 border-primary/30" : "bg-background border-border"}`}>
+                <div
+                  key={d}
+                  className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${isSelected ? "bg-primary/5 border-primary/30" : "bg-background border-border"}`}
+                >
                   <label className="flex items-center gap-2 cursor-pointer text-sm font-medium flex-1">
                     <input
                       type="checkbox"
@@ -118,12 +125,18 @@ export function CopyScheduleDialog({
                       onChange={() => toggleDay(d)}
                       className="text-primary rounded focus:ring-primary/50"
                     />
-                    {new Date(d).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })}
+                    {new Date(d).toLocaleDateString("fr-FR", {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                    })}
                   </label>
 
                   {isSelected && (
                     <div className="flex items-center gap-2 flex-1">
-                      <span className="text-xs text-muted-foreground">vers</span>
+                      <span className="text-xs text-muted-foreground">
+                        vers
+                      </span>
                       <input
                         type="date"
                         value={target}

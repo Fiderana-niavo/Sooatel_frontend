@@ -70,5 +70,3 @@ export const PURCHASE_STATUS_LABELS: Record<number, string> = {
   3: "Partiel",
   0: "Livré",
 };
-
-

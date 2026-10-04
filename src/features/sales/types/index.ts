@@ -14,7 +14,6 @@ export interface SaleFilters {
   paymentStatus?: "UNPAID" | "PARTIAL" | "PAID";
 }
 
-
 export interface SalePayment {
   paymentDate: string;
   amount: number;
@@ -54,7 +53,6 @@ export interface PaymentMethodRef {
   idPaymentMethod: string;
   methodName: string;
 }
-
 
 export interface SaleItemRecord {
   idSaleItem: string;

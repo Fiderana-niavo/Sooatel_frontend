@@ -4,9 +4,20 @@ import { Plus, Edit2, Trash2, Search } from "lucide-react";
 import { CashOutflowService } from "../services/cash-outflow.service";
 import { OutflowCategoryService } from "../../category/services/category.service";
 import { CashJournalService } from "../../services/cash-journal.service";
-import type { CashOutflow, CashOutflowDto, OutflowCategory, CashJournal } from "../../types";
+import type {
+  CashOutflow,
+  CashOutflowDto,
+  OutflowCategory,
+  CashJournal,
+} from "../../types";
 import { Button } from "@/components/ui/Button/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/Dialog/dialog";
 import { Input } from "@/components/ui/Inputs/input";
 import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
@@ -15,17 +26,19 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { useAppStore } from "@/store/app.store";
 
 export function CashOutflowList() {
-  const user = useAppStore(state => state.connectedUser);
-  
+  const user = useAppStore((state) => state.connectedUser);
+
   const [outflows, setOutflows] = useState<CashOutflow[]>([]);
   const [categories, setCategories] = useState<OutflowCategory[]>([]);
   const [journals, setJournals] = useState<CashJournal[]>([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
-  const [selectedOutflow, setSelectedOutflow] = useState<CashOutflow | null>(null);
-  
+
+  const [selectedOutflow, setSelectedOutflow] = useState<CashOutflow | null>(
+    null,
+  );
+
   const emptyForm: CashOutflowDto = {
     ref: "",
     amount: "" as unknown as number,
@@ -34,16 +47,23 @@ export function CashOutflowList() {
     invoiceReference: "",
     idProcessedBy: user?.idEmployee || "",
     idJournal: "",
-    idOutflowCategory: ""
+    idOutflowCategory: "",
   };
-  
-  const [formData, setFormData] = useState<CashOutflowDto>(emptyForm);
-  
-  const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({ message: "", type: "info", isOpen: false });
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [outflowToDelete, setOutflowToDelete] = useState<CashOutflow | null>(null);
 
-  const showSnackbar = (message: string, type: SnackbarType = "info") => setSnackbar({ message, type, isOpen: true });
+  const [formData, setFormData] = useState<CashOutflowDto>(emptyForm);
+
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: SnackbarType;
+    isOpen: boolean;
+  }>({ message: "", type: "info", isOpen: false });
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [outflowToDelete, setOutflowToDelete] = useState<CashOutflow | null>(
+    null,
+  );
+
+  const showSnackbar = (message: string, type: SnackbarType = "info") =>
+    setSnackbar({ message, type, isOpen: true });
 
   const loadData = async () => {
     setIsLoading(true);
@@ -51,7 +71,7 @@ export function CashOutflowList() {
       const [outflowsData, categoriesData, journalsData] = await Promise.all([
         CashOutflowService.getAll({ search, limit: 100 }),
         OutflowCategoryService.getAll({ limit: 100 }),
-        CashJournalService.getAll({ limit: 50 })
+        CashJournalService.getAll({ limit: 50 }),
       ]);
       setOutflows(outflowsData.records);
       setCategories(categoriesData.records);
@@ -74,20 +94,23 @@ export function CashOutflowList() {
       setFormData({
         ref: outflow.ref,
         amount: outflow.amount,
-        outflowDate: outflow.outflowDate ? toIsoDateTime(new Date(outflow.outflowDate)) : "",
+        outflowDate: outflow.outflowDate
+          ? toIsoDateTime(new Date(outflow.outflowDate))
+          : "",
         reason: outflow.reason || "",
         invoiceReference: outflow.invoiceReference || "",
         idProcessedBy: outflow.idProcessedBy,
         idJournal: outflow.idJournal,
-        idOutflowCategory: outflow.idOutflowCategory || ""
+        idOutflowCategory: outflow.idOutflowCategory || "",
       });
     } else {
-      const openJournal = journals.find(j => !j.journalClosing) || journals[0];
+      const openJournal =
+        journals.find((j) => !j.journalClosing) || journals[0];
       setSelectedOutflow(null);
-      setFormData({ 
-        ...emptyForm, 
+      setFormData({
+        ...emptyForm,
         idProcessedBy: user?.idEmployee || emptyForm.idProcessedBy,
-        idJournal: openJournal ? openJournal.idJournal : "" 
+        idJournal: openJournal ? openJournal.idJournal : "",
       });
     }
     setIsDialogOpen(true);
@@ -98,12 +121,19 @@ export function CashOutflowList() {
       showSnackbar("Le montant et la catégorie sont requis", "error");
       return;
     }
-    
+
     try {
-      const dataToSave = { ...formData, idOutflowCategory: formData.idOutflowCategory || null, reason: formData.reason || null };
-      
+      const dataToSave = {
+        ...formData,
+        idOutflowCategory: formData.idOutflowCategory || null,
+        reason: formData.reason || null,
+      };
+
       if (selectedOutflow) {
-        await CashOutflowService.update(selectedOutflow.idCashOutflows, dataToSave);
+        await CashOutflowService.update(
+          selectedOutflow.idCashOutflows,
+          dataToSave,
+        );
         showSnackbar("Sortie modifiée", "success");
       } else {
         await CashOutflowService.create(dataToSave);
@@ -168,27 +198,58 @@ export function CashOutflowList() {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="text-center py-4 text-muted-foreground">Chargement...</td>
+                <td
+                  colSpan={6}
+                  className="text-center py-4 text-muted-foreground"
+                >
+                  Chargement...
+                </td>
               </tr>
             ) : outflows.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-4 text-muted-foreground">Aucune sortie trouvée</td>
+                <td
+                  colSpan={6}
+                  className="text-center py-4 text-muted-foreground"
+                >
+                  Aucune sortie trouvée
+                </td>
               </tr>
             ) : (
               outflows.map((out) => (
-                <tr key={out.idCashOutflows} className="border-t hover:bg-muted/50">
-                  <td className="px-4 py-3">{out.outflowDate ? new Date(out.outflowDate).toLocaleString() : "-"}</td>
+                <tr
+                  key={out.idCashOutflows}
+                  className="border-t hover:bg-muted/50"
+                >
+                  <td className="px-4 py-3">
+                    {out.outflowDate
+                      ? new Date(out.outflowDate).toLocaleString()
+                      : "-"}
+                  </td>
                   <td className="px-4 py-3">{out.ref}</td>
                   <td className="px-4 py-3">
-                    {out.outflowCategory ? `${out.outflowCategory.label} ${out.outflowCategory.code ? `(${out.outflowCategory.code})` : ''}` : "-"}
+                    {out.outflowCategory
+                      ? `${out.outflowCategory.label} ${out.outflowCategory.code ? `(${out.outflowCategory.code})` : ""}`
+                      : "-"}
                   </td>
-                  <td className="px-4 py-3 max-w-[200px] truncate">{out.reason || "-"}</td>
-                  <td className="px-4 py-3 text-right font-medium">{Number(out.amount).toLocaleString()} Ar</td>
+                  <td className="px-4 py-3 max-w-[200px] truncate">
+                    {out.reason || "-"}
+                  </td>
+                  <td className="px-4 py-3 text-right font-medium">
+                    {Number(out.amount).toLocaleString()} Ar
+                  </td>
                   <td className="px-4 py-3 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(out)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleOpenDialog(out)}
+                    >
                       <Edit2 className="w-4 h-4 text-blue-500" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => confirmDelete(out)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => confirmDelete(out)}
+                    >
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
                   </td>
@@ -202,22 +263,35 @@ export function CashOutflowList() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{selectedOutflow ? "Modifier" : "Nouvelle"} Sortie de Caisse</DialogTitle>
+            <DialogTitle>
+              {selectedOutflow ? "Modifier" : "Nouvelle"} Sortie de Caisse
+            </DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium">Référence Facture</label>
               <Input
                 value={formData.invoiceReference || ""}
-                onChange={(e) => setFormData({ ...formData, invoiceReference: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, invoiceReference: e.target.value })
+                }
                 placeholder="Ex: FAC-2023-001"
               />
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium">Montant *</label>
               <CurrencyInput
-                value={formData.amount === ("" as unknown as number) ? undefined : formData.amount}
-                onChange={(val) => setFormData({ ...formData, amount: val === undefined ? ("" as unknown as number) : val })}
+                value={
+                  formData.amount === ("" as unknown as number)
+                    ? undefined
+                    : formData.amount
+                }
+                onChange={(val) =>
+                  setFormData({
+                    ...formData,
+                    amount: val === undefined ? ("" as unknown as number) : val,
+                  })
+                }
                 placeholder="0.00"
               />
             </div>
@@ -226,7 +300,9 @@ export function CashOutflowList() {
               <Input
                 type="datetime-local"
                 value={formData.outflowDate}
-                onChange={(e) => setFormData({ ...formData, outflowDate: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, outflowDate: e.target.value })
+                }
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -234,12 +310,22 @@ export function CashOutflowList() {
               <select
                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={formData.idOutflowCategory || ""}
-                onChange={(e) => setFormData({ ...formData, idOutflowCategory: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    idOutflowCategory: e.target.value,
+                  })
+                }
               >
-                <option value="" disabled>Sélectionner une catégorie</option>
+                <option value="" disabled>
+                  Sélectionner une catégorie
+                </option>
                 {categories.map((cat) => (
-                  <option key={cat.idOutflowCategory} value={cat.idOutflowCategory}>
-                    {cat.label} {cat.code ? `(${cat.code})` : ''}
+                  <option
+                    key={cat.idOutflowCategory}
+                    value={cat.idOutflowCategory}
+                  >
+                    {cat.label} {cat.code ? `(${cat.code})` : ""}
                   </option>
                 ))}
               </select>
@@ -249,12 +335,20 @@ export function CashOutflowList() {
               <select
                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={formData.idJournal || ""}
-                onChange={(e) => setFormData({ ...formData, idJournal: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, idJournal: e.target.value })
+                }
               >
-                <option value="" disabled>Sélectionner un journal</option>
+                <option value="" disabled>
+                  Sélectionner un journal
+                </option>
                 {journals.map((j) => (
                   <option key={j.idJournal} value={j.idJournal}>
-                    {j.ref} ({new Date(j.journalOpening).toLocaleString()} - {j.journalClosing ? new Date(j.journalClosing).toLocaleString() : "En cours"})
+                    {j.ref} ({new Date(j.journalOpening).toLocaleString()} -{" "}
+                    {j.journalClosing
+                      ? new Date(j.journalClosing).toLocaleString()
+                      : "En cours"}
+                    )
                   </option>
                 ))}
               </select>
@@ -263,13 +357,17 @@ export function CashOutflowList() {
               <label className="text-sm font-medium">Motif (Optionnel)</label>
               <Input
                 value={formData.reason || ""}
-                onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, reason: e.target.value })
+                }
                 placeholder="Raison de la sortie"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Annuler
+            </Button>
             <Button onClick={handleSave}>Enregistrer</Button>
           </DialogFooter>
         </DialogContent>
@@ -284,7 +382,11 @@ export function CashOutflowList() {
       />
 
       {snackbar.isOpen && (
-        <Snackbar message={snackbar.message} type={snackbar.type} onClose={() => setSnackbar({ ...snackbar, isOpen: false })} />
+        <Snackbar
+          message={snackbar.message}
+          type={snackbar.type}
+          onClose={() => setSnackbar({ ...snackbar, isOpen: false })}
+        />
       )}
     </div>
   );

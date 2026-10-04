@@ -1,17 +1,71 @@
 import {
-  UtensilsCrossed, Package, Users, Building, BedDouble, BookOpen, AlertTriangle, TrendingUp, Contact, CalendarDays, HeartHandshake, Settings, ShieldCheck, LayoutDashboard, CreditCard, Boxes, ArrowRightLeft,
-  Box, Layers, MenuSquare, List, Ruler, Bed, Grid2x2, Banknote, PackageCheck, ChefHat, ClipboardList, CalendarCheck, Settings2
+  UtensilsCrossed,
+  Package,
+  Users,
+  Building,
+  BedDouble,
+  BookOpen,
+  AlertTriangle,
+  TrendingUp,
+  Contact,
+  CalendarDays,
+  HeartHandshake,
+  Settings,
+  ShieldCheck,
+  LayoutDashboard,
+  CreditCard,
+  Boxes,
+  ArrowRightLeft,
+  Box,
+  Layers,
+  MenuSquare,
+  List,
+  Ruler,
+  Bed,
+  Grid2x2,
+  Banknote,
+  PackageCheck,
+  ChefHat,
+  ClipboardList,
+  CalendarCheck,
+  Settings2,
 } from "lucide-react";
 
 // ============================================================================
 // 1. CONSTANTES GLOBALES (Dates, Jours, etc.)
 // ============================================================================
 
-export const DAY_LABELS = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-export const DAY_LABELS_SHORT = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+export const DAY_LABELS = [
+  "Dimanche",
+  "Lundi",
+  "Mardi",
+  "Mercredi",
+  "Jeudi",
+  "Vendredi",
+  "Samedi",
+];
+export const DAY_LABELS_SHORT = [
+  "Dim",
+  "Lun",
+  "Mar",
+  "Mer",
+  "Jeu",
+  "Ven",
+  "Sam",
+];
 export const MONTH_LABELS = [
-  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
+  "Janvier",
+  "Février",
+  "Mars",
+  "Avril",
+  "Mai",
+  "Juin",
+  "Juillet",
+  "Août",
+  "Septembre",
+  "Octobre",
+  "Novembre",
+  "Décembre",
 ];
 
 // ============================================================================
@@ -27,12 +81,42 @@ export const NAVIGATION_GROUPS = [
     permission: "restaurant.access",
     scopes: ["utopia"], // Visible uniquement dans le Restaurant
     items: [
-      { title: "Tableau de bord", url: "/resto/dashboard", icon: LayoutDashboard, permission: "sale.manage" },
-      { title: "Caisse & PDV", url: "/resto/pos", icon: CreditCard, permission: "sales.pos" },
-      { title: "Historique des Ventes", url: "/resto/sales", icon: List, permission: "sales.pos" },
-      { title: "Revenus", url: "/resto/revenue", icon: TrendingUp, permission: "sales.pos" },
-      { title: "Mouvements de Caisse", url: "/cash-movements", icon: Banknote, permission: "restaurant.purchases" },
-      { title: "Catalogue & Menus", url: "/resto/catalog", icon: BookOpen, permission: "restaurant.access" },
+      {
+        title: "Tableau de bord",
+        url: "/resto/dashboard",
+        icon: LayoutDashboard,
+        permission: "sale.manage",
+      },
+      {
+        title: "Caisse & PDV",
+        url: "/resto/pos",
+        icon: CreditCard,
+        permission: "sales.pos",
+      },
+      {
+        title: "Historique des Ventes",
+        url: "/resto/sales",
+        icon: List,
+        permission: "sales.pos",
+      },
+      {
+        title: "Revenus",
+        url: "/resto/revenue",
+        icon: TrendingUp,
+        permission: "sales.pos",
+      },
+      {
+        title: "Mouvements de Caisse",
+        url: "/cash-movements",
+        icon: Banknote,
+        permission: "restaurant.purchases",
+      },
+      {
+        title: "Catalogue & Menus",
+        url: "/resto/catalog",
+        icon: BookOpen,
+        permission: "restaurant.access",
+      },
     ],
   },
   {
@@ -41,7 +125,12 @@ export const NAVIGATION_GROUPS = [
     permission: "hotel.access",
     scopes: ["sooatel"], // Visible uniquement dans l'Hôtel
     items: [
-      { title: "Chambres & Évènements", url: "/hotel/config", icon: BedDouble, permission: "hotel.access" },
+      {
+        title: "Chambres & Évènements",
+        url: "/hotel/config",
+        icon: BedDouble,
+        permission: "hotel.access",
+      },
     ],
   },
   {
@@ -50,17 +139,72 @@ export const NAVIGATION_GROUPS = [
     permission: "stock.access",
     scopes: ["utopia", "sooatel"], // Visible des deux côtés
     items: [
-      { title: "Gestion des Produits & Inventaire", url: "/inventory/catalog", icon: Box, permission: "stock.manage" },
-      { title: "Niveaux de Stock", url: "/inventory/stock", icon: Boxes, permission: "stock.read" },
-      { title: "Recettes", url: "/inventory/recipes", icon: BookOpen, permission: "stock.manage" },
-      { title: "Fournisseurs & Achats", url: "/inventory/suppliers", icon: Package, permission: "supplier.manage" },
-      { title: "Commandes Fournisseurs", url: "/inventory/purchases", icon: Package, permission: "stock.manage" },
-      { title: "Livraisons Fournisseurs", url: "/inventory/deliveries", icon: PackageCheck, permission: "stock.manage" },
-      { title: "Mouvements", url: "/inventory/movements", icon: ArrowRightLeft, permission: "stock.read" },
-      { title: "Inventaire Physique", url: "/inventory/count", icon: ClipboardList, permission: "stock.manage" },
-      { title: "Production de Plats", url: "/inventory/production", icon: ChefHat, permission: "stock.manage" },
-      { title: "Audits & Alertes", url: "/inventory/audits", icon: AlertTriangle, permission: "stock.audit" },
-      { title: "Prévisions IA", url: "/inventory/ai", icon: TrendingUp, permission: "stock.forecast" },
+      {
+        title: "Gestion des Produits & Inventaire",
+        url: "/inventory/catalog",
+        icon: Box,
+        permission: "stock.manage",
+      },
+      {
+        title: "Niveaux de Stock",
+        url: "/inventory/stock",
+        icon: Boxes,
+        permission: "stock.read",
+      },
+      {
+        title: "Recettes",
+        url: "/inventory/recipes",
+        icon: BookOpen,
+        permission: "stock.manage",
+      },
+      {
+        title: "Fournisseurs & Achats",
+        url: "/inventory/suppliers",
+        icon: Package,
+        permission: "supplier.manage",
+      },
+      {
+        title: "Commandes Fournisseurs",
+        url: "/inventory/purchases",
+        icon: Package,
+        permission: "stock.manage",
+      },
+      {
+        title: "Livraisons Fournisseurs",
+        url: "/inventory/deliveries",
+        icon: PackageCheck,
+        permission: "stock.manage",
+      },
+      {
+        title: "Mouvements",
+        url: "/inventory/movements",
+        icon: ArrowRightLeft,
+        permission: "stock.read",
+      },
+      {
+        title: "Inventaire Physique",
+        url: "/inventory/count",
+        icon: ClipboardList,
+        permission: "stock.manage",
+      },
+      {
+        title: "Production de Plats",
+        url: "/inventory/production",
+        icon: ChefHat,
+        permission: "stock.manage",
+      },
+      {
+        title: "Audits & Alertes",
+        url: "/inventory/audits",
+        icon: AlertTriangle,
+        permission: "stock.audit",
+      },
+      {
+        title: "Prévisions IA",
+        url: "/inventory/ai",
+        icon: TrendingUp,
+        permission: "stock.forecast",
+      },
     ],
   },
   {
@@ -69,15 +213,60 @@ export const NAVIGATION_GROUPS = [
     permission: "hr.access",
     scopes: ["utopia", "sooatel"], // Visible des deux côtés
     items: [
-      { title: "Annuaire du Personnel", url: "/hr/directory", icon: Contact, permission: "hr.access" },
-      { title: "Congés & Absences", url: "/hr/leaves", icon: HeartHandshake, permission: "hr.access" },
-      { title: "Congés à venir", url: "/hr/upcoming-leaves", icon: CalendarDays, permission: "hr.access" },
-      { title: "Types de Congés", url: "/hr/leave-types", icon: Settings2, permission: "hr.access" },
-      { title: "Équipes & Quarts", url: "/hr/planning", icon: CalendarDays, permission: "hr.schedule" },
-      { title: "Emploi du Temps", url: "/hr/timetable", icon: CalendarCheck, permission: "hr.schedule" },
-      { title: "Bien-être de l'Équipe", url: "/hr/welfare", icon: HeartHandshake, permission: "hr.welfare" },
-      { title: "Gestion des Utilisateurs", url: "/hr/users", icon: Users, permission: "employee.read" },
-      { title: "Rôles et Permissions", url: "/hr/roles", icon: ShieldCheck, permission: "security.access" },
+      {
+        title: "Annuaire du Personnel",
+        url: "/hr/directory",
+        icon: Contact,
+        permission: "hr.access",
+      },
+      {
+        title: "Congés & Absences",
+        url: "/hr/leaves",
+        icon: HeartHandshake,
+        permission: "hr.access",
+      },
+      {
+        title: "Congés à venir",
+        url: "/hr/upcoming-leaves",
+        icon: CalendarDays,
+        permission: "hr.access",
+      },
+      {
+        title: "Types de Congés",
+        url: "/hr/leave-types",
+        icon: Settings2,
+        permission: "hr.access",
+      },
+      {
+        title: "Équipes & Quarts",
+        url: "/hr/planning",
+        icon: CalendarDays,
+        permission: "hr.schedule",
+      },
+      {
+        title: "Emploi du Temps",
+        url: "/hr/timetable",
+        icon: CalendarCheck,
+        permission: "hr.schedule",
+      },
+      {
+        title: "Bien-être de l'Équipe",
+        url: "/hr/welfare",
+        icon: HeartHandshake,
+        permission: "hr.welfare",
+      },
+      {
+        title: "Gestion des Utilisateurs",
+        url: "/hr/users",
+        icon: Users,
+        permission: "employee.read",
+      },
+      {
+        title: "Rôles et Permissions",
+        url: "/hr/roles",
+        icon: ShieldCheck,
+        permission: "security.access",
+      },
     ],
   },
   {
@@ -86,7 +275,12 @@ export const NAVIGATION_GROUPS = [
     permission: "settings.access",
     scopes: ["utopia", "sooatel"], // Visible des deux côtés
     items: [
-      { title: "Paramètres Globaux", url: "/settings/global", icon: Settings, permission: "settings.access" },
+      {
+        title: "Paramètres Globaux",
+        url: "/settings/global",
+        icon: Settings,
+        permission: "settings.access",
+      },
     ],
   },
 ];
@@ -99,31 +293,94 @@ export const RESTAURANT_MODULES = [
   {
     title: "Gestion de la Carte (Menus)",
     items: [
-      { id: "menuItems", title: "Plats du Menu", description: "Gérez les plats proposés aux clients.", icon: MenuSquare, colorClass: "text-orange-500 bg-orange-500/10", hoverClass: "group-hover:bg-orange-500" },
-      { id: "menuCategories", title: "Catégories de Menu", description: "Catégorisez les plats (Entrées, Desserts...).", icon: List, colorClass: "text-rose-500 bg-rose-500/10", hoverClass: "group-hover:bg-rose-500" },
-    ]
-  }
+      {
+        id: "menuItems",
+        title: "Plats du Menu",
+        description: "Gérez les plats proposés aux clients.",
+        icon: MenuSquare,
+        colorClass: "text-orange-500 bg-orange-500/10",
+        hoverClass: "group-hover:bg-orange-500",
+      },
+      {
+        id: "menuCategories",
+        title: "Catégories de Menu",
+        description: "Catégorisez les plats (Entrées, Desserts...).",
+        icon: List,
+        colorClass: "text-rose-500 bg-rose-500/10",
+        hoverClass: "group-hover:bg-rose-500",
+      },
+    ],
+  },
 ];
 
 export const HOTEL_MODULES = [
   {
     title: "Configuration de l'Hébergement",
     items: [
-      { id: "rooms", title: "Chambres", description: "Gérez la liste des chambres et salles de l'hôtel.", icon: Bed, colorClass: "text-primary bg-primary/10", hoverClass: "group-hover:bg-primary" },
-      { id: "roomTypes", title: "Types de Chambres", description: "Définissez les types (Standard, Suite, VIP...).", icon: Grid2x2, colorClass: "text-secondary bg-secondary/10", hoverClass: "group-hover:bg-secondary" },
-      { id: "events", title: "Évènements", description: "Configurez les évènements pour la réservation.", icon: CalendarDays, colorClass: "text-blue-500 bg-blue-500/10", hoverClass: "group-hover:bg-blue-500" },
-    ]
-  }
+      {
+        id: "rooms",
+        title: "Chambres",
+        description: "Gérez la liste des chambres et salles de l'hôtel.",
+        icon: Bed,
+        colorClass: "text-primary bg-primary/10",
+        hoverClass: "group-hover:bg-primary",
+      },
+      {
+        id: "roomTypes",
+        title: "Types de Chambres",
+        description: "Définissez les types (Standard, Suite, VIP...).",
+        icon: Grid2x2,
+        colorClass: "text-secondary bg-secondary/10",
+        hoverClass: "group-hover:bg-secondary",
+      },
+      {
+        id: "events",
+        title: "Évènements",
+        description: "Configurez les évènements pour la réservation.",
+        icon: CalendarDays,
+        colorClass: "text-blue-500 bg-blue-500/10",
+        hoverClass: "group-hover:bg-blue-500",
+      },
+    ],
+  },
 ];
 
 export const INVENTORY_MODULES = [
   {
     title: "Gestion des Produits & Inventaire",
     items: [
-      { id: "items", title: "Articles", description: "Gérez la liste de vos produits et ingrédients.", icon: Box, colorClass: "text-primary bg-primary/10", hoverClass: "group-hover:bg-primary" },
-      { id: "itemTypes", title: "Types d'Articles", description: "Catégorisez vos articles (ex: Boisson, Viande...).", icon: Layers, colorClass: "text-secondary bg-secondary/10", hoverClass: "group-hover:bg-secondary" },
-      { id: "units", title: "Unités de Mesure", description: "Configurez les unités (Kg, Litre, Pièce...).", icon: Ruler, colorClass: "text-emerald-500 bg-emerald-500/10", hoverClass: "group-hover:bg-emerald-500" },
-      { id: "itemUnits", title: "Unités Alternatives", description: "Gérez les ratios de conversion pour les articles.", icon: ArrowRightLeft, colorClass: "text-amber-500 bg-amber-500/10", hoverClass: "group-hover:bg-amber-500" },
-    ]
-  }
+      {
+        id: "items",
+        title: "Articles",
+        description: "Gérez la liste de vos produits et ingrédients.",
+        icon: Box,
+        colorClass: "text-primary bg-primary/10",
+        hoverClass: "group-hover:bg-primary",
+      },
+      {
+        id: "itemTypes",
+        title: "Types d'Articles",
+        description: "Catégorisez vos articles (ex: Boisson, Viande...).",
+        icon: Layers,
+        colorClass: "text-secondary bg-secondary/10",
+        hoverClass: "group-hover:bg-secondary",
+      },
+      {
+        id: "units",
+        title: "Unités de Mesure",
+        description: "Configurez les unités (Kg, Litre, Pièce...).",
+        icon: Ruler,
+        colorClass: "text-emerald-500 bg-emerald-500/10",
+        hoverClass: "group-hover:bg-emerald-500",
+      },
+      {
+        id: "itemUnits",
+        title: "Unités Alternatives",
+        description: "Gérez les ratios de conversion pour les articles.",
+        icon: ArrowRightLeft,
+        colorClass: "text-amber-500 bg-amber-500/10",
+        hoverClass: "group-hover:bg-amber-500",
+      },
+    ],
+  },
 ];

@@ -46,12 +46,20 @@ export function ConfirmDialog({
           <DialogTitle className="text-xl">{title}</DialogTitle>
           {description && (
             <DialogDescription className="mt-2 text-base text-muted-foreground asChild={typeof description !== 'string'}">
-              {typeof description === 'string' ? <p>{description}</p> : description}
+              {typeof description === "string" ? (
+                <p>{description}</p>
+              ) : (
+                description
+              )}
             </DialogDescription>
           )}
         </DialogHeader>
-        
-        {children && <div className="py-2 overflow-y-auto max-h-[65vh] pr-2 -mr-2">{children}</div>}
+
+        {children && (
+          <div className="py-2 overflow-y-auto max-h-[65vh] pr-2 -mr-2">
+            {children}
+          </div>
+        )}
 
         <DialogFooter className="mt-4 flex justify-end gap-3">
           <Button
@@ -67,7 +75,10 @@ export function ConfirmDialog({
               variant={confirmButtonClassName ? "default" : "destructive"}
               onClick={onConfirm}
               disabled={loading}
-              className={cn("rounded-xl px-6 flex-1 sm:flex-none", confirmButtonClassName)}
+              className={cn(
+                "rounded-xl px-6 flex-1 sm:flex-none",
+                confirmButtonClassName,
+              )}
             >
               {loading ? loadingText : confirmText}
             </Button>

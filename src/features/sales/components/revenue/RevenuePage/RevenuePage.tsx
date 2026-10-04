@@ -1,11 +1,29 @@
-import React, { useState, useEffect, useCallback, useMemo, useLayoutEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useLayoutEffect,
+  useRef,
+} from "react";
 import { Input } from "@/components/ui/Inputs/input";
 import { Button } from "@/components/ui/Button/button";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
 import { SaleService } from "../../../services/sale.service";
 
-import { Loader2, TrendingUp, Calendar as CalendarIcon, Search } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
+import {
+  Loader2,
+  TrendingUp,
+  Calendar as CalendarIcon,
+  Search,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/Dialog/dialog";
 import { InfiniteScroll } from "@/components/ui/Pagination/InfiniteScroll";
 import { CashJournalService } from "../../../../cash_movement/services/cash-journal.service";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
@@ -38,12 +56,14 @@ interface RevenueGroup {
 }
 
 export const RevenuePage: React.FC = () => {
-  const [pagesData, setPagesData] = useState<Record<number, RevenueGroup[]>>({});
+  const [pagesData, setPagesData] = useState<Record<number, RevenueGroup[]>>(
+    {},
+  );
   const [initialLoading, setInitialLoading] = useState(false);
   const [loadingUp, setLoadingUp] = useState(false);
   const [loadingDown, setLoadingDown] = useState(false);
 
-  const scrollAnchor = useRef<{ id: string, offset: number } | null>(null);
+  const scrollAnchor = useRef<{ id: string; offset: number } | null>(null);
 
   const pageKeys = Object.keys(pagesData).map(Number);
   const minPage = pageKeys.length ? Math.min(...pageKeys) : 1;
@@ -55,7 +75,9 @@ export const RevenuePage: React.FC = () => {
 
   const [filterDate, setFilterDate] = useState<string>("");
   const [filterMenuId, setFilterMenuId] = useState<string>("");
-  const [menuOptions, setMenuOptions] = useState<{ value: string; label: string }[]>([]);
+  const [menuOptions, setMenuOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
 
   const [selectedItem, setSelectedItem] = useState<RevenueItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -63,12 +85,18 @@ export const RevenuePage: React.FC = () => {
   const [isNotJournalised, setIsNotJournalised] = useState(false);
   const [isJournalizing, setIsJournalizing] = useState(false);
 
-  const [salerOptions, setSalerOptions] = useState<{ value: string; label: string }[]>([]);
+  const [salerOptions, setSalerOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
   const [selectedProcessedBy, setSelectedProcessedBy] = useState<string>("");
 
   const [openJournalPrompt, setOpenJournalPrompt] = useState(false);
   const [isOpeningJournal, setIsOpeningJournal] = useState(false);
-  const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({ message: "", type: "info", isOpen: false });
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: SnackbarType;
+    isOpen: boolean;
+  }>({ message: "", type: "info", isOpen: false });
 
   useEffect(() => {
     fetchMenus();
@@ -85,7 +113,7 @@ export const RevenuePage: React.FC = () => {
       const res = await SaleService.getMenuItems();
       const opts = res.payload.map((m: any) => ({
         value: m.value,
-        label: m.label
+        label: m.label,
       }));
       setMenuOptions([{ value: "", label: "Tous les plats" }, ...opts]);
     } catch (e) {
@@ -99,7 +127,7 @@ export const RevenuePage: React.FC = () => {
       const salers = res.payload ?? res;
       const opts = (Array.isArray(salers) ? salers : []).map((s: any) => ({
         value: s.idEmployee ?? s.value,
-        label: `${s.name ?? ""} ${s.lastname ?? ""}`.trim() || s.label
+        label: `${s.name ?? ""} ${s.lastname ?? ""}`.trim() || s.label,
       }));
       setSalerOptions(opts);
     } catch (e) {
@@ -111,17 +139,20 @@ export const RevenuePage: React.FC = () => {
     const filters: any = {};
     if (filterDate) filters.date = filterDate;
     if (filterMenuId) filters.idMenu = filterMenuId;
-    
+
     const res = await SaleService.getRevenue(pageNum, limit, filters);
-    console.log(`[Revenus] Données récupérées pour la page ${pageNum}:`, res.payload.data);
-    
+    console.log(
+      `[Revenus] Données récupérées pour la page ${pageNum}:`,
+      res.payload.data,
+    );
+
     if (pageNum === 1) {
       setIsNotJournalised(res.payload.isNotJournalised);
     }
-    
+
     return {
       data: res.payload.data as RevenueGroup[],
-      totalPages: res.payload.totalPages || 1
+      totalPages: res.payload.totalPages || 1,
     };
   };
 
@@ -144,32 +175,43 @@ export const RevenuePage: React.FC = () => {
     try {
       const targetPage = maxPage + 1;
       const res = await fetchPage(targetPage);
-      
-      const rows = Array.from(document.querySelectorAll('tr[data-id]'));
-      const firstVisible = rows.find(el => el.getBoundingClientRect().top >= 80); // 80px offset for header
+
+      const rows = Array.from(document.querySelectorAll("tr[data-id]"));
+      const firstVisible = rows.find(
+        (el) => el.getBoundingClientRect().top >= 80,
+      ); // 80px offset for header
       if (firstVisible) {
         scrollAnchor.current = {
-          id: firstVisible.getAttribute('data-id')!,
-          offset: firstVisible.getBoundingClientRect().top
+          id: firstVisible.getAttribute("data-id")!,
+          offset: firstVisible.getBoundingClientRect().top,
         };
       }
 
-      setPagesData(prev => {
+      setPagesData((prev) => {
         const newData = { ...prev, [targetPage]: res.data };
-        const keys = Object.keys(newData).map(Number).sort((a, b) => a - b);
+        const keys = Object.keys(newData)
+          .map(Number)
+          .sort((a, b) => a - b);
         if (keys.length > MAX_PAGES_IN_MEMORY) {
           delete newData[keys[0]]; // Remove oldest (top) page
         }
         return newData;
       });
-      
+
       setTotalPages(res.totalPages);
     } catch (e) {
       console.error(e);
     } finally {
       setLoadingDown(false);
     }
-  }, [maxPage, totalPages, loadingDown, initialLoading, filterDate, filterMenuId]);
+  }, [
+    maxPage,
+    totalPages,
+    loadingDown,
+    initialLoading,
+    filterDate,
+    filterMenuId,
+  ]);
 
   const handleLoadMoreTop = useCallback(async () => {
     if (minPage <= 1 || loadingUp || initialLoading) return;
@@ -177,25 +219,29 @@ export const RevenuePage: React.FC = () => {
     try {
       const targetPage = minPage - 1;
       const res = await fetchPage(targetPage);
-      
-      const rows = Array.from(document.querySelectorAll('tr[data-id]'));
-      const firstVisible = rows.find(el => el.getBoundingClientRect().top >= 80);
+
+      const rows = Array.from(document.querySelectorAll("tr[data-id]"));
+      const firstVisible = rows.find(
+        (el) => el.getBoundingClientRect().top >= 80,
+      );
       if (firstVisible) {
         scrollAnchor.current = {
-          id: firstVisible.getAttribute('data-id')!,
-          offset: firstVisible.getBoundingClientRect().top
+          id: firstVisible.getAttribute("data-id")!,
+          offset: firstVisible.getBoundingClientRect().top,
         };
       }
 
-      setPagesData(prev => {
+      setPagesData((prev) => {
         const newData = { ...prev, [targetPage]: res.data };
-        const keys = Object.keys(newData).map(Number).sort((a, b) => a - b);
+        const keys = Object.keys(newData)
+          .map(Number)
+          .sort((a, b) => a - b);
         if (keys.length > MAX_PAGES_IN_MEMORY) {
           delete newData[keys[keys.length - 1]]; // Remove newest (bottom) page
         }
         return newData;
       });
-      
+
       setTotalPages(res.totalPages);
     } catch (e) {
       console.error(e);
@@ -217,10 +263,17 @@ export const RevenuePage: React.FC = () => {
       setPagesData({});
       fetchInitial();
     } catch (e: any) {
-      if (e.message?.includes("Aucun journal") || e.response?.data?.error?.includes("Aucun journal")) {
-         setOpenJournalPrompt(true);
+      if (
+        e.message?.includes("Aucun journal") ||
+        e.response?.data?.error?.includes("Aucun journal")
+      ) {
+        setOpenJournalPrompt(true);
       } else {
-         setSnackbar({ message: e.response?.data?.error || e.message || "Erreur", type: "error", isOpen: true });
+        setSnackbar({
+          message: e.response?.data?.error || e.message || "Erreur",
+          type: "error",
+          isOpen: true,
+        });
       }
     } finally {
       setIsJournalizing(false);
@@ -230,13 +283,15 @@ export const RevenuePage: React.FC = () => {
   // Fusionner toutes les pages présentes dans pagesData pour affichage
   const data = useMemo(() => {
     const map = new Map<string, RevenueGroup>();
-    const keys = Object.keys(pagesData).map(Number).sort((a, b) => a - b);
-    
-    keys.forEach(k => {
+    const keys = Object.keys(pagesData)
+      .map(Number)
+      .sort((a, b) => a - b);
+
+    keys.forEach((k) => {
       const groups = pagesData[k];
       if (!groups || !Array.isArray(groups)) return;
-      
-      groups.forEach(g => {
+
+      groups.forEach((g) => {
         if (!g || !g.date || !g.liste) return;
         if (map.has(g.date)) {
           const existingG = map.get(g.date)!;
@@ -246,8 +301,10 @@ export const RevenuePage: React.FC = () => {
         }
       });
     });
-    
-    return Array.from(map.values()).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
   }, [pagesData]);
 
   useLayoutEffect(() => {
@@ -274,7 +331,9 @@ export const RevenuePage: React.FC = () => {
     <div className="space-y-6 h-full flex flex-col">
       <div className="flex flex-col md:flex-row gap-4 items-end bg-card p-4 rounded-xl shadow-sm border border-border/50 shrink-0">
         <div className="flex-1 w-full">
-          <label className="block text-xs font-medium text-muted-foreground mb-1">Filtrer par date</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Filtrer par date
+          </label>
           <div className="relative">
             <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
@@ -287,7 +346,9 @@ export const RevenuePage: React.FC = () => {
         </div>
 
         <div className="flex-1 w-full">
-          <label className="block text-xs font-medium text-muted-foreground mb-1">Filtrer par plat</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Filtrer par plat
+          </label>
           <SearchableSelect
             options={menuOptions}
             value={filterMenuId}
@@ -295,24 +356,31 @@ export const RevenuePage: React.FC = () => {
             placeholder="Sélectionner un plat..."
           />
         </div>
-        
+
         <div className="flex-1 w-full">
-          <label className="block text-xs font-medium text-muted-foreground mb-1">Filtrer par fournisseur (ID)</label>
-          <Input 
-            placeholder="ID Fournisseur"
-            disabled
-          />
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Filtrer par fournisseur (ID)
+          </label>
+          <Input placeholder="ID Fournisseur" disabled />
         </div>
-        
+
         <div>
-          <Button onClick={() => { setFilterDate(""); setFilterMenuId(""); }} variant="outline">
+          <Button
+            onClick={() => {
+              setFilterDate("");
+              setFilterMenuId("");
+            }}
+            variant="outline"
+          >
             Effacer
           </Button>
         </div>
         {isNotJournalised && (
           <div className="flex items-end gap-2">
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Traité par</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                Traité par
+              </label>
               <SearchableSelect
                 options={salerOptions}
                 value={selectedProcessedBy}
@@ -321,7 +389,9 @@ export const RevenuePage: React.FC = () => {
               />
             </div>
             <Button onClick={handleJournalize} disabled={isJournalizing}>
-              {isJournalizing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              {isJournalizing ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : null}
               Journaliser les ventes
             </Button>
           </div>
@@ -336,8 +406,12 @@ export const RevenuePage: React.FC = () => {
         ) : data.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 bg-card rounded-xl border border-border/50">
             <TrendingUp className="w-12 h-12 text-muted-foreground mb-4 opacity-20" />
-            <h3 className="text-lg font-medium text-muted-foreground">Aucune recette trouvée</h3>
-            <p className="text-sm text-muted-foreground">Modifiez vos filtres ou vérifiez les dates.</p>
+            <h3 className="text-lg font-medium text-muted-foreground">
+              Aucune recette trouvée
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Modifiez vos filtres ou vérifiez les dates.
+            </p>
           </div>
         ) : (
           <InfiniteScroll
@@ -351,58 +425,95 @@ export const RevenuePage: React.FC = () => {
             <div className="bg-card rounded-xl border border-border/50 shadow-sm mb-8">
               <table className="w-full text-sm text-left relative">
                 <thead className="text-xs text-primary-foreground uppercase bg-primary shadow-sm">
-                    <tr>
-                      <th className="sticky top-0 z-20 bg-primary px-6 py-3 border-b border-primary/20">N° Facture</th>
-                      <th className="sticky top-0 z-20 bg-primary px-6 py-3 border-b border-primary/20">Emplacement</th>
-                      <th className="sticky top-0 z-20 bg-primary px-6 py-3 border-b border-primary/20">Code Paiement</th>
-                      <th className="sticky top-0 z-20 bg-primary px-6 py-3 border-b border-primary/20">Méthode</th>
-                      <th className="sticky top-0 z-20 bg-primary px-6 py-3 border-b border-primary/20 text-right">Montant</th>
-                      <th className="sticky top-0 z-20 bg-primary px-6 py-3 border-b border-primary/20 text-right">Actions</th>
+                  <tr>
+                    <th className="sticky top-0 z-20 bg-primary px-6 py-3 border-b border-primary/20">
+                      N° Facture
+                    </th>
+                    <th className="sticky top-0 z-20 bg-primary px-6 py-3 border-b border-primary/20">
+                      Emplacement
+                    </th>
+                    <th className="sticky top-0 z-20 bg-primary px-6 py-3 border-b border-primary/20">
+                      Code Paiement
+                    </th>
+                    <th className="sticky top-0 z-20 bg-primary px-6 py-3 border-b border-primary/20">
+                      Méthode
+                    </th>
+                    <th className="sticky top-0 z-20 bg-primary px-6 py-3 border-b border-primary/20 text-right">
+                      Montant
+                    </th>
+                    <th className="sticky top-0 z-20 bg-primary px-6 py-3 border-b border-primary/20 text-right">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                {data.map((group) => (
+                  <tbody key={group.date} className="divide-y divide-border/50">
+                    <tr className="bg-primary/5 hover:bg-primary/5 transition-colors border-t-2 border-border/50">
+                      <td colSpan={4} className="px-6 py-3">
+                        <div className="flex items-center gap-3">
+                          <CalendarIcon className="w-5 h-5 text-primary" />
+                          <h3 className="font-bold text-sm text-foreground uppercase tracking-wider">
+                            {new Date(group.date).toLocaleDateString("fr-FR", {
+                              weekday: "long",
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })}
+                          </h3>
+                        </div>
+                      </td>
+                      <td colSpan={2} className="px-6 py-3 text-right">
+                        <span className="text-xs font-semibold text-muted-foreground uppercase mr-2 tracking-wider">
+                          Total :
+                        </span>
+                        <span className="font-bold text-sm text-primary">
+                          {group.totaldelajournee.toLocaleString("fr-FR")} Ar
+                        </span>
+                      </td>
                     </tr>
-                  </thead>
-                  {data.map((group) => (
-                    <tbody key={group.date} className="divide-y divide-border/50">
-                      <tr className="bg-primary/5 hover:bg-primary/5 transition-colors border-t-2 border-border/50">
-                        <td colSpan={4} className="px-6 py-3">
-                          <div className="flex items-center gap-3">
-                            <CalendarIcon className="w-5 h-5 text-primary" />
-                            <h3 className="font-bold text-sm text-foreground uppercase tracking-wider">
-                              {new Date(group.date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-                            </h3>
-                          </div>
+                    {group.liste.map((item) => (
+                      <tr
+                        key={item.idSale}
+                        data-id={item.idSale}
+                        className="hover:bg-secondary/10 transition-colors bg-card"
+                      >
+                        <td className="px-6 py-4 font-medium">
+                          {item.invoiceNumber || "—"}
                         </td>
-                        <td colSpan={2} className="px-6 py-3 text-right">
-                          <span className="text-xs font-semibold text-muted-foreground uppercase mr-2 tracking-wider">Total :</span>
-                          <span className="font-bold text-sm text-primary">{group.totaldelajournee.toLocaleString("fr-FR")} Ar</span>
+                        <td className="px-6 py-4">
+                          {item.chargeToRoom ? (
+                            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                              Chambre {item.roomNumber || "—"}
+                            </span>
+                          ) : (
+                            <span className="bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                              Table {item.tableNumber || "—"}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 font-mono text-xs">
+                          {item.paymentCode || "—"}
+                        </td>
+                        <td className="px-6 py-4">
+                          {item.paymentMethod || "—"}
+                        </td>
+                        <td className="px-6 py-4 text-right font-semibold whitespace-nowrap">
+                          {item.amount.toLocaleString("fr-FR")} Ar
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => loadPaymentDetails(item)}
+                          >
+                            <Search className="w-4 h-4 mr-1" /> Détails
+                          </Button>
                         </td>
                       </tr>
-                      {group.liste.map((item) => (
-                        <tr key={item.idSale} data-id={item.idSale} className="hover:bg-secondary/10 transition-colors bg-card">
-                          <td className="px-6 py-4 font-medium">{item.invoiceNumber || "—"}</td>
-                          <td className="px-6 py-4">
-                            {item.chargeToRoom ? (
-                              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                                Chambre {item.roomNumber || "—"}
-                              </span>
-                            ) : (
-                              <span className="bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                                Table {item.tableNumber || "—"}
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 font-mono text-xs">{item.paymentCode || "—"}</td>
-                          <td className="px-6 py-4">{item.paymentMethod || "—"}</td>
-                          <td className="px-6 py-4 text-right font-semibold whitespace-nowrap">{item.amount.toLocaleString("fr-FR")} Ar</td>
-                          <td className="px-6 py-4 text-right">
-                            <Button variant="ghost" size="sm" onClick={() => loadPaymentDetails(item)}>
-                              <Search className="w-4 h-4 mr-1" /> Détails
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  ))}
-                </table>
+                    ))}
+                  </tbody>
+                ))}
+              </table>
             </div>
           </InfiniteScroll>
         )}
@@ -432,19 +543,29 @@ export const RevenuePage: React.FC = () => {
                         <td className="px-4 py-3 font-mono text-xs">{p.ref}</td>
                         <td className="px-4 py-3">
                           {new Date(p.paymentDate).toLocaleString("fr-FR", {
-                            day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
                           })}
                         </td>
                         <td className="px-4 py-3">{p.paymentMethod || "—"}</td>
-                        <td className="px-4 py-3 font-mono text-xs">{p.paymentCode || "—"}</td>
-                        <td className="px-4 py-3 text-right font-semibold">{p.amount.toLocaleString("fr-FR")} Ar</td>
+                        <td className="px-4 py-3 font-mono text-xs">
+                          {p.paymentCode || "—"}
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold">
+                          {p.amount.toLocaleString("fr-FR")} Ar
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <p className="text-muted-foreground text-center py-4">Aucun paiement trouvé pour cette vente.</p>
+              <p className="text-muted-foreground text-center py-4">
+                Aucun paiement trouvé pour cette vente.
+              </p>
             )}
             <div className="mt-6 flex justify-end">
               <Button onClick={() => setDialogOpen(false)}>Fermer</Button>
@@ -460,28 +581,46 @@ export const RevenuePage: React.FC = () => {
           </DialogHeader>
           <div className="py-4">
             <p className="text-sm text-muted-foreground">
-              Vous devez avoir un journal de caisse actif pour journaliser les ventes. Voulez-vous ouvrir un nouveau journal maintenant ?
+              Vous devez avoir un journal de caisse actif pour journaliser les
+              ventes. Voulez-vous ouvrir un nouveau journal maintenant ?
             </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenJournalPrompt(false)}>Annuler</Button>
-            <Button 
+            <Button
+              variant="outline"
+              onClick={() => setOpenJournalPrompt(false)}
+            >
+              Annuler
+            </Button>
+            <Button
               onClick={async () => {
                 try {
                   setIsOpeningJournal(true);
                   await CashJournalService.openJournal("");
                   setOpenJournalPrompt(false);
-                  setSnackbar({ message: "Journal ouvert avec succès. Reprise de la journalisation...", type: "success", isOpen: true });
+                  setSnackbar({
+                    message:
+                      "Journal ouvert avec succès. Reprise de la journalisation...",
+                    type: "success",
+                    isOpen: true,
+                  });
                   await handleJournalize();
-                } catch(err: any) {
-                  setSnackbar({ message: err.message || "Erreur lors de l'ouverture du journal", type: "error", isOpen: true });
+                } catch (err: any) {
+                  setSnackbar({
+                    message:
+                      err.message || "Erreur lors de l'ouverture du journal",
+                    type: "error",
+                    isOpen: true,
+                  });
                 } finally {
                   setIsOpeningJournal(false);
                 }
               }}
               disabled={isOpeningJournal}
             >
-              {isOpeningJournal ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              {isOpeningJournal ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : null}
               Oui, ouvrir un journal
             </Button>
           </DialogFooter>
@@ -489,9 +628,12 @@ export const RevenuePage: React.FC = () => {
       </Dialog>
 
       {snackbar.isOpen && (
-        <Snackbar message={snackbar.message} type={snackbar.type} onClose={() => setSnackbar({ ...snackbar, isOpen: false })} />
+        <Snackbar
+          message={snackbar.message}
+          type={snackbar.type}
+          onClose={() => setSnackbar({ ...snackbar, isOpen: false })}
+        />
       )}
     </div>
   );
 };
-

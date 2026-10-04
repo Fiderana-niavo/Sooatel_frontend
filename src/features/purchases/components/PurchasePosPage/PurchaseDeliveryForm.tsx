@@ -24,7 +24,9 @@ export const PurchaseDeliveryForm: React.FC<PurchaseDeliveryFormProps> = ({
       !deliveryLines ||
       deliveryLines.length !== details.length ||
       details.some(
-        (d, idx) => !deliveryLines[idx] || deliveryLines[idx].idSuppliedItem !== d.idSuppliedItem
+        (d, idx) =>
+          !deliveryLines[idx] ||
+          deliveryLines[idx].idSuppliedItem !== d.idSuppliedItem,
       );
 
     if (needsSync) {
@@ -38,12 +40,18 @@ export const PurchaseDeliveryForm: React.FC<PurchaseDeliveryFormProps> = ({
   }, [details, deliveryLines, onChangeDeliveryLines]);
 
   const getSuppliedItemLabel = (idSuppliedItem: string) => {
-    const found = suppliedItems.find((si) => si.idSuppliedItem === idSuppliedItem);
+    const found = suppliedItems.find(
+      (si) => si.idSuppliedItem === idSuppliedItem,
+    );
     return found?.item?.label || "Article inconnu";
   };
 
   const handleQtyChange = (index: number, qty: number) => {
-    const updated = [...(deliveryLines.length ? deliveryLines : details.map((d) => ({ ...d })))];
+    const updated = [
+      ...(deliveryLines.length
+        ? deliveryLines
+        : details.map((d) => ({ ...d }))),
+    ];
     if (updated[index]) {
       const safeQty = isNaN(qty) ? 0 : Math.max(0, qty);
       updated[index] = { ...updated[index], quantity: safeQty };
@@ -52,7 +60,11 @@ export const PurchaseDeliveryForm: React.FC<PurchaseDeliveryFormProps> = ({
   };
 
   const handlePriceChange = (index: number, price: number) => {
-    const updated = [...(deliveryLines.length ? deliveryLines : details.map((d) => ({ ...d })))];
+    const updated = [
+      ...(deliveryLines.length
+        ? deliveryLines
+        : details.map((d) => ({ ...d }))),
+    ];
     if (updated[index]) {
       const safePrice = isNaN(price) ? 0 : Math.max(0, price);
       updated[index] = { ...updated[index], unitPrice: safePrice };
@@ -60,17 +72,18 @@ export const PurchaseDeliveryForm: React.FC<PurchaseDeliveryFormProps> = ({
     }
   };
 
-  const linesToRender = deliveryLines.length === details.length
-    ? deliveryLines
-    : details.map((d) => ({
-        idSuppliedItem: d.idSuppliedItem,
-        quantity: d.quantity,
-        unitPrice: d.unitPrice,
-      }));
+  const linesToRender =
+    deliveryLines.length === details.length
+      ? deliveryLines
+      : details.map((d) => ({
+          idSuppliedItem: d.idSuppliedItem,
+          quantity: d.quantity,
+          unitPrice: d.unitPrice,
+        }));
 
   const totalDeliveryAmount = linesToRender.reduce(
     (sum, line) => sum + line.quantity * line.unitPrice,
-    0
+    0,
   );
 
   return (
@@ -82,7 +95,8 @@ export const PurchaseDeliveryForm: React.FC<PurchaseDeliveryFormProps> = ({
             Formulaire de Réception / Livraison Directe
           </h3>
           <p className="text-xs text-muted-foreground">
-            Saisissez ci-dessous les quantités réelles et prix unitaires reçus sur le moment.
+            Saisissez ci-dessous les quantités réelles et prix unitaires reçus
+            sur le moment.
           </p>
         </div>
       </div>
@@ -93,9 +107,15 @@ export const PurchaseDeliveryForm: React.FC<PurchaseDeliveryFormProps> = ({
             <tr>
               <th className="px-4 py-2.5 text-left font-medium">Article</th>
               <th className="px-4 py-2.5 text-right font-medium">Commandé</th>
-              <th className="px-4 py-2.5 text-right font-medium">Prix unité (Ar)</th>
-              <th className="px-4 py-2.5 text-right font-medium">Reçu maintenant</th>
-              <th className="px-4 py-2.5 text-right font-medium">Total Livraison (Ar)</th>
+              <th className="px-4 py-2.5 text-right font-medium">
+                Prix unité (Ar)
+              </th>
+              <th className="px-4 py-2.5 text-right font-medium">
+                Reçu maintenant
+              </th>
+              <th className="px-4 py-2.5 text-right font-medium">
+                Total Livraison (Ar)
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/30 bg-card">
@@ -127,7 +147,14 @@ export const PurchaseDeliveryForm: React.FC<PurchaseDeliveryFormProps> = ({
                       step="0.01"
                       placeholder="0"
                       value={delLine.quantity === 0 ? "" : delLine.quantity}
-                      onChange={(e) => handleQtyChange(idx, e.target.value === "" ? 0 : parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        handleQtyChange(
+                          idx,
+                          e.target.value === ""
+                            ? 0
+                            : parseFloat(e.target.value),
+                        )
+                      }
                       onBlur={(e) => {
                         if (e.target.value === "") handleQtyChange(idx, 0);
                       }}

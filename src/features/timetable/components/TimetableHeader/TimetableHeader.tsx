@@ -1,4 +1,10 @@
-import { CalendarCheck, Users, LayoutGrid, AlertTriangle, Loader2 } from "lucide-react";
+import {
+  CalendarCheck,
+  Users,
+  LayoutGrid,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react";
 import { DateRangePicker } from "../list/DateRangePicker/DateRangePicker";
 
 export type Mode = "team" | "manual";
@@ -41,7 +47,8 @@ export function TimetableHeader({
           Génération d'Emploi du Temps
         </h2>
         <p className="text-sm text-muted-foreground">
-          Générez ou modifiez le planning d'une période. Le planning existant sera chargé automatiquement.
+          Générez ou modifiez le planning d'une période. Le planning existant
+          sera chargé automatiquement.
         </p>
       </div>
 
@@ -56,22 +63,30 @@ export function TimetableHeader({
         {existingCount > 0 && !isDirty && (
           <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full">
             <AlertTriangle className="size-3" />
-            Planning existant ({existingCount} créneaux) — modifiable directement
+            Planning existant ({existingCount} créneaux) — modifiable
+            directement
           </div>
         )}
-        
+
         {isLoadingExisting && (
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Loader2 className="size-3 animate-spin" /> Chargement du planning...
+            <Loader2 className="size-3 animate-spin" /> Chargement du
+            planning...
           </div>
         )}
 
         <div className="flex items-center gap-4 border-b border-border/50 flex-1 justify-between">
           <div className="flex">
-            <button className={tabClass("team")} onClick={() => onModeChange("team")}>
+            <button
+              className={tabClass("team")}
+              onClick={() => onModeChange("team")}
+            >
               <Users className="size-4" /> Par Équipe
             </button>
-            <button className={tabClass("manual")} onClick={() => onModeChange("manual")}>
+            <button
+              className={tabClass("manual")}
+              onClick={() => onModeChange("manual")}
+            >
               <LayoutGrid className="size-4" /> Manuel
             </button>
           </div>

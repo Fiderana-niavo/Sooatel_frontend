@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Users, Search, AlertCircle, HeartHandshake, CheckCircle2, Clock, Trash2 } from "lucide-react";
+import {
+  Users,
+  Search,
+  AlertCircle,
+  HeartHandshake,
+  CheckCircle2,
+  Clock,
+  Trash2,
+} from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { EmployeeService } from "@/features/employees/services/employee.service";
 import { leaveService } from "../../services/leave.service";
@@ -12,7 +20,9 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 // ============================================================================
 export function LeavesPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(
+    null,
+  );
 
   const { data: employees = [], isLoading: isLoadingEmployees } = useQuery({
     queryKey: ["employees"],
@@ -22,12 +32,17 @@ export function LeavesPage() {
     },
   });
 
-  const filteredEmployees = employees.filter((emp) =>
-    `${emp.name} ${emp.lastname}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.employeeCode.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredEmployees = employees.filter(
+    (emp) =>
+      `${emp.name} ${emp.lastname}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      emp.employeeCode.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const selectedEmployee = employees.find(e => e.idEmployee === selectedEmployeeId);
+  const selectedEmployee = employees.find(
+    (e) => e.idEmployee === selectedEmployeeId,
+  );
 
   return (
     <div className="flex h-[calc(100vh-12rem)] overflow-hidden bg-background rounded-2xl border shadow-sm">
@@ -51,25 +66,35 @@ export function LeavesPage() {
 
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {isLoadingEmployees ? (
-            <div className="p-4 text-center text-sm text-muted-foreground animate-pulse">Chargement...</div>
+            <div className="p-4 text-center text-sm text-muted-foreground animate-pulse">
+              Chargement...
+            </div>
           ) : filteredEmployees.length === 0 ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">Aucun employé trouvé.</div>
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              Aucun employé trouvé.
+            </div>
           ) : (
             filteredEmployees.map((emp) => (
               <button
                 key={emp.idEmployee}
                 onClick={() => setSelectedEmployeeId(emp.idEmployee)}
-                className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors ${selectedEmployeeId === emp.idEmployee
-                  ? "bg-primary/10 border-primary/20 border"
-                  : "hover:bg-muted/50 border border-transparent"
-                  }`}
+                className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors ${
+                  selectedEmployeeId === emp.idEmployee
+                    ? "bg-primary/10 border-primary/20 border"
+                    : "hover:bg-muted/50 border border-transparent"
+                }`}
               >
                 <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
-                  {emp.name.charAt(0)}{emp.lastname.charAt(0)}
+                  {emp.name.charAt(0)}
+                  {emp.lastname.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{emp.name} {emp.lastname}</div>
-                  <div className="text-xs text-muted-foreground truncate">{emp.jobTitle || "Sans poste"}</div>
+                  <div className="font-medium truncate">
+                    {emp.name} {emp.lastname}
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {emp.jobTitle || "Sans poste"}
+                  </div>
                 </div>
               </button>
             ))
@@ -94,7 +119,10 @@ export function LeavesPage() {
 
 function EmployeeLeaveDetails({ employee }: { employee: any }) {
   const queryClient = useQueryClient();
-  const [snackbar, setSnackbar] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
@@ -104,10 +132,11 @@ function EmployeeLeaveDetails({ employee }: { employee: any }) {
 
   const { data: leaveTypes = [] } = useQuery({
     queryKey: ["leave-types"],
-    queryFn: leaveService.getLeaveTypes
+    queryFn: leaveService.getLeaveTypes,
   });
 
-  const defaultLeaveType = leaveTypes.find(lt => lt.label === "Congé Payé") || leaveTypes[0];
+  const defaultLeaveType =
+    leaveTypes.find((lt) => lt.label === "Congé Payé") || leaveTypes[0];
   const DEFAULT_LEAVE_TYPE_ID = defaultLeaveType?.idLeaveType;
 
   const { data: balances = [] } = useQuery({
@@ -116,8 +145,12 @@ function EmployeeLeaveDetails({ employee }: { employee: any }) {
     enabled: !!employee.idEmployee,
   });
 
-  const defaultBalance = balances.find(b => b.idLeaveType === DEFAULT_LEAVE_TYPE_ID) || null;
-  const totalAdvance = balances.reduce((sum, b) => sum + (Number(b.advanceDays) || 0), 0);
+  const defaultBalance =
+    balances.find((b) => b.idLeaveType === DEFAULT_LEAVE_TYPE_ID) || null;
+  const totalAdvance = balances.reduce(
+    (sum, b) => sum + (Number(b.advanceDays) || 0),
+    0,
+  );
 
   const { data: transactions = [], isLoading: isLoadingTx } = useQuery({
     queryKey: ["leave-transactions", employee.idEmployee],
@@ -131,32 +164,51 @@ function EmployeeLeaveDetails({ employee }: { employee: any }) {
 
   const totalPages = Math.ceil(transactions.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentTransactions = transactions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const currentTransactions = transactions.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE,
+  );
 
   const confirmMutation = useMutation({
     mutationFn: (id: string) => leaveService.confirmJob(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
-      setSnackbar({ message: "Employé confirmé avec succès.", type: "success" });
+      setSnackbar({
+        message: "Employé confirmé avec succès.",
+        type: "success",
+      });
     },
     onError: (err: any) => {
-      setSnackbar({ message: err.response?.data?.message || "Une erreur est survenue.", type: "error" });
-    }
+      setSnackbar({
+        message: err.response?.data?.message || "Une erreur est survenue.",
+        type: "error",
+      });
+    },
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<{ isOpen: boolean; idLeave: string | null }>({ isOpen: false, idLeave: null });
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<{
+    isOpen: boolean;
+    idLeave: string | null;
+  }>({ isOpen: false, idLeave: null });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => leaveService.deleteLeave(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["leave-balances", employee.idEmployee] });
-      queryClient.invalidateQueries({ queryKey: ["leave-transactions", employee.idEmployee] });
+      queryClient.invalidateQueries({
+        queryKey: ["leave-balances", employee.idEmployee],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["leave-transactions", employee.idEmployee],
+      });
       setSnackbar({ message: "Congé supprimé avec succès.", type: "success" });
     },
     onError: (err: any) => {
-      setSnackbar({ message: err.response?.data?.message || "Une erreur est survenue.", type: "error" });
-    }
+      setSnackbar({
+        message: err.response?.data?.message || "Une erreur est survenue.",
+        type: "error",
+      });
+    },
   });
 
   const handleDeleteConfirm = () => {
@@ -170,7 +222,9 @@ function EmployeeLeaveDetails({ employee }: { employee: any }) {
     <div className="p-6 md:p-8 space-y-8 animate-in fade-in duration-300">
       <div className="flex items-start justify-between border-b pb-6">
         <div>
-          <h2 className="text-2xl font-bold">{employee.name} {employee.lastname}</h2>
+          <h2 className="text-2xl font-bold">
+            {employee.name} {employee.lastname}
+          </h2>
           <p className="text-muted-foreground mt-1 flex items-center gap-2">
             Code: {employee.employeeCode} • {employee.jobTitle || "Aucun poste"}
           </p>
@@ -195,7 +249,11 @@ function EmployeeLeaveDetails({ employee }: { employee: any }) {
             <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
             <div>
               <h4 className="font-semibold">Employé non confirmé</h4>
-              <p className="text-sm mt-1 opacity-90">Les congés posés par cet employé seront comptabilisés comme des avances sur congé et déduits du salaire s'ils ne sont pas récupérés.</p>
+              <p className="text-sm mt-1 opacity-90">
+                Les congés posés par cet employé seront comptabilisés comme des
+                avances sur congé et déduits du salaire s'ils ne sont pas
+                récupérés.
+              </p>
             </div>
           </div>
           <button
@@ -203,27 +261,39 @@ function EmployeeLeaveDetails({ employee }: { employee: any }) {
             disabled={confirmMutation.isPending}
             className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors disabled:opacity-50"
           >
-            {confirmMutation.isPending ? "Confirmation..." : "Confirmer l'employé"}
+            {confirmMutation.isPending
+              ? "Confirmation..."
+              : "Confirmer l'employé"}
           </button>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-card border rounded-xl p-5 shadow-sm">
-          <div className="text-sm font-medium text-muted-foreground mb-1">Jours Restants</div>
-          <div className="text-2xl font-bold mt-1 text-emerald-600">{defaultBalance?.availableDays || 0}</div>
+          <div className="text-sm font-medium text-muted-foreground mb-1">
+            Jours Restants
+          </div>
+          <div className="text-2xl font-bold mt-1 text-emerald-600">
+            {defaultBalance?.availableDays || 0}
+          </div>
         </div>
         <div className="bg-card p-4 rounded-xl border">
           <div className="text-sm text-muted-foreground mt-1">Jours Pris</div>
-          <div className="text-2xl font-bold mt-1 text-blue-600">{defaultBalance?.usedDays || 0}</div>
+          <div className="text-2xl font-bold mt-1 text-blue-600">
+            {defaultBalance?.usedDays || 0}
+          </div>
         </div>
         <div className="bg-card p-4 rounded-xl border">
           <div className="flex items-center gap-2">
             <AlertCircle className="size-4 text-amber-500" />
             <div className="text-sm text-muted-foreground">Avance (Dette)</div>
           </div>
-          <div className="text-2xl font-bold mt-1 text-amber-600">{totalAdvance}</div>
-          <div className="text-xs text-muted-foreground mt-2">À déduire ou à rattraper</div>
+          <div className="text-2xl font-bold mt-1 text-amber-600">
+            {totalAdvance}
+          </div>
+          <div className="text-xs text-muted-foreground mt-2">
+            À déduire ou à rattraper
+          </div>
         </div>
       </div>
 
@@ -251,30 +321,71 @@ function EmployeeLeaveDetails({ employee }: { employee: any }) {
             </thead>
             <tbody className="divide-y">
               {isLoadingTx ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Chargement...</td></tr>
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-4 py-8 text-center text-muted-foreground"
+                  >
+                    Chargement...
+                  </td>
+                </tr>
               ) : currentTransactions.length === 0 ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Aucune transaction trouvée.</td></tr>
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-4 py-8 text-center text-muted-foreground"
+                  >
+                    Aucune transaction trouvée.
+                  </td>
+                </tr>
               ) : (
-                currentTransactions.map(tx => (
-                  <tr key={tx.idTransaction} className="hover:bg-muted/20 transition-colors">
-                    <td className="px-4 py-3">{new Date(tx.createdAt).toLocaleDateString("fr-FR", { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                currentTransactions.map((tx) => (
+                  <tr
+                    key={tx.idTransaction}
+                    className="hover:bg-muted/20 transition-colors"
+                  >
                     <td className="px-4 py-3">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${tx.transactionType === "ALLOCATION" ? "bg-emerald-100 text-emerald-700" :
-                        tx.transactionType === "ADVANCE" ? "bg-amber-100 text-amber-700" :
-                          tx.transactionType === "SALARY_DEDUCTION" ? "bg-purple-100 text-purple-700" :
-                            "bg-blue-100 text-blue-700"
-                        }`}>
+                      {new Date(tx.createdAt).toLocaleDateString("fr-FR", {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          tx.transactionType === "ALLOCATION"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : tx.transactionType === "ADVANCE"
+                              ? "bg-amber-100 text-amber-700"
+                              : tx.transactionType === "SALARY_DEDUCTION"
+                                ? "bg-purple-100 text-purple-700"
+                                : "bg-blue-100 text-blue-700"
+                        }`}
+                      >
                         {tx.transactionType}
                       </span>
                     </td>
-                    <td className={`px-4 py-3 font-medium whitespace-nowrap ${tx.transactionType === "ALLOCATION" ? "text-emerald-600" : "text-destructive"}`}>
-                      {tx.transactionType === "ALLOCATION" ? "+" : "-"}{Math.abs(tx.amount)}
+                    <td
+                      className={`px-4 py-3 font-medium whitespace-nowrap ${tx.transactionType === "ALLOCATION" ? "text-emerald-600" : "text-destructive"}`}
+                    >
+                      {tx.transactionType === "ALLOCATION" ? "+" : "-"}
+                      {Math.abs(tx.amount)}
                     </td>
-                    <td className="px-4 py-3">{tx.leaveTypeLabel || "Standard"}</td>
+                    <td className="px-4 py-3">
+                      {tx.leaveTypeLabel || "Standard"}
+                    </td>
                     <td className="px-4 py-3 text-right">
                       {tx.idLeave && (
                         <button
-                          onClick={() => setDeleteConfirmOpen({ isOpen: true, idLeave: tx.idLeave })}
+                          onClick={() =>
+                            setDeleteConfirmOpen({
+                              isOpen: true,
+                              idLeave: tx.idLeave,
+                            })
+                          }
                           className="text-muted-foreground hover:text-destructive transition-colors p-1"
                           title="Supprimer ce congé"
                         >
@@ -303,7 +414,12 @@ function EmployeeLeaveDetails({ employee }: { employee: any }) {
         <CreateLeaveModal
           employee={employee}
           onClose={() => setIsModalOpen(false)}
-          onSuccess={() => setSnackbar({ message: "Congé enregistré avec succès.", type: "success" })}
+          onSuccess={() =>
+            setSnackbar({
+              message: "Congé enregistré avec succès.",
+              type: "success",
+            })
+          }
           onError={(msg) => setSnackbar({ message: msg, type: "error" })}
         />
       )}
@@ -335,39 +451,71 @@ function EmployeeLeaveDetails({ employee }: { employee: any }) {
 // ============================================================================
 // COMPONENT: CreateLeaveModal
 // ============================================================================
-function CreateLeaveModal({ employee, onClose, onSuccess, onError }: { employee: any, onClose: () => void, onSuccess: () => void, onError: (msg: string) => void }) {
+function CreateLeaveModal({
+  employee,
+  onClose,
+  onSuccess,
+  onError,
+}: {
+  employee: any;
+  onClose: () => void;
+  onSuccess: () => void;
+  onError: (msg: string) => void;
+}) {
   const queryClient = useQueryClient();
-  const [formData, setFormData] = useState({ startDate: "", endDate: "", idLeaveType: "" });
+  const [formData, setFormData] = useState({
+    startDate: "",
+    endDate: "",
+    idLeaveType: "",
+  });
   const [deductFromAnnual, setDeductFromAnnual] = useState(false);
   const [isOneDayDialogOpen, setIsOneDayDialogOpen] = useState(false);
-  const [overflow, setOverflow] = useState<{ capDays: number; overflowDays: number; leaveTypeLabel: string } | null>(null);
-  const [overflowResolution, setOverflowResolution] = useState<"ANNUAL" | "UNPAID" | null>(null);
+  const [overflow, setOverflow] = useState<{
+    capDays: number;
+    overflowDays: number;
+    leaveTypeLabel: string;
+  } | null>(null);
+  const [overflowResolution, setOverflowResolution] = useState<
+    "ANNUAL" | "UNPAID" | null
+  >(null);
 
   const isPending = employee.status === 5;
 
   const { data: leaveTypes = [] } = useQuery({
     queryKey: ["leave-types"],
-    queryFn: leaveService.getLeaveTypes
+    queryFn: leaveService.getLeaveTypes,
   });
 
-  const selectedType = leaveTypes.find(lt => lt.idLeaveType === formData.idLeaveType) || null;
+  const selectedType =
+    leaveTypes.find((lt) => lt.idLeaveType === formData.idLeaveType) || null;
   const isOptional = selectedType?.deductionMode === "OPTIONAL";
 
   // Annual and unpaid leave type IDs for overflow resolution
-  const annualType = leaveTypes.find(lt => lt.deductionMode === "ALWAYS");
-  const unpaidType = leaveTypes.find(lt => !lt.isPaid && lt.deductionMode === "NEVER");
+  const annualType = leaveTypes.find((lt) => lt.deductionMode === "ALWAYS");
+  const unpaidType = leaveTypes.find(
+    (lt) => !lt.isPaid && lt.deductionMode === "NEVER",
+  );
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ["leave-balances", employee.idEmployee] });
-    queryClient.invalidateQueries({ queryKey: ["leave-transactions", employee.idEmployee] });
+    queryClient.invalidateQueries({
+      queryKey: ["leave-balances", employee.idEmployee],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["leave-transactions", employee.idEmployee],
+    });
   };
 
   const createMutation = useMutation({
-    mutationFn: (data: Parameters<typeof leaveService.createLeave>[0]) => leaveService.createLeave(data),
+    mutationFn: (data: Parameters<typeof leaveService.createLeave>[0]) =>
+      leaveService.createLeave(data),
     onSuccess: (result) => {
       // Backend returned 202 with overflow info
       if (result && "needsOverflowResolution" in result) {
-        setOverflow({ capDays: result.capDays, overflowDays: result.overflowDays, leaveTypeLabel: result.leaveTypeLabel });
+        setOverflow({
+          capDays: result.capDays,
+          overflowDays: result.overflowDays,
+          leaveTypeLabel: result.leaveTypeLabel,
+        });
         return;
       }
       invalidate();
@@ -375,20 +523,29 @@ function CreateLeaveModal({ employee, onClose, onSuccess, onError }: { employee:
       onClose();
     },
     onError: (err: any) => {
-      onError(err.response?.data?.message || err.message || "Une erreur est survenue.");
-    }
+      onError(
+        err.response?.data?.message ||
+          err.message ||
+          "Une erreur est survenue.",
+      );
+    },
   });
 
   const resolveMutation = useMutation({
-    mutationFn: (data: Parameters<typeof leaveService.resolveOverflow>[0]) => leaveService.resolveOverflow(data),
+    mutationFn: (data: Parameters<typeof leaveService.resolveOverflow>[0]) =>
+      leaveService.resolveOverflow(data),
     onSuccess: () => {
       invalidate();
       onSuccess();
       onClose();
     },
     onError: (err: any) => {
-      onError(err.response?.data?.message || err.message || "Une erreur est survenue.");
-    }
+      onError(
+        err.response?.data?.message ||
+          err.message ||
+          "Une erreur est survenue.",
+      );
+    },
   });
 
   const submitCreate = (startDate: string, endDate: string) => {
@@ -436,23 +593,35 @@ function CreateLeaveModal({ employee, onClose, onSuccess, onError }: { employee:
         <div className="p-6 border-b flex items-center justify-between">
           <div>
             <h3 className="text-xl font-bold">Poser un congé</h3>
-            <p className="text-sm text-muted-foreground mt-1">Pour {employee.name} {employee.lastname}</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Pour {employee.name} {employee.lastname}
+            </p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center transition-colors">✕</button>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center transition-colors"
+          >
+            ✕
+          </button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
-
           <div className="space-y-2">
-            <label className="text-sm font-medium">Type / Raison <span className="text-destructive">*</span></label>
+            <label className="text-sm font-medium">
+              Type / Raison <span className="text-destructive">*</span>
+            </label>
             <select
               required
               className="w-full bg-background border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
               value={formData.idLeaveType}
-              onChange={e => setFormData({ ...formData, idLeaveType: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, idLeaveType: e.target.value })
+              }
             >
               <option value="">Sélectionner une raison...</option>
-              {leaveTypes.map(lt => (
-                <option key={lt.idLeaveType} value={lt.idLeaveType}>{lt.label} {lt.isPaid ? "(Payé)" : "(Sans Solde)"}</option>
+              {leaveTypes.map((lt) => (
+                <option key={lt.idLeaveType} value={lt.idLeaveType}>
+                  {lt.label} {lt.isPaid ? "(Payé)" : "(Sans Solde)"}
+                </option>
               ))}
             </select>
           </div>
@@ -464,21 +633,27 @@ function CreateLeaveModal({ employee, onClose, onSuccess, onError }: { employee:
                 type="checkbox"
                 className="w-4 h-4 accent-primary"
                 checked={deductFromAnnual}
-                onChange={e => setDeductFromAnnual(e.target.checked)}
+                onChange={(e) => setDeductFromAnnual(e.target.checked)}
               />
-              <span className="text-sm font-medium">Déduire du congé annuel</span>
+              <span className="text-sm font-medium">
+                Déduire du congé annuel
+              </span>
             </label>
           )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Date de début <span className="text-destructive">*</span></label>
+              <label className="text-sm font-medium">
+                Date de début <span className="text-destructive">*</span>
+              </label>
               <input
                 type="date"
                 required
                 className="w-full bg-background border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                 value={formData.startDate}
-                onChange={e => setFormData({ ...formData, startDate: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, startDate: e.target.value })
+                }
               />
             </div>
             <div className="space-y-2">
@@ -487,13 +662,19 @@ function CreateLeaveModal({ employee, onClose, onSuccess, onError }: { employee:
                 type="date"
                 className="w-full bg-background border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                 value={formData.endDate}
-                onChange={e => setFormData({ ...formData, endDate: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, endDate: e.target.value })
+                }
               />
             </div>
           </div>
 
           <div className="pt-4 flex justify-end gap-3">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg font-medium text-muted-foreground hover:bg-muted/50 transition-colors">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg font-medium text-muted-foreground hover:bg-muted/50 transition-colors"
+            >
               Annuler
             </button>
             <button
@@ -522,31 +703,66 @@ function CreateLeaveModal({ employee, onClose, onSuccess, onError }: { employee:
             <div className="bg-card w-full max-w-md rounded-2xl shadow-2xl border p-6 space-y-5">
               <h3 className="text-lg font-bold">Plafond de congé dépassé</h3>
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">{overflow.capDays} jour(s)</span> seront accordés sur votre solde <span className="font-medium">{overflow.leaveTypeLabel}</span>.
+                <span className="font-medium text-foreground">
+                  {overflow.capDays} jour(s)
+                </span>{" "}
+                seront accordés sur votre solde{" "}
+                <span className="font-medium">{overflow.leaveTypeLabel}</span>.
               </p>
               <p className="text-sm text-muted-foreground">
-                Les <span className="font-medium text-foreground">{overflow.overflowDays} jour(s) restants</span> dépassent le plafond autorisé. Comment souhaitez-vous les traiter ?
+                Les{" "}
+                <span className="font-medium text-foreground">
+                  {overflow.overflowDays} jour(s) restants
+                </span>{" "}
+                dépassent le plafond autorisé. Comment souhaitez-vous les
+                traiter ?
               </p>
               <div className="space-y-3">
                 {!isPending && (
                   <label className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/30 transition-colors">
-                    <input type="radio" name="resolution" className="accent-primary" value="ANNUAL" checked={overflowResolution === "ANNUAL"} onChange={() => setOverflowResolution("ANNUAL")} />
+                    <input
+                      type="radio"
+                      name="resolution"
+                      className="accent-primary"
+                      value="ANNUAL"
+                      checked={overflowResolution === "ANNUAL"}
+                      onChange={() => setOverflowResolution("ANNUAL")}
+                    />
                     <div>
-                      <div className="text-sm font-medium">Déduire du congé annuel</div>
-                      <div className="text-xs text-muted-foreground">Les jours seront prélevés sur votre solde annuel</div>
+                      <div className="text-sm font-medium">
+                        Déduire du congé annuel
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Les jours seront prélevés sur votre solde annuel
+                      </div>
                     </div>
                   </label>
                 )}
                 <label className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/30 transition-colors">
-                  <input type="radio" name="resolution" className="accent-primary" value="UNPAID" checked={overflowResolution === "UNPAID"} onChange={() => setOverflowResolution("UNPAID")} />
+                  <input
+                    type="radio"
+                    name="resolution"
+                    className="accent-primary"
+                    value="UNPAID"
+                    checked={overflowResolution === "UNPAID"}
+                    onChange={() => setOverflowResolution("UNPAID")}
+                  />
                   <div>
                     <div className="text-sm font-medium">Congé sans solde</div>
-                    <div className="text-xs text-muted-foreground">Les jours seront déduits de votre prochain salaire</div>
+                    <div className="text-xs text-muted-foreground">
+                      Les jours seront déduits de votre prochain salaire
+                    </div>
                   </div>
                 </label>
               </div>
               <div className="flex justify-end gap-3 pt-2">
-                <button onClick={() => { setOverflow(null); setOverflowResolution(null); }} className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors">
+                <button
+                  onClick={() => {
+                    setOverflow(null);
+                    setOverflowResolution(null);
+                  }}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors"
+                >
                   Annuler
                 </button>
                 <button
@@ -554,7 +770,9 @@ function CreateLeaveModal({ employee, onClose, onSuccess, onError }: { employee:
                   onClick={handleOverflowConfirm}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2 rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
                 >
-                  {resolveMutation.isPending ? "Enregistrement..." : "Confirmer"}
+                  {resolveMutation.isPending
+                    ? "Enregistrement..."
+                    : "Confirmer"}
                 </button>
               </div>
             </div>

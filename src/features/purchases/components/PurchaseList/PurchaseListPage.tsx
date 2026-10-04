@@ -16,16 +16,29 @@ import { GlobalSupplierPaymentDialog } from "./GlobalSupplierPaymentDialog";
 import type { Purchase } from "../../types/purchase.type";
 import { useEffect } from "react";
 
-export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }: { onGoToCreate?: () => void, onGoToEdit?: (p: Purchase) => void, onGoToDeliveries?: () => void }) {
+export function PurchaseListPage({
+  onGoToCreate,
+  onGoToEdit,
+  onGoToDeliveries,
+}: {
+  onGoToCreate?: () => void;
+  onGoToEdit?: (p: Purchase) => void;
+  onGoToDeliveries?: () => void;
+}) {
   const [activeTab, setActiveTab] = useState<"toutes" | "annulees">("toutes");
   const [page] = useState(1);
-  const [selectedPurchaseId, setSelectedPurchaseId] = useState<string | null>(null);
-  const [receptionPurchase, setReceptionPurchase] = useState<Purchase | null>(null);
+  const [selectedPurchaseId, setSelectedPurchaseId] = useState<string | null>(
+    null,
+  );
+  const [receptionPurchase, setReceptionPurchase] = useState<Purchase | null>(
+    null,
+  );
   const [viewDeliveryId, setViewDeliveryId] = useState<string | null>(null);
   const [confirmPurchase, setConfirmPurchase] = useState<Purchase | null>(null);
   const [cancelPurchase, setCancelPurchase] = useState<Purchase | null>(null);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
-  const [confirmAndReceivePurchase, setConfirmAndReceivePurchase] = useState<Purchase | null>(null);
+  const [confirmAndReceivePurchase, setConfirmAndReceivePurchase] =
+    useState<Purchase | null>(null);
 
   useEffect(() => {
     const savedStr = sessionStorage.getItem("deliverySheetSavedState");
@@ -33,7 +46,10 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
       try {
         const parsed = JSON.parse(savedStr);
         if (parsed && parsed.purchase) {
-          console.log("PurchaseListPage restoring receptionPurchase from saved state:", parsed.purchase.idPurchase);
+          console.log(
+            "PurchaseListPage restoring receptionPurchase from saved state:",
+            parsed.purchase.idPurchase,
+          );
           setReceptionPurchase(parsed.purchase);
         }
       } catch (e) {
@@ -44,11 +60,12 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
 
   const result = useQuery({
     queryKey: ["purchases", page, activeTab],
-    queryFn: () => purchaseService.getAll({
-      page,
-      limit: 10,
-      lifecycleStatus: activeTab === "annulees" ? -3 : undefined
-    })
+    queryFn: () =>
+      purchaseService.getAll({
+        page,
+        limit: 10,
+        lifecycleStatus: activeTab === "annulees" ? -3 : undefined,
+      }),
   });
 
   const { data, isLoading } = result;
@@ -56,12 +73,21 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
   return (
     <div className="p-4 md:p-6 space-y-6 bg-background min-h-screen">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Commandes Fournisseurs</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+          Commandes Fournisseurs
+        </h1>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
-          <Button variant="outline" onClick={() => setPaymentDialogOpen(true)} className="border-primary text-primary hover:bg-primary/10 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={() => setPaymentDialogOpen(true)}
+            className="border-primary text-primary hover:bg-primary/10 w-full sm:w-auto"
+          >
             Faire un paiement / acompte
           </Button>
-          <Button onClick={onGoToCreate} className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto">
+          <Button
+            onClick={onGoToCreate}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Nouvelle Commande
           </Button>
@@ -99,37 +125,80 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
                   <th className="px-6 py-4 font-semibold">Date</th>
                   <th className="px-6 py-4 font-semibold">Fournisseur</th>
                   <th className="px-6 py-4 font-semibold text-right">Total</th>
-                  <th className="px-6 py-4 font-semibold text-center whitespace-nowrap">Confirmation</th>
-                  <th className="px-6 py-4 font-semibold text-center whitespace-nowrap">Livraison</th>
-                  <th className="px-4 py-4 font-semibold text-center w-24">Actions</th>
+                  <th className="px-6 py-4 font-semibold text-center whitespace-nowrap">
+                    Confirmation
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-center whitespace-nowrap">
+                    Livraison
+                  </th>
+                  <th className="px-4 py-4 font-semibold text-center w-24">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">Chargement des commandes...</td>
+                    <td
+                      colSpan={7}
+                      className="px-6 py-8 text-center text-muted-foreground"
+                    >
+                      Chargement des commandes...
+                    </td>
                   </tr>
                 ) : data?.records?.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">Aucune commande trouvée.</td>
+                    <td
+                      colSpan={7}
+                      className="px-6 py-8 text-center text-muted-foreground"
+                    >
+                      Aucune commande trouvée.
+                    </td>
                   </tr>
                 ) : (
                   data?.records.map((purchase) => {
-                    const isConfirmed = purchase.lifecycleStatus === "Confirmé" || (purchase.lifecycleStatus as unknown) === 0;
-                    const isCancelled = purchase.lifecycleStatus === "Annulé" || (purchase.lifecycleStatus as unknown) === -3;
+                    const isConfirmed =
+                      purchase.lifecycleStatus === "Confirmé" ||
+                      (purchase.lifecycleStatus as unknown) === 0;
+                    const isCancelled =
+                      purchase.lifecycleStatus === "Annulé" ||
+                      (purchase.lifecycleStatus as unknown) === -3;
 
                     return (
-                      <tr key={purchase.idPurchase} className="hover:bg-muted/50 transition-colors">
-                        <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">{purchase.ref}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{new Date(purchase.purchaseDate).toLocaleDateString()}</td>
-                        <td className="px-6 py-4 truncate max-w-[200px]" title={purchase.supplier?.name}>{purchase.supplier?.name}</td>
-                        <td className="px-6 py-4 text-right font-medium whitespace-nowrap">{formatCurrency(purchase.totalAmount)}</td>
+                      <tr
+                        key={purchase.idPurchase}
+                        className="hover:bg-muted/50 transition-colors"
+                      >
+                        <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
+                          {purchase.ref}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {new Date(purchase.purchaseDate).toLocaleDateString()}
+                        </td>
+                        <td
+                          className="px-6 py-4 truncate max-w-[200px]"
+                          title={purchase.supplier?.name}
+                        >
+                          {purchase.supplier?.name}
+                        </td>
+                        <td className="px-6 py-4 text-right font-medium whitespace-nowrap">
+                          {formatCurrency(purchase.totalAmount)}
+                        </td>
                         <td className="px-6 py-4 text-center">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${isConfirmed ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                            isCancelled ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
-                              'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-                            }`}>
-                            {isConfirmed ? 'Confirmé' : isCancelled ? 'Annulé' : 'Non confirmé'}
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
+                              isConfirmed
+                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                : isCancelled
+                                  ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                                  : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+                            }`}
+                          >
+                            {isConfirmed
+                              ? "Confirmé"
+                              : isCancelled
+                                ? "Annulé"
+                                : "Non confirmé"}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-center">
@@ -138,15 +207,20 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
                         <td className="px-4 py-4 text-center">
                           <div className="flex justify-center">
                             <ActionDropdown
-                              items={getPurchaseDropdownActions(purchase, activeTab, {
-                                onDetails: (id) => setSelectedPurchaseId(id),
-                                onConfirm: (p) => setConfirmPurchase(p),
-                                onEdit: (p) => onGoToEdit && onGoToEdit(p),
-                                onCancel: (p) => setCancelPurchase(p),
+                              items={getPurchaseDropdownActions(
+                                purchase,
+                                activeTab,
+                                {
+                                  onDetails: (id) => setSelectedPurchaseId(id),
+                                  onConfirm: (p) => setConfirmPurchase(p),
+                                  onEdit: (p) => onGoToEdit && onGoToEdit(p),
+                                  onCancel: (p) => setCancelPurchase(p),
 
-                                onConfirmAndReceive: (p) => setConfirmAndReceivePurchase(p),
-                                onReceive: (p) => setReceptionPurchase(p),
-                              })}
+                                  onConfirmAndReceive: (p) =>
+                                    setConfirmAndReceivePurchase(p),
+                                  onReceive: (p) => setReceptionPurchase(p),
+                                },
+                              )}
                             />
                           </div>
                         </td>
@@ -204,7 +278,14 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
           setReceptionPurchase(null);
         }}
         onGoToDeliveries={(idPurchase) => {
-          sessionStorage.setItem("deliveryFilter", JSON.stringify({ idPurchase, status: 5 /* OPEN */, returnToPurchases: true }));
+          sessionStorage.setItem(
+            "deliveryFilter",
+            JSON.stringify({
+              idPurchase,
+              status: 5 /* OPEN */,
+              returnToPurchases: true,
+            }),
+          );
           if (onGoToDeliveries) onGoToDeliveries();
         }}
       />
@@ -236,10 +317,9 @@ export function PurchaseListPage({ onGoToCreate, onGoToEdit, onGoToDeliveries }:
       <GlobalSupplierPaymentDialog
         open={paymentDialogOpen}
         onOpenChange={setPaymentDialogOpen}
-        onSuccess={() => { }}
+        onSuccess={() => {}}
         onGoToDeliveries={onGoToDeliveries}
       />
     </div>
   );
 }
-

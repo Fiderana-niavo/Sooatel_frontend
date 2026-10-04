@@ -21,7 +21,7 @@ Chart.register(
   LinearScale,
   CategoryScale,
   Tooltip,
-  Legend
+  Legend,
 );
 
 interface Props {
@@ -30,14 +30,20 @@ interface Props {
   loading: boolean;
 }
 
-export const ProductDetailSection: React.FC<Props> = ({ detail, metric, loading }) => {
+export const ProductDetailSection: React.FC<Props> = ({
+  detail,
+  metric,
+  loading,
+}) => {
   const barCanvasRef = useRef<HTMLCanvasElement>(null);
   const donutCanvasRef = useRef<HTMLCanvasElement>(null);
   const barChartRef = useRef<Chart | null>(null);
   const donutChartRef = useRef<Chart | null>(null);
 
   const isCA = metric === "ca";
-  const mainColor = isCA ? "rgba(99, 102, 241, 0.85)" : "rgba(16, 185, 129, 0.85)";
+  const mainColor = isCA
+    ? "rgba(99, 102, 241, 0.85)"
+    : "rgba(16, 185, 129, 0.85)";
   const restColor = "rgba(200, 200, 200, 0.5)";
 
   // ── Bar chart (product over time) ──────────────────────────────────────────

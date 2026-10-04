@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, ChefHat, FlaskConical, Pencil, Trash2, History } from "lucide-react";
+import {
+  Plus,
+  ChefHat,
+  FlaskConical,
+  Pencil,
+  Trash2,
+  History,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { ItemService, itemUnitService } from "@/features/items";
 import { UnitOfMeasureService } from "@/features/unit-of-measures/services";
@@ -22,21 +29,34 @@ export function RecipesPage() {
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [editingDetails, setEditingDetails] = useState<RecipeDetail[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
-  const [selectedVersionsItem, setSelectedVersionsItem] = useState<string | null>(null);
+  const [selectedVersionsItem, setSelectedVersionsItem] = useState<
+    string | null
+  >(null);
   const [activationState, setActivationState] = useState<{
     idRecipe: string;
     requiresConfirmation: boolean;
     currentCost?: number;
     siblingVersion?: number;
   } | null>(null);
-  const [addingUnitForIngredient, setAddingUnitForIngredient] = useState<string | null>(null);
-  const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean; duration?: number }>({
+  const [addingUnitForIngredient, setAddingUnitForIngredient] = useState<
+    string | null
+  >(null);
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: SnackbarType;
+    isOpen: boolean;
+    duration?: number;
+  }>({
     message: "",
     type: "info",
     isOpen: false,
   });
 
-  const showSnackbar = (message: string, type: SnackbarType = "info", duration?: number) => {
+  const showSnackbar = (
+    message: string,
+    type: SnackbarType = "info",
+    duration?: number,
+  ) => {
     setSnackbar({ message, type, isOpen: true, duration });
   };
 
@@ -66,7 +86,15 @@ export function RecipesPage() {
   const recipes = recipesResult.data ?? [];
 
   const createMutation = useMutation({
-    mutationFn: ({ idItem, rows, yieldQuantity }: { idItem: string; rows: RecipeRow[]; yieldQuantity: number }) =>
+    mutationFn: ({
+      idItem,
+      rows,
+      yieldQuantity,
+    }: {
+      idItem: string;
+      rows: RecipeRow[];
+      yieldQuantity: number;
+    }) =>
       RecipeService.create({
         idItem,
         yieldQuantity,
@@ -84,13 +112,24 @@ export function RecipesPage() {
       showSnackbar("Recette créée avec succès !", "success");
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.message || err.message || "Erreur lors de la création";
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Erreur lors de la création";
       showSnackbar(msg, "error");
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ idRecipe, rows, yieldQuantity }: { idRecipe: string; rows: RecipeRow[]; yieldQuantity: number }) =>
+    mutationFn: ({
+      idRecipe,
+      rows,
+      yieldQuantity,
+    }: {
+      idRecipe: string;
+      rows: RecipeRow[];
+      yieldQuantity: number;
+    }) =>
       RecipeService.update(idRecipe, {
         yieldQuantity,
         details: rows.map((r) => ({
@@ -108,7 +147,10 @@ export function RecipesPage() {
       showSnackbar("Recette modifiée avec succès !", "success");
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.message || err.message || "Erreur lors de la modification";
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Erreur lors de la modification";
       showSnackbar(msg, "error");
     },
   });
@@ -125,13 +167,17 @@ export function RecipesPage() {
       // But it's handled by queries invalidating and re-rendering, so it should be fine.
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.message || err.message || "Erreur lors de la suppression";
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Erreur lors de la suppression";
       showSnackbar(msg, "error");
     },
   });
 
   const checkActiveMutation = useMutation({
-    mutationFn: (idRecipe: string) => RecipeService.setActive(idRecipe, false, true),
+    mutationFn: (idRecipe: string) =>
+      RecipeService.setActive(idRecipe, false, true),
     onSuccess: (result, idRecipe) => {
       setActivationState({
         idRecipe,
@@ -141,13 +187,17 @@ export function RecipesPage() {
       });
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.message || err.message || "Erreur lors de la vérification";
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Erreur lors de la vérification";
       showSnackbar(msg, "error");
     },
   });
 
   const setActiveMutation = useMutation({
-    mutationFn: ({ idRecipe, force }: { idRecipe: string, force?: boolean }) => RecipeService.setActive(idRecipe, force),
+    mutationFn: ({ idRecipe, force }: { idRecipe: string; force?: boolean }) =>
+      RecipeService.setActive(idRecipe, force),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recipes"] });
       queryClient.invalidateQueries({ queryKey: ["recipe-ingredients"] });
@@ -156,7 +206,10 @@ export function RecipesPage() {
       setActivationState(null);
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.message || err.message || "Erreur lors de l'activation";
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Erreur lors de l'activation";
       showSnackbar(msg, "error");
       setActivationState(null);
     },
@@ -170,7 +223,10 @@ export function RecipesPage() {
       setAddingUnitForIngredient(null);
     },
     onError: (error) => {
-      showSnackbar(error instanceof Error ? error.message : "Erreur lors de l'ajout", "error");
+      showSnackbar(
+        error instanceof Error ? error.message : "Erreur lors de l'ajout",
+        "error",
+      );
     },
   });
 
@@ -181,9 +237,18 @@ export function RecipesPage() {
     setIsFormOpen(true);
   };
 
-  const handleSubmit = async (idItem: string, rows: RecipeRow[], yieldQuantity: number, createNewVersion = false) => {
+  const handleSubmit = async (
+    idItem: string,
+    rows: RecipeRow[],
+    yieldQuantity: number,
+    createNewVersion = false,
+  ) => {
     if (editingRecipe && !createNewVersion) {
-      updateMutation.mutate({ idRecipe: editingRecipe.idRecipe, rows, yieldQuantity });
+      updateMutation.mutate({
+        idRecipe: editingRecipe.idRecipe,
+        rows,
+        yieldQuantity,
+      });
     } else {
       createMutation.mutate({ idItem, rows, yieldQuantity });
     }
@@ -220,11 +285,17 @@ export function RecipesPage() {
             onViewIngredients={setSelectedRecipe}
             onEdit={handleEdit}
             onDelete={(id) => {
-              if (window.confirm("Êtes-vous sûr de vouloir supprimer cette version de recette ?")) {
+              if (
+                window.confirm(
+                  "Êtes-vous sûr de vouloir supprimer cette version de recette ?",
+                )
+              ) {
                 deleteMutation.mutate(id);
               }
             }}
-            isSettingActive={setActiveMutation.isPending || checkActiveMutation.isPending}
+            isSettingActive={
+              setActiveMutation.isPending || checkActiveMutation.isPending
+            }
           />
         )}
 
@@ -253,7 +324,7 @@ export function RecipesPage() {
           <ItemUnitFormDialog
             isOpen={true}
             onClose={() => setAddingUnitForIngredient(null)}
-            items={items.filter(i => i.idItem === addingUnitForIngredient)}
+            items={items.filter((i) => i.idItem === addingUnitForIngredient)}
             units={units}
             onAdd={(data) => {
               addItemUnitMutation.mutate({
@@ -267,20 +338,31 @@ export function RecipesPage() {
         <ConfirmDialog
           open={!!activationState}
           onOpenChange={(open) => !open && setActivationState(null)}
-          title={activationState?.requiresConfirmation ? "Variance de prix détectée" : "Activer cette version"}
+          title={
+            activationState?.requiresConfirmation
+              ? "Variance de prix détectée"
+              : "Activer cette version"
+          }
           description={getActivationConfirmationMessage(
             activationState?.requiresConfirmation ?? false,
             activationState?.currentCost,
-            activationState?.siblingVersion
+            activationState?.siblingVersion,
           )}
           onConfirm={() => {
             if (activationState) {
-              setActiveMutation.mutate({ idRecipe: activationState.idRecipe, force: true });
+              setActiveMutation.mutate({
+                idRecipe: activationState.idRecipe,
+                force: true,
+              });
             }
           }}
           loading={setActiveMutation.isPending}
           confirmText="Activer"
-          confirmButtonClassName={activationState?.requiresConfirmation ? "bg-amber-500 hover:bg-amber-600 text-white" : "bg-primary hover:bg-primary/90 text-primary-foreground"}
+          confirmButtonClassName={
+            activationState?.requiresConfirmation
+              ? "bg-amber-500 hover:bg-amber-600 text-white"
+              : "bg-primary hover:bg-primary/90 text-primary-foreground"
+          }
         />
 
         {snackbar.isOpen && (
@@ -299,10 +381,20 @@ export function RecipesPage() {
     <div className="space-y-6 animate-in fade-in duration-500 h-full flex flex-col">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Fiches Techniques</h2>
-          <p className="text-muted-foreground">Gérez vos recettes et la composition de vos plats.</p>
+          <h2 className="text-2xl font-bold text-foreground">
+            Fiches Techniques
+          </h2>
+          <p className="text-muted-foreground">
+            Gérez vos recettes et la composition de vos plats.
+          </p>
         </div>
-        <Button onClick={() => { setEditingRecipe(null); setIsFormOpen(true); }} className="gap-2">
+        <Button
+          onClick={() => {
+            setEditingRecipe(null);
+            setIsFormOpen(true);
+          }}
+          className="gap-2"
+        >
           <Plus className="size-4" />
           Nouvelle recette
         </Button>
@@ -337,8 +429,12 @@ export function RecipesPage() {
                         <ChefHat className="size-5 text-primary" />
                       </div>
                       <div>
-                        <p className="font-semibold text-foreground">{active.item?.label ?? active.idItem}</p>
-                        <p className="text-xs text-muted-foreground">Version {active.version} • Actif</p>
+                        <p className="font-semibold text-foreground">
+                          {active.item?.label ?? active.idItem}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Version {active.version} • Actif
+                        </p>
                       </div>
                     </div>
                     {active.versionsCount > 1 && (
@@ -357,7 +453,8 @@ export function RecipesPage() {
 
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="font-medium text-primary">
-                      Rendement : {Number(active.yieldQuantity) || 1} {active.item?.unit?.symbol ?? ""}
+                      Rendement : {Number(active.yieldQuantity) || 1}{" "}
+                      {active.item?.unit?.symbol ?? ""}
                     </span>
                   </div>
 
@@ -366,7 +463,9 @@ export function RecipesPage() {
                       size="sm"
                       variant="outline"
                       className="flex-1 gap-1.5 text-xs"
-                      onClick={() => setSelectedRecipe(active as unknown as Recipe)}
+                      onClick={() =>
+                        setSelectedRecipe(active as unknown as Recipe)
+                      }
                     >
                       <FlaskConical className="size-3.5" />
                       Ingrédients

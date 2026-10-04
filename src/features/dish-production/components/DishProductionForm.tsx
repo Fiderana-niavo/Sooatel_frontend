@@ -8,8 +8,6 @@ import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
 import { ItemService } from "@/features/items/services/item.service";
 import type { DishProductionDto } from "../types";
 
-
-
 interface Props {
   initial?: Partial<DishProductionDto> & { idDishProduction?: string };
   onClose: () => void;
@@ -34,32 +32,41 @@ export function DishProductionForm({ initial, onClose, onSave }: Props) {
             ? toIsoDateTime(new Date(initial.productionDate))
             : toIsoDateTime(new Date()),
         }
-      : emptyForm()
+      : emptyForm(),
   );
 
   const { data: allItems = [], isLoading: itemsLoading } = useQuery({
     queryKey: ["items", "dish-production-form"],
     queryFn: () => ItemService.getAll({ limit: 500 }),
   });
-  const items = allItems.filter(it => it.isProduced !== false);
+  const items = allItems.filter((it) => it.isProduced !== false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isEditing = !!initial?.idDishProduction;
 
-  const setField = <K extends keyof DishProductionDto>(key: K, val: DishProductionDto[K]) =>
-    setForm((prev) => ({ ...prev, [key]: val }));
+  const setField = <K extends keyof DishProductionDto>(
+    key: K,
+    val: DishProductionDto[K],
+  ) => setForm((prev) => ({ ...prev, [key]: val }));
 
   const handleSubmit = async () => {
-    if (!form.idItem) { setError("Veuillez sélectionner un article à produire."); return; }
-    if (!form.quantity || Number(form.quantity) <= 0) { setError("La quantité doit être supérieure à 0."); return; }
+    if (!form.idItem) {
+      setError("Veuillez sélectionner un article à produire.");
+      return;
+    }
+    if (!form.quantity || Number(form.quantity) <= 0) {
+      setError("La quantité doit être supérieure à 0.");
+      return;
+    }
     setError(null);
     setIsSaving(true);
     try {
       await onSave({ ...form, quantity: Number(form.quantity) });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erreur lors de l'enregistrement";
+      const msg =
+        err instanceof Error ? err.message : "Erreur lors de l'enregistrement";
       setError(msg);
     } finally {
       setIsSaving(false);
@@ -80,10 +87,15 @@ export function DishProductionForm({ initial, onClose, onSave }: Props) {
               <h3 className="font-semibold text-foreground">
                 {isEditing ? "Modifier la production" : "Saisir une production"}
               </h3>
-              <p className="text-xs text-muted-foreground">Enregistrée d'abord en brouillon</p>
+              <p className="text-xs text-muted-foreground">
+                Enregistrée d'abord en brouillon
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-muted transition-colors">
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-muted transition-colors"
+          >
             <X className="size-4 text-muted-foreground" />
           </button>
         </div>
@@ -92,12 +104,18 @@ export function DishProductionForm({ initial, onClose, onSave }: Props) {
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {/* Item */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Plat / Article produit *</label>
+            <label className="text-sm font-medium">
+              Plat / Article produit *
+            </label>
             <SearchableSelect
-              options={itemsLoading ? [{ value: "", label: "Chargement..." }] : items.map((it) => ({
-                value: it.idItem,
-                label: `${it.label} ${it.unit?.symbol ? `(${it.unit.symbol})` : ""}`,
-              }))}
+              options={
+                itemsLoading
+                  ? [{ value: "", label: "Chargement..." }]
+                  : items.map((it) => ({
+                      value: it.idItem,
+                      label: `${it.label} ${it.unit?.symbol ? `(${it.unit.symbol})` : ""}`,
+                    }))
+              }
               value={form.idItem}
               onChange={(val) => setField("idItem", String(val))}
               placeholder="Sélectionner un article"
@@ -113,11 +131,15 @@ export function DishProductionForm({ initial, onClose, onSave }: Props) {
               min={0.1}
               step="any"
               placeholder="0"
-              value={form.quantity === ("" as unknown as number) ? "" : form.quantity}
+              value={
+                form.quantity === ("" as unknown as number) ? "" : form.quantity
+              }
               onChange={(e) =>
                 setField(
                   "quantity",
-                  e.target.value === "" ? ("" as unknown as number) : Number(e.target.value)
+                  e.target.value === ""
+                    ? ("" as unknown as number)
+                    : Number(e.target.value),
                 )
               }
             />
@@ -125,7 +147,9 @@ export function DishProductionForm({ initial, onClose, onSave }: Props) {
 
           {/* Date */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Date & Heure de production</label>
+            <label className="text-sm font-medium">
+              Date & Heure de production
+            </label>
             <Input
               type="datetime-local"
               value={form.productionDate}
@@ -153,14 +177,15 @@ export function DishProductionForm({ initial, onClose, onSave }: Props) {
 
         {/* Footer */}
         <div className="p-5 border-t border-border/50 flex gap-3">
-          <Button variant="outline" className="flex-1" onClick={onClose} disabled={isSaving}>
-            Annuler
-          </Button>
           <Button
+            variant="outline"
             className="flex-1"
-            onClick={handleSubmit}
+            onClick={onClose}
             disabled={isSaving}
           >
+            Annuler
+          </Button>
+          <Button className="flex-1" onClick={handleSubmit} disabled={isSaving}>
             {isSaving ? <Loader2 className="size-4 mr-2 animate-spin" /> : null}
             {isEditing ? "Modifier" : "Enregistrer (Brouillon)"}
           </Button>

@@ -9,9 +9,14 @@ export interface SearchInputProps extends InputHTMLAttributes<HTMLInputElement> 
 }
 
 export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
-  ({ className, wrapperClassName, placeholder = "Rechercher...", ...props }, ref) => {
+  (
+    { className, wrapperClassName, placeholder = "Rechercher...", ...props },
+    ref,
+  ) => {
     return (
-      <div className={cn("relative flex-grow max-w-md w-full", wrapperClassName)}>
+      <div
+        className={cn("relative flex-grow max-w-md w-full", wrapperClassName)}
+      >
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <Input
           ref={ref}
@@ -22,7 +27,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
         />
       </div>
     );
-  }
+  },
 );
 
 SearchInput.displayName = "SearchInput";

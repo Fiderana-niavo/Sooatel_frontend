@@ -4,10 +4,21 @@ import { Plus, Edit2, Trash2, Search, Loader2 } from "lucide-react";
 import { CashMovementService } from "../../services/cash-movement.service";
 import { CashMovementCategoryService } from "../../../category/services/cash-movement-category.service";
 import { CashJournalService } from "../../../services/cash-journal.service";
-import type { CashMovement, CashMovementDto, CashMovementCategory, CashJournal } from "../../../types";
+import type {
+  CashMovement,
+  CashMovementDto,
+  CashMovementCategory,
+  CashJournal,
+} from "../../../types";
 import axios from "axios";
 import { Button } from "@/components/ui/Button/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/Dialog/dialog";
 import { Input } from "@/components/ui/Inputs/input";
 import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
@@ -16,12 +27,14 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { useAppStore } from "@/store/app.store";
 
 export function CashMovementList({ direction }: { direction: number }) {
-  const user = useAppStore(state => state.connectedUser);
+  const user = useAppStore((state) => state.connectedUser);
 
   const [cashMovements, setCashMovements] = useState<CashMovement[]>([]);
   const [categories, setCategories] = useState<CashMovementCategory[]>([]);
   const [journals, setJournals] = useState<CashJournal[]>([]);
-  const [paymentMethods, setPaymentMethods] = useState<{ value: string; label: string }[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<
+    { value: string; label: string }[]
+  >([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -32,7 +45,9 @@ export function CashMovementList({ direction }: { direction: number }) {
   const [total, setTotal] = useState(0);
   const limit = 20;
 
-  const [selectedMovement, setSelectedMovement] = useState<CashMovement | null>(null);
+  const [selectedMovement, setSelectedMovement] = useState<CashMovement | null>(
+    null,
+  );
 
   const emptyForm: CashMovementDto = {
     ref: "",
@@ -45,33 +60,58 @@ export function CashMovementList({ direction }: { direction: number }) {
     idJournal: "",
     idCashMovementCategory: "",
     idPaymentMethod: "",
-    status: 0
+    status: 0,
   };
 
   const [formData, setFormData] = useState<CashMovementDto>(emptyForm);
 
-  const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({ message: "", type: "info", isOpen: false });
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: SnackbarType;
+    isOpen: boolean;
+  }>({ message: "", type: "info", isOpen: false });
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [movementToDelete, setMovementToDelete] = useState<CashMovement | null>(null);
+  const [movementToDelete, setMovementToDelete] = useState<CashMovement | null>(
+    null,
+  );
 
-  const showSnackbar = (message: string, type: SnackbarType = "info") => setSnackbar({ message, type, isOpen: true });
+  const showSnackbar = (message: string, type: SnackbarType = "info") =>
+    setSnackbar({ message, type, isOpen: true });
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [cashMovementsData, categoriesData, journalsData, paymentMethodsRes] = await Promise.all([
+      const [
+        cashMovementsData,
+        categoriesData,
+        journalsData,
+        paymentMethodsRes,
+      ] = await Promise.all([
         CashMovementService.getAll({ search, limit, page, direction }),
         CashMovementCategoryService.getAll({ limit: 100 }),
         CashJournalService.getAll({ limit: 50 }),
-        axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:3000/api"}/payment-methods/select`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } })
+        axios.get(
+          `${import.meta.env.VITE_API_URL || "http://localhost:3000/api"}/payment-methods/select`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        ),
       ]);
 
       setCashMovements(cashMovementsData.records);
       setTotal(cashMovementsData.total);
 
-      setCategories(categoriesData.records.filter(c => c.allowedDirection === direction || c.allowedDirection === 0));
+      setCategories(
+        categoriesData.records.filter(
+          (c) => c.allowedDirection === direction || c.allowedDirection === 0,
+        ),
+      );
       setJournals(journalsData.records);
-      setPaymentMethods(paymentMethodsRes.data.payload || paymentMethodsRes.data);
+      setPaymentMethods(
+        paymentMethodsRes.data.payload || paymentMethodsRes.data,
+      );
     } catch (err) {
       showSnackbar("Erreur lors du chargement des mouvements", "error");
     } finally {
@@ -86,7 +126,7 @@ export function CashMovementList({ direction }: { direction: number }) {
 
   const handleOpenDialog = (movement?: CashMovement) => {
     if (!movement) {
-      const activeJournal = journals.find(j => !j.journalClosing);
+      const activeJournal = journals.find((j) => !j.journalClosing);
       if (!activeJournal) {
         setOpenJournalPrompt(true);
         return;
@@ -98,38 +138,55 @@ export function CashMovementList({ direction }: { direction: number }) {
       setFormData({
         ref: movement.ref,
         amount: movement.amount,
-        movementDate: movement.movementDate ? toIsoDateTime(new Date(movement.movementDate)) : "",
+        movementDate: movement.movementDate
+          ? toIsoDateTime(new Date(movement.movementDate))
+          : "",
         reason: movement.reason || "",
         invoiceReference: movement.invoiceReference || "",
         direction: movement.direction,
         idProcessedBy: movement.idProcessedBy,
         idJournal: movement.idJournal,
         idCashMovementCategory: movement.idCashMovementCategory || "",
-        idPaymentMethod: movement.idPaymentMethod || ""
+        idPaymentMethod: movement.idPaymentMethod || "",
       });
     } else {
-      const openJournal = journals.find(j => !j.journalClosing) || journals[0];
+      const openJournal =
+        journals.find((j) => !j.journalClosing) || journals[0];
       setSelectedMovement(null);
       setFormData({
         ...emptyForm,
         idProcessedBy: user?.idEmployee || emptyForm.idProcessedBy,
-        idJournal: openJournal ? openJournal.idJournal : ""
+        idJournal: openJournal ? openJournal.idJournal : "",
       });
     }
     setIsDialogOpen(true);
   };
 
   const handleSave = async () => {
-    if (formData.amount <= 0 || !formData.idCashMovementCategory || !formData.idPaymentMethod) {
-      showSnackbar("Le montant, la catégorie et le mode de paiement sont requis", "error");
+    if (
+      formData.amount <= 0 ||
+      !formData.idCashMovementCategory ||
+      !formData.idPaymentMethod
+    ) {
+      showSnackbar(
+        "Le montant, la catégorie et le mode de paiement sont requis",
+        "error",
+      );
       return;
     }
 
     try {
-      const dataToSave = { ...formData, idCashMovementCategory: formData.idCashMovementCategory || null, reason: formData.reason || null };
+      const dataToSave = {
+        ...formData,
+        idCashMovementCategory: formData.idCashMovementCategory || null,
+        reason: formData.reason || null,
+      };
 
       if (selectedMovement) {
-        await CashMovementService.update(selectedMovement.idCashMovement, dataToSave);
+        await CashMovementService.update(
+          selectedMovement.idCashMovement,
+          dataToSave,
+        );
         showSnackbar("Mouvement modifié", "success");
       } else {
         await CashMovementService.create(dataToSave);
@@ -173,10 +230,20 @@ export function CashMovementList({ direction }: { direction: number }) {
             placeholder="Rechercher par référence facture..."
             className="pl-8"
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
-        <Button onClick={() => handleOpenDialog()} className={isOutflow ? "bg-red-500 hover:bg-red-600 text-white" : "bg-green-500 hover:bg-green-600 text-white"}>
+        <Button
+          onClick={() => handleOpenDialog()}
+          className={
+            isOutflow
+              ? "bg-red-500 hover:bg-red-600 text-white"
+              : "bg-green-500 hover:bg-green-600 text-white"
+          }
+        >
           <Plus className="w-4 h-4 mr-2" />
           {title}
         </Button>
@@ -198,42 +265,79 @@ export function CashMovementList({ direction }: { direction: number }) {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={7} className="text-center py-4 text-muted-foreground">Chargement...</td>
+                <td
+                  colSpan={7}
+                  className="text-center py-4 text-muted-foreground"
+                >
+                  Chargement...
+                </td>
               </tr>
             ) : cashMovements.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-4 text-muted-foreground">Aucun mouvement trouvé</td>
+                <td
+                  colSpan={7}
+                  className="text-center py-4 text-muted-foreground"
+                >
+                  Aucun mouvement trouvé
+                </td>
               </tr>
             ) : (
               cashMovements.map((movement) => (
-                <tr key={movement.idCashMovement} className="border-t hover:bg-muted/50">
-                  <td className="px-4 py-3">{movement.movementDate ? new Date(movement.movementDate).toLocaleString() : "-"}</td>
-                  <td className="px-4 py-3">{movement.invoiceReference || "-"}</td>
+                <tr
+                  key={movement.idCashMovement}
+                  className="border-t hover:bg-muted/50"
+                >
                   <td className="px-4 py-3">
-                    {movement.cashMovementCategory ? movement.cashMovementCategory.label : "-"}
+                    {movement.movementDate
+                      ? new Date(movement.movementDate).toLocaleString()
+                      : "-"}
                   </td>
                   <td className="px-4 py-3">
-                    {movement.paymentMethod ? movement.paymentMethod.label : "-"}
+                    {movement.invoiceReference || "-"}
                   </td>
-                  <td className="px-4 py-3 max-w-[200px] truncate">{movement.reason || "-"}</td>
-                  <td className={`px-4 py-3 text-right font-medium whitespace-nowrap ${isOutflow ? 'text-red-500' : 'text-green-500'}`}>
+                  <td className="px-4 py-3">
+                    {movement.cashMovementCategory
+                      ? movement.cashMovementCategory.label
+                      : "-"}
+                  </td>
+                  <td className="px-4 py-3">
+                    {movement.paymentMethod
+                      ? movement.paymentMethod.label
+                      : "-"}
+                  </td>
+                  <td className="px-4 py-3 max-w-[200px] truncate">
+                    {movement.reason || "-"}
+                  </td>
+                  <td
+                    className={`px-4 py-3 text-right font-medium whitespace-nowrap ${isOutflow ? "text-red-500" : "text-green-500"}`}
+                  >
                     {Number(movement.amount).toLocaleString()} Ar
                   </td>
                   <td className="px-4 py-3 text-right">
                     {!(
                       movement.reason === "Journalisation des ventes" ||
-                      movement.reason?.toLowerCase().includes("remboursement") ||
+                      movement.reason
+                        ?.toLowerCase()
+                        .includes("remboursement") ||
                       movement.reason?.toLowerCase().includes("ajustement")
                     ) && (
-                        <>
-                          <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(movement)}>
-                            <Edit2 className="w-4 h-4 text-blue-500" />
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => confirmDelete(movement)}>
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </Button>
-                        </>
-                      )}
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenDialog(movement)}
+                        >
+                          <Edit2 className="w-4 h-4 text-blue-500" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => confirmDelete(movement)}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))
@@ -244,7 +348,8 @@ export function CashMovementList({ direction }: { direction: number }) {
 
       <div className="flex items-center justify-between mt-2">
         <span className="text-sm text-muted-foreground">
-          Affichage {Math.min((page - 1) * limit + 1, total)} à {Math.min(page * limit, total)} sur {total} entrées
+          Affichage {Math.min((page - 1) * limit + 1, total)} à{" "}
+          {Math.min(page * limit, total)} sur {total} entrées
         </span>
         <div className="flex gap-2">
           <Button
@@ -269,7 +374,10 @@ export function CashMovementList({ direction }: { direction: number }) {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{selectedMovement ? "Modifier" : "Nouveau"} Mouvement de Caisse ({isOutflow ? "Sortie" : "Entrée"})</DialogTitle>
+            <DialogTitle>
+              {selectedMovement ? "Modifier" : "Nouveau"} Mouvement de Caisse (
+              {isOutflow ? "Sortie" : "Entrée"})
+            </DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="flex flex-col gap-2">
@@ -277,22 +385,37 @@ export function CashMovementList({ direction }: { direction: number }) {
               <Input
                 type="datetime-local"
                 value={formData.movementDate}
-                onChange={(e) => setFormData({ ...formData, movementDate: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, movementDate: e.target.value })
+                }
               />
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium">Montant *</label>
               <CurrencyInput
-                value={formData.amount === ("" as unknown as number) ? undefined : formData.amount}
-                onChange={(val) => setFormData({ ...formData, amount: val === undefined ? ("" as unknown as number) : val })}
+                value={
+                  formData.amount === ("" as unknown as number)
+                    ? undefined
+                    : formData.amount
+                }
+                onChange={(val) =>
+                  setFormData({
+                    ...formData,
+                    amount: val === undefined ? ("" as unknown as number) : val,
+                  })
+                }
                 placeholder="0.00"
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Référence Facture (Optionnel)</label>
+              <label className="text-sm font-medium">
+                Référence Facture (Optionnel)
+              </label>
               <Input
                 value={formData.invoiceReference || ""}
-                onChange={(e) => setFormData({ ...formData, invoiceReference: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, invoiceReference: e.target.value })
+                }
                 placeholder="Ex: FAC-2023-001"
               />
             </div>
@@ -301,11 +424,21 @@ export function CashMovementList({ direction }: { direction: number }) {
               <select
                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={formData.idCashMovementCategory || ""}
-                onChange={(e) => setFormData({ ...formData, idCashMovementCategory: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    idCashMovementCategory: e.target.value,
+                  })
+                }
               >
-                <option value="" disabled>Sélectionner une catégorie</option>
+                <option value="" disabled>
+                  Sélectionner une catégorie
+                </option>
                 {categories.map((cat) => (
-                  <option key={cat.idCashMovementCategory} value={cat.idCashMovementCategory}>
+                  <option
+                    key={cat.idCashMovementCategory}
+                    value={cat.idCashMovementCategory}
+                  >
                     {cat.label}
                   </option>
                 ))}
@@ -316,9 +449,13 @@ export function CashMovementList({ direction }: { direction: number }) {
               <select
                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={formData.idPaymentMethod || ""}
-                onChange={(e) => setFormData({ ...formData, idPaymentMethod: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, idPaymentMethod: e.target.value })
+                }
               >
-                <option value="" disabled>Sélectionner un mode</option>
+                <option value="" disabled>
+                  Sélectionner un mode
+                </option>
                 {paymentMethods.map((pm) => (
                   <option key={pm.value} value={pm.value}>
                     {pm.label}
@@ -331,28 +468,45 @@ export function CashMovementList({ direction }: { direction: number }) {
               <select
                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={formData.idJournal || ""}
-                onChange={(e) => setFormData({ ...formData, idJournal: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, idJournal: e.target.value })
+                }
                 disabled
               >
-                <option value="" disabled>Sélectionner un journal</option>
-                {journals.filter(j => !j.journalClosing || j.idJournal === formData.idJournal).map((j) => (
-                  <option key={j.idJournal} value={j.idJournal}>
-                    {j.ref} ({new Date(j.journalOpening).toLocaleString()} - {j.journalClosing ? new Date(j.journalClosing).toLocaleString() : "En cours"})
-                  </option>
-                ))}
+                <option value="" disabled>
+                  Sélectionner un journal
+                </option>
+                {journals
+                  .filter(
+                    (j) =>
+                      !j.journalClosing || j.idJournal === formData.idJournal,
+                  )
+                  .map((j) => (
+                    <option key={j.idJournal} value={j.idJournal}>
+                      {j.ref} ({new Date(j.journalOpening).toLocaleString()} -{" "}
+                      {j.journalClosing
+                        ? new Date(j.journalClosing).toLocaleString()
+                        : "En cours"}
+                      )
+                    </option>
+                  ))}
               </select>
             </div>
             <div className="flex flex-col gap-2 col-span-2">
               <label className="text-sm font-medium">Motif (Optionnel)</label>
               <Input
                 value={formData.reason || ""}
-                onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, reason: e.target.value })
+                }
                 placeholder="Raison du mouvement"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Annuler
+            </Button>
             <Button onClick={handleSave}>Enregistrer</Button>
           </DialogFooter>
         </DialogContent>
@@ -373,39 +527,49 @@ export function CashMovementList({ direction }: { direction: number }) {
           </DialogHeader>
           <div className="py-4">
             <p className="text-sm text-muted-foreground">
-              Vous devez avoir un journal de caisse actif pour ajouter un mouvement. Voulez-vous ouvrir un nouveau journal maintenant ?
+              Vous devez avoir un journal de caisse actif pour ajouter un
+              mouvement. Voulez-vous ouvrir un nouveau journal maintenant ?
             </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenJournalPrompt(false)}>Annuler</Button>
-            <Button 
+            <Button
+              variant="outline"
+              onClick={() => setOpenJournalPrompt(false)}
+            >
+              Annuler
+            </Button>
+            <Button
               onClick={async () => {
                 try {
                   setIsOpeningJournal(true);
                   const newJournal = await CashJournalService.openJournal("");
                   setOpenJournalPrompt(false);
-                  
+
                   // Reload list to have the new journal in journals array
                   await loadData();
-                  
+
                   // Open the movement dialog directly using the newly created journal
                   setSelectedMovement(null);
-                  setFormData({ 
-                    ...emptyForm, 
+                  setFormData({
+                    ...emptyForm,
                     idProcessedBy: user?.idEmployee || emptyForm.idProcessedBy,
-                    idJournal: newJournal.idJournal 
+                    idJournal: newJournal.idJournal,
                   });
                   setIsDialogOpen(true);
-                  
-                } catch(err: any) {
-                  showSnackbar(err.message || "Erreur lors de l'ouverture du journal", "error");
+                } catch (err: any) {
+                  showSnackbar(
+                    err.message || "Erreur lors de l'ouverture du journal",
+                    "error",
+                  );
                 } finally {
                   setIsOpeningJournal(false);
                 }
               }}
               disabled={isOpeningJournal}
             >
-              {isOpeningJournal ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              {isOpeningJournal ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : null}
               Oui, ouvrir un journal
             </Button>
           </DialogFooter>
@@ -413,7 +577,11 @@ export function CashMovementList({ direction }: { direction: number }) {
       </Dialog>
 
       {snackbar.isOpen && (
-        <Snackbar message={snackbar.message} type={snackbar.type} onClose={() => setSnackbar({ ...snackbar, isOpen: false })} />
+        <Snackbar
+          message={snackbar.message}
+          type={snackbar.type}
+          onClose={() => setSnackbar({ ...snackbar, isOpen: false })}
+        />
       )}
     </div>
   );

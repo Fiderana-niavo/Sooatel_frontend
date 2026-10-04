@@ -1,5 +1,15 @@
 import React from "react";
-import { Loader2, AlertTriangle, Eye, Edit, Lock, RotateCcw, XCircle, Banknote, Trash2 } from "lucide-react";
+import {
+  Loader2,
+  AlertTriangle,
+  Eye,
+  Edit,
+  Lock,
+  RotateCcw,
+  XCircle,
+  Banknote,
+  Trash2,
+} from "lucide-react";
 import Pagination from "@/components/ui/Pagination/pagination";
 import { ActionDropdown } from "@/components/ui/ActionDropdown/ActionDropdown";
 import { SaleStatusBadge, PaymentStatusBadge } from "../SaleStatusBadge";
@@ -37,7 +47,7 @@ export const SalesListTable: React.FC<SalesListTableProps> = ({
   onReopen,
   onCancel,
   onPay,
-  showCancelled
+  showCancelled,
 }) => {
   if (loading) {
     return (
@@ -53,26 +63,44 @@ export const SalesListTable: React.FC<SalesListTableProps> = ({
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-muted/40 border-b border-border/50">
-              <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Date</th>
-              <th className="text-left px-4 py-3 font-semibold text-muted-foreground">N° Facture</th>
-              <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Vendeur</th>
-              <th className="text-right px-4 py-3 font-semibold text-muted-foreground">Total</th>
-              <th className="text-center px-4 py-3 font-semibold text-muted-foreground">Statut</th>
-              <th className="text-center px-4 py-3 font-semibold text-muted-foreground">Paiement</th>
-              <th className="text-center px-4 py-3 font-semibold text-muted-foreground">Action</th>
+              <th className="text-left px-4 py-3 font-semibold text-muted-foreground">
+                Date
+              </th>
+              <th className="text-left px-4 py-3 font-semibold text-muted-foreground">
+                N° Facture
+              </th>
+              <th className="text-left px-4 py-3 font-semibold text-muted-foreground">
+                Vendeur
+              </th>
+              <th className="text-right px-4 py-3 font-semibold text-muted-foreground">
+                Total
+              </th>
+              <th className="text-center px-4 py-3 font-semibold text-muted-foreground">
+                Statut
+              </th>
+              <th className="text-center px-4 py-3 font-semibold text-muted-foreground">
+                Paiement
+              </th>
+              <th className="text-center px-4 py-3 font-semibold text-muted-foreground">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/30">
             {sales.length === 0 && (
               <tr>
-                <td colSpan={7} className="text-center py-10 text-muted-foreground">
+                <td
+                  colSpan={7}
+                  className="text-center py-10 text-muted-foreground"
+                >
                   Aucune vente enregistrée.
                 </td>
               </tr>
             )}
             {sales.map((sale) => {
               const computed = calcTotal(sale);
-              const mismatch = Math.abs(Number(sale.totalAmount) - computed) > 0.01;
+              const mismatch =
+                Math.abs(Number(sale.totalAmount) - computed) > 0.01;
               const salerName = sale.saler
                 ? `${sale.saler.name} ${sale.saler.lastname}`
                 : "—";
@@ -86,10 +114,18 @@ export const SalesListTable: React.FC<SalesListTableProps> = ({
                   <td className="px-4 py-3 whitespace-nowrap">
                     {new Date(sale.saleDate).toLocaleDateString("fr-FR")}
                   </td>
-                  <td className="px-4 py-3 font-mono font-medium">{(sale.invoice?.invoiceNumber ?? "")}</td>
+                  <td className="px-4 py-3 font-mono font-medium">
+                    {sale.invoice?.invoiceNumber ?? ""}
+                  </td>
                   <td className="px-4 py-3">{salerName}</td>
                   <td className="px-4 py-3 text-right">
-                    <span className={mismatch ? "text-orange-500 font-semibold inline-flex items-center gap-1" : "font-semibold"}>
+                    <span
+                      className={
+                        mismatch
+                          ? "text-orange-500 font-semibold inline-flex items-center gap-1"
+                          : "font-semibold"
+                      }
+                    >
                       {mismatch && <AlertTriangle size={12} />}
                       {Number(sale.totalAmount).toLocaleString("fr-FR")} Ar
                     </span>
@@ -98,60 +134,79 @@ export const SalesListTable: React.FC<SalesListTableProps> = ({
                     <SaleStatusBadge status={sale.status} />
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <PaymentStatusBadge status={sale.invoice?.status} totalAmount={sale.totalAmount} balanceDue={(sale.invoice?.balanceDue ?? sale.totalAmount)} />
+                    <PaymentStatusBadge
+                      status={sale.invoice?.status}
+                      totalAmount={sale.totalAmount}
+                      balanceDue={sale.invoice?.balanceDue ?? sale.totalAmount}
+                    />
                   </td>
-                  <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                  <td
+                    className="px-4 py-3 text-center"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <ActionDropdown
                       items={[
                         {
                           label: "Détails",
                           icon: <Eye className="size-4" />,
-                          onClick: () => onSaleClick(sale)
+                          onClick: () => onSaleClick(sale),
                         },
                         {
                           label: "Modifier",
                           icon: <Edit className="size-4" />,
-                          hidden: showCancelled || sale.status === -3 || sale.status === 0,
-                          onClick: () => onEditSale(sale)
+                          hidden:
+                            showCancelled ||
+                            sale.status === -3 ||
+                            sale.status === 0,
+                          onClick: () => onEditSale(sale),
                         },
                         {
                           label: "Fermer",
                           icon: <Lock className="size-4" />,
                           hidden: sale.status !== 5 || !onClose,
-                          onClick: () => onClose?.(sale.idSale)
+                          onClick: () => onClose?.(sale.idSale),
                         },
                         {
                           label: "Rouvrir",
                           icon: <RotateCcw className="size-4" />,
                           hidden: sale.status !== 0 || !onReopen,
-                          onClick: () => onReopen?.(sale.idSale)
+                          onClick: () => onReopen?.(sale.idSale),
                         },
                         {
                           label: "Payer",
                           icon: <Banknote className="size-4" />,
-                          hidden: sale.status === -3 || !onPay || Number(sale.invoice?.balanceDue ?? sale.totalAmount) <= 0,
-                          onClick: () => onPay?.(sale)
+                          hidden:
+                            sale.status === -3 ||
+                            !onPay ||
+                            Number(
+                              sale.invoice?.balanceDue ?? sale.totalAmount,
+                            ) <= 0,
+                          onClick: () => onPay?.(sale),
                         },
                         {
                           label: "Modifier le paiement",
                           icon: <Banknote className="size-4" />,
-                          hidden: sale.status === -3 || !sale.invoice?.payments || sale.invoice.payments.length === 0 || !onManagePayment,
-                          onClick: () => onManagePayment?.(sale)
+                          hidden:
+                            sale.status === -3 ||
+                            !sale.invoice?.payments ||
+                            sale.invoice.payments.length === 0 ||
+                            !onManagePayment,
+                          onClick: () => onManagePayment?.(sale),
                         },
                         {
                           label: "Annuler",
                           icon: <XCircle className="size-4" />,
                           hidden: sale.status === -3 || !onCancel,
                           onClick: () => onCancel?.(sale.idSale),
-                          className: "text-orange-600"
+                          className: "text-orange-600",
                         },
                         {
                           label: "Supprimer",
                           icon: <Trash2 className="size-4" />,
                           hidden: !onDelete,
                           onClick: () => onDelete?.(sale.idSale),
-                          className: "text-red-600"
-                        }
+                          className: "text-red-600",
+                        },
                       ]}
                     />
                   </td>

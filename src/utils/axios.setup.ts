@@ -29,7 +29,8 @@ export const setupAxiosInterceptors = () => {
             !originalRequest.url?.includes("/auth/login")
           ) {
             try {
-              const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
+              const BASE =
+                import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 
               // We use fetch here to completely bypass any axios interceptors and avoid loops
               const response = await fetch(`${BASE}/auth/refresh`, {
@@ -49,7 +50,8 @@ export const setupAxiosInterceptors = () => {
                   localStorage.setItem("refreshToken", newRefreshToken);
                 }
 
-                originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+                originalRequest.headers["Authorization"] =
+                  `Bearer ${newAccessToken}`;
                 return axios(originalRequest);
               } else {
                 throw new Error("Refresh token expired or invalid");

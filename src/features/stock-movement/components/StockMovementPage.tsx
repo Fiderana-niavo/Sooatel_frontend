@@ -1,5 +1,12 @@
 import { useState, useCallback } from "react";
-import { ClipboardList, History, ArrowDownCircle, ArrowUpCircle, Package, Flame } from "lucide-react";
+import {
+  ClipboardList,
+  History,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Package,
+  Flame,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
@@ -8,10 +15,18 @@ import { stockMovementService } from "../services/stock-movement.service";
 import { StockMovementForm } from "./StockMovementForms/StockMovementForm";
 import { StockMovementDraftList } from "./StockMovementLists/StockMovementDraftList";
 import { StockMovementHistoryList } from "./StockMovementLists/StockMovementHistoryList";
-import { StockOverviewList, type StockOverviewFilters } from "./StockMovementLists/StockOverviewList";
+import {
+  StockOverviewList,
+  type StockOverviewFilters,
+} from "./StockMovementLists/StockOverviewList";
 import { LossForm } from "./StockMovementForms/LossForm";
 import { ItemService } from "@/features/items/services/item.service";
-import type { StockMovement, StockMovementDto, StockMovementFilters, StockMovementTab } from "../types/stock-movement.type";
+import type {
+  StockMovement,
+  StockMovementDto,
+  StockMovementFilters,
+  StockMovementTab,
+} from "../types/stock-movement.type";
 
 const DRAFT_STATUS = 5;
 const VALIDATED_STATUS = 0;
@@ -22,11 +37,11 @@ const DEFAULT_HISTORY_FILTERS: StockMovementFilters = {
   status: VALIDATED_STATUS,
 };
 
-
-
 const tabClass = (active: boolean) =>
   `flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-    active ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+    active
+      ? "bg-background shadow-sm text-foreground"
+      : "text-muted-foreground hover:text-foreground"
   }`;
 
 export function StockMovementPage() {
@@ -34,11 +49,23 @@ export function StockMovementPage() {
   const [activeTab, setActiveTab] = useState<StockMovementTab>("overview");
   const [formOpen, setFormOpen] = useState(false);
   const [lossOpen, setLossOpen] = useState(false);
-  const [selectedMovement, setSelectedMovement] = useState<StockMovement | null>(null);
-  const [formDirection, setFormDirection] = useState<number | undefined>(undefined);
-  const [historyFilters, setHistoryFilters] = useState<StockMovementFilters>(DEFAULT_HISTORY_FILTERS);
-  const [overviewFilters, setOverviewFilters] = useState<StockOverviewFilters>({ page: 1, limit: 10 });
-  const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; open: boolean }>({
+  const [selectedMovement, setSelectedMovement] =
+    useState<StockMovement | null>(null);
+  const [formDirection, setFormDirection] = useState<number | undefined>(
+    undefined,
+  );
+  const [historyFilters, setHistoryFilters] = useState<StockMovementFilters>(
+    DEFAULT_HISTORY_FILTERS,
+  );
+  const [overviewFilters, setOverviewFilters] = useState<StockOverviewFilters>({
+    page: 1,
+    limit: 10,
+  });
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: SnackbarType;
+    open: boolean;
+  }>({
     message: "",
     type: "info",
     open: false,
@@ -50,7 +77,8 @@ export function StockMovementPage() {
   /* ---------- Queries ---------- */
   const draftsResult = useQuery({
     queryKey: ["stock-movements", "drafts"],
-    queryFn: () => stockMovementService.getAll({ status: DRAFT_STATUS, limit: 100 }),
+    queryFn: () =>
+      stockMovementService.getAll({ status: DRAFT_STATUS, limit: 100 }),
   });
 
   const historyResult = useQuery({
@@ -71,37 +99,70 @@ export function StockMovementPage() {
 
   const createMutation = useMutation({
     mutationFn: (dto: StockMovementDto) => stockMovementService.create(dto),
-    onSuccess: () => { invalidate(); showSnackbar("Brouillon créé", "success"); closeForm(); },
-    onError: (err: Error) => showSnackbar(err.message || "Erreur lors de la création", "error"),
+    onSuccess: () => {
+      invalidate();
+      showSnackbar("Brouillon créé", "success");
+      closeForm();
+    },
+    onError: (err: Error) =>
+      showSnackbar(err.message || "Erreur lors de la création", "error"),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, dto }: { id: string; dto: StockMovementDto }) => stockMovementService.update(id, dto),
-    onSuccess: () => { invalidate(); showSnackbar("Mouvement mis à jour", "success"); closeForm(); },
-    onError: (err: Error) => showSnackbar(err.message || "Erreur lors de la modification", "error"),
+    mutationFn: ({ id, dto }: { id: string; dto: StockMovementDto }) =>
+      stockMovementService.update(id, dto),
+    onSuccess: () => {
+      invalidate();
+      showSnackbar("Mouvement mis à jour", "success");
+      closeForm();
+    },
+    onError: (err: Error) =>
+      showSnackbar(err.message || "Erreur lors de la modification", "error"),
   });
 
   const validateMutation = useMutation({
     mutationFn: (id: string) => stockMovementService.validate(id),
-    onSuccess: () => { invalidate(); showSnackbar("Mouvement validé — stock mis à jour", "success"); },
-    onError: (err: Error) => showSnackbar(err.message || "Erreur lors de la validation", "error"),
+    onSuccess: () => {
+      invalidate();
+      showSnackbar("Mouvement validé — stock mis à jour", "success");
+    },
+    onError: (err: Error) =>
+      showSnackbar(err.message || "Erreur lors de la validation", "error"),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => stockMovementService.delete(id),
-    onSuccess: () => { invalidate(); showSnackbar("Brouillon supprimé", "success"); },
-    onError: (err: Error) => showSnackbar(err.message || "Erreur lors de la suppression", "error"),
+    onSuccess: () => {
+      invalidate();
+      showSnackbar("Brouillon supprimé", "success");
+    },
+    onError: (err: Error) =>
+      showSnackbar(err.message || "Erreur lors de la suppression", "error"),
   });
 
   /* ---------- Handlers ---------- */
-  const openNewForm = (direction?: number) => { setSelectedMovement(null); setFormDirection(direction); setFormOpen(true); };
-  const closeForm = () => { setFormOpen(false); setSelectedMovement(null); setFormDirection(undefined); };
+  const openNewForm = (direction?: number) => {
+    setSelectedMovement(null);
+    setFormDirection(direction);
+    setFormOpen(true);
+  };
+  const closeForm = () => {
+    setFormOpen(false);
+    setSelectedMovement(null);
+    setFormDirection(undefined);
+  };
 
-  const handleEdit = (m: StockMovement) => { setSelectedMovement(m); setFormOpen(true); };
+  const handleEdit = (m: StockMovement) => {
+    setSelectedMovement(m);
+    setFormOpen(true);
+  };
 
   const handleSave = async (dto: StockMovementDto) => {
     if (selectedMovement) {
-      await updateMutation.mutateAsync({ id: selectedMovement.idStockMovement, dto });
+      await updateMutation.mutateAsync({
+        id: selectedMovement.idStockMovement,
+        dto,
+      });
     } else {
       await createMutation.mutateAsync(dto);
     }
@@ -114,7 +175,7 @@ export function StockMovementPage() {
   const drafts = draftsResult.data?.records ?? [];
   const history = historyResult.data?.records ?? [];
   const historyTotal = historyResult.data?.total ?? 0;
-  
+
   const overviewRecords = overviewResult.data?.records ?? [];
   const overviewTotal = overviewResult.data?.total ?? 0;
 
@@ -158,7 +219,9 @@ export function StockMovementPage() {
         </div>
 
         <div className="flex gap-2">
-          {(activeTab === "overview" || activeTab === "drafts" || activeTab === "history") && (
+          {(activeTab === "overview" ||
+            activeTab === "drafts" ||
+            activeTab === "history") && (
             <>
               <Button
                 variant="outline"
@@ -195,7 +258,9 @@ export function StockMovementPage() {
           total={overviewTotal}
           isLoading={overviewResult.isLoading}
           filters={overviewFilters}
-          onFiltersChange={(partial) => setOverviewFilters((prev) => ({ ...prev, ...partial }))}
+          onFiltersChange={(partial) =>
+            setOverviewFilters((prev) => ({ ...prev, ...partial }))
+          }
         />
       )}
 
@@ -223,9 +288,12 @@ export function StockMovementPage() {
         <div className="flex flex-col gap-4">
           <div className="p-6 text-center bg-muted/30 rounded-xl border border-border/50">
             <Flame className="size-10 text-orange-500 mx-auto mb-3" />
-            <h3 className="font-semibold text-lg mb-1">Enregistrement des pertes</h3>
+            <h3 className="font-semibold text-lg mb-1">
+              Enregistrement des pertes
+            </h3>
             <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-4">
-              Enregistrez les pertes d'articles (casse, péremption, vol...). La quantité sera immédiatement déduite du stock.
+              Enregistrez les pertes d'articles (casse, péremption, vol...). La
+              quantité sera immédiatement déduite du stock.
             </p>
             <Button
               className="bg-orange-500 hover:bg-orange-600 text-white"
@@ -240,14 +308,21 @@ export function StockMovementPage() {
 
       {formOpen && (
         <StockMovementForm
-          initial={selectedMovement ? {
-            idStockMovement: selectedMovement.idStockMovement,
-            idItem: selectedMovement.item?.idItem ?? selectedMovement.idItem,
-            quantity: selectedMovement.quantity,
-            direction: selectedMovement.direction,
-            reason: selectedMovement.reason ?? "",
-            movementDate: selectedMovement.movementDate,
-          } : formDirection !== undefined ? { direction: formDirection } : undefined}
+          initial={
+            selectedMovement
+              ? {
+                  idStockMovement: selectedMovement.idStockMovement,
+                  idItem:
+                    selectedMovement.item?.idItem ?? selectedMovement.idItem,
+                  quantity: selectedMovement.quantity,
+                  direction: selectedMovement.direction,
+                  reason: selectedMovement.reason ?? "",
+                  movementDate: selectedMovement.movementDate,
+                }
+              : formDirection !== undefined
+                ? { direction: formDirection }
+                : undefined
+          }
           onClose={closeForm}
           onSave={handleSave}
         />

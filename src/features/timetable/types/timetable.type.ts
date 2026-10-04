@@ -45,7 +45,6 @@ export interface GenerateByTeamDto {
   shiftIds: string[];
 }
 
-
 export interface SaveScheduleDto {
   idEmployee: string;
   scheduleDate: string;

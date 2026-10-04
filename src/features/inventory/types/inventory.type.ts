@@ -16,6 +16,6 @@ export interface InventoryRow {
   label: string;
   unit: string;
   theoretical: number;
-  physical: number | "";
+  physical: number | string;
   weightedAverageCost: number;
 }

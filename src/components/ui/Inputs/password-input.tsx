@@ -2,7 +2,10 @@ import * as React from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/utils/ui";
 
-interface PasswordInputProps extends Omit<React.ComponentProps<"input">, "type"> {}
+interface PasswordInputProps extends Omit<
+  React.ComponentProps<"input">,
+  "type"
+> {}
 
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ className, ...props }, ref) => {
@@ -14,14 +17,16 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
           type={visible ? "text" : "password"}
           className={cn(
             "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 pr-10 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-            className
+            className,
           )}
           ref={ref}
           {...props}
         />
         <button
           type="button"
-          aria-label={visible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+          aria-label={
+            visible ? "Masquer le mot de passe" : "Afficher le mot de passe"
+          }
           onClick={() => setVisible((v) => !v)}
           className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground transition-colors"
         >
@@ -29,7 +34,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
         </button>
       </div>
     );
-  }
+  },
 );
 
 PasswordInput.displayName = "PasswordInput";

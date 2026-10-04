@@ -1,11 +1,25 @@
 import React, { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { deliveryService } from "../../services/delivery.service";
-import { buildDeliveryPayload, calculateCurrentTotalAmount } from "../../utils/delivery.utils";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/Sheet/sheet";
+import {
+  buildDeliveryPayload,
+  calculateCurrentTotalAmount,
+} from "../../utils/delivery.utils";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/Sheet/sheet";
 import { Button } from "@/components/ui/Button/button";
 import { formatCurrency } from "../../../../utils/formatters";
-import { PackagePlus, AlertCircle, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  PackagePlus,
+  AlertCircle,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import type { Purchase } from "../../../purchases/types/purchase.type";
 import type { PendingPurchase } from "../../types/delivery.type";
 
@@ -17,11 +31,19 @@ interface DeliverySheetProps {
   onGoToDeliveries?: (idPurchase: string) => void;
 }
 
-export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, deliveryIdToEdit, supplierIdForEdit, onClose, onGoToDeliveries }) => {
+export const DeliverySheet: React.FC<DeliverySheetProps> = ({
+  purchase,
+  deliveryIdToEdit,
+  supplierIdForEdit,
+  onClose,
+  onGoToDeliveries,
+}) => {
   const queryClient = useQueryClient();
 
   // Purchases for which input is active (the clicked purchase is active by default)
-  const [activePurchaseIds, setActivePurchaseIds] = useState<Set<string>>(new Set());
+  const [activePurchaseIds, setActivePurchaseIds] = useState<Set<string>>(
+    new Set(),
+  );
   // Purchases for which details are expanded
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   // Map idPurchaseDetail -> entered quantity
@@ -39,11 +61,19 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
     enabled: isEditMode,
   });
 
-  const idSupplier = purchase?.idSupplier ?? supplierIdForEdit ?? deliveryDetails?.purchases?.[0]?.idSupplier ?? null;
+  const idSupplier =
+    purchase?.idSupplier ??
+    supplierIdForEdit ??
+    deliveryDetails?.purchases?.[0]?.idSupplier ??
+    null;
 
   const pendingResult = useQuery({
     queryKey: ["deliveries-pending", idSupplier, deliveryIdToEdit],
-    queryFn: () => deliveryService.getPendingBySupplier(idSupplier!, deliveryIdToEdit || undefined),
+    queryFn: () =>
+      deliveryService.getPendingBySupplier(
+        idSupplier!,
+        deliveryIdToEdit || undefined,
+      ),
     enabled: !!idSupplier,
   });
 
@@ -87,12 +117,20 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
 
       for (const p of pendingResult.data) {
         for (const detail of p.details) {
-          const editDetail = deliveryDetails.details?.find((d: any) => d.idSuppliedItem === detail.idSuppliedItem);
+          const editDetail = deliveryDetails.details?.find(
+            (d: any) => d.idSuppliedItem === detail.idSuppliedItem,
+          );
 
           if (editDetail && Number(editDetail.quantity) > 0) {
             activeIds.add(p.idPurchase);
-            qtyMapInit.set(detail.idPurchaseDetail, Number(editDetail.quantity));
-            priceMapInit.set(detail.idPurchaseDetail, Number(editDetail.unitPrice ?? detail.unitPrice));
+            qtyMapInit.set(
+              detail.idPurchaseDetail,
+              Number(editDetail.quantity),
+            );
+            priceMapInit.set(
+              detail.idPurchaseDetail,
+              Number(editDetail.unitPrice ?? detail.unitPrice),
+            );
           }
         }
       }
@@ -111,35 +149,48 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
     onSuccess: (result) => {
       setSubmitSuccess(`Livraison ${result.ref} enregistrée avec succès !`);
       queryClient.invalidateQueries({ queryKey: ["purchases"] });
-      queryClient.invalidateQueries({ queryKey: ["deliveries-pending", idSupplier] });
+      queryClient.invalidateQueries({
+        queryKey: ["deliveries-pending", idSupplier],
+      });
       queryClient.invalidateQueries({ queryKey: ["deliveries"] });
       setTimeout(onClose, 2000);
     },
     onError: (error: any) => {
       setSubmitError(
-        error?.response?.data?.error || error?.response?.data?.message || "Erreur lors de l'enregistrement. Veuillez réessayer."
+        error?.response?.data?.error ||
+          error?.response?.data?.message ||
+          "Erreur lors de l'enregistrement. Veuillez réessayer.",
       );
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: (payload: any) => deliveryService.updateDelivery(deliveryIdToEdit!, payload),
+    mutationFn: (payload: any) =>
+      deliveryService.updateDelivery(deliveryIdToEdit!, payload),
     onSuccess: (result) => {
       setSubmitSuccess(`Livraison ${result.ref} modifiée avec succès !`);
       queryClient.invalidateQueries({ queryKey: ["purchases"] });
-      queryClient.invalidateQueries({ queryKey: ["deliveries-pending", idSupplier] });
+      queryClient.invalidateQueries({
+        queryKey: ["deliveries-pending", idSupplier],
+      });
       queryClient.invalidateQueries({ queryKey: ["deliveries"] });
-      queryClient.invalidateQueries({ queryKey: ["deliveryDetails", deliveryIdToEdit] });
+      queryClient.invalidateQueries({
+        queryKey: ["deliveryDetails", deliveryIdToEdit],
+      });
       setTimeout(onClose, 2000);
     },
     onError: (error: any) => {
       setSubmitError(
-        error?.response?.data?.error || error?.response?.data?.message || "Erreur lors de la modification. Veuillez réessayer."
+        error?.response?.data?.error ||
+          error?.response?.data?.message ||
+          "Erreur lors de la modification. Veuillez réessayer.",
       );
     },
   });
 
-  const isPending = isEditMode ? updateMutation.isPending : createMutation.isPending;
+  const isPending = isEditMode
+    ? updateMutation.isPending
+    : createMutation.isPending;
 
   const handleToggleActive = useCallback((idPurchase: string) => {
     setActivePurchaseIds((prev) => {
@@ -166,23 +217,29 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
     });
   }, []);
 
-  const handleQtyChange = useCallback((idPurchaseDetail: string, value: string) => {
-    const num = Math.max(0, parseFloat(value) || 0);
-    setQtyMap((prev) => {
-      const next = new Map(prev);
-      next.set(idPurchaseDetail, num);
-      return next;
-    });
-  }, []);
+  const handleQtyChange = useCallback(
+    (idPurchaseDetail: string, value: string) => {
+      const num = Math.max(0, parseFloat(value) || 0);
+      setQtyMap((prev) => {
+        const next = new Map(prev);
+        next.set(idPurchaseDetail, num);
+        return next;
+      });
+    },
+    [],
+  );
 
-  const handlePriceChange = useCallback((idPurchaseDetail: string, value: string) => {
-    const num = Math.max(0, parseFloat(value) || 0);
-    setPriceMap((prev) => {
-      const next = new Map(prev);
-      next.set(idPurchaseDetail, num);
-      return next;
-    });
-  }, []);
+  const handlePriceChange = useCallback(
+    (idPurchaseDetail: string, value: string) => {
+      const num = Math.max(0, parseFloat(value) || 0);
+      setPriceMap((prev) => {
+        const next = new Map(prev);
+        next.set(idPurchaseDetail, num);
+        return next;
+      });
+    },
+    [],
+  );
 
   const handleSubmit = () => {
     if (!pendingResult.data) return;
@@ -194,7 +251,7 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
       pendingResult.data,
       activePurchaseIds,
       qtyMap,
-      priceMap
+      priceMap,
     );
 
     if (payload.lines.length === 0) {
@@ -218,24 +275,40 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
   };
 
   const currentTotalAmount = React.useMemo(() => {
-    return pendingResult.data ? calculateCurrentTotalAmount(pendingResult.data, activePurchaseIds, qtyMap, priceMap) : 0;
+    return pendingResult.data
+      ? calculateCurrentTotalAmount(
+          pendingResult.data,
+          activePurchaseIds,
+          qtyMap,
+          priceMap,
+        )
+      : 0;
   }, [pendingResult.data, activePurchaseIds, qtyMap, priceMap]);
 
   // Sort: clicked purchase first, then others
   const sorted: PendingPurchase[] = pendingResult.data
     ? [
-      ...pendingResult.data.filter((p) => p.idPurchase === purchase?.idPurchase),
-      ...pendingResult.data.filter((p) => p.idPurchase !== purchase?.idPurchase),
-    ]
+        ...pendingResult.data.filter(
+          (p) => p.idPurchase === purchase?.idPurchase,
+        ),
+        ...pendingResult.data.filter(
+          (p) => p.idPurchase !== purchase?.idPurchase,
+        ),
+      ]
     : [];
 
   return (
-    <Sheet open={!!purchase || !!deliveryIdToEdit} onOpenChange={handleOpenChange}>
+    <Sheet
+      open={!!purchase || !!deliveryIdToEdit}
+      onOpenChange={handleOpenChange}
+    >
       <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
         <SheetHeader className="mb-4">
           <SheetTitle className="text-2xl font-bold flex items-center gap-2">
             <PackagePlus className="h-6 w-6 text-primary" />
-            {isEditMode ? "Modification de la livraison" : "Réception de marchandises"}
+            {isEditMode
+              ? "Modification de la livraison"
+              : "Réception de marchandises"}
           </SheetTitle>
           <p className="text-sm text-muted-foreground">
             {isEditMode
@@ -260,8 +333,11 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
           <div className="mb-4 px-3 py-2 rounded-md bg-amber-500/10 border border-amber-500/30 flex items-start gap-2">
             <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
             <p className="text-xs text-amber-600 dark:text-amber-400">
-              <strong>Peut-être que ces commandes ont déjà été livrées aussi.</strong>{" "}
-              Cochez «&nbsp;Inclure&nbsp;» sur les commandes concernées pour y saisir des quantités.
+              <strong>
+                Peut-être que ces commandes ont déjà été livrées aussi.
+              </strong>{" "}
+              Cochez «&nbsp;Inclure&nbsp;» sur les commandes concernées pour y
+              saisir des quantités.
             </p>
           </div>
         )}
@@ -275,10 +351,11 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
             return (
               <div
                 key={p.idPurchase}
-                className={`rounded-lg border transition-all ${isActive
+                className={`rounded-lg border transition-all ${
+                  isActive
                     ? "border-primary/50 bg-card"
                     : "border-border/40 bg-muted/20 opacity-60"
-                  }`}
+                }`}
               >
                 {/* Purchase header */}
                 <div className="flex items-center justify-between px-4 py-3">
@@ -288,7 +365,11 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
                       className="text-muted-foreground hover:text-foreground transition-colors"
                       type="button"
                     >
-                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      {isExpanded ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
                     </button>
                     <div>
                       <p className="font-semibold text-sm">
@@ -305,7 +386,8 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
                           month: "long",
                           year: "numeric",
                         })}
-                        {p.purchaser && ` · ${p.purchaser.name} ${p.purchaser.lastname ?? ""}`}
+                        {p.purchaser &&
+                          ` · ${p.purchaser.name} ${p.purchaser.lastname ?? ""}`}
                         {` · ${p.status}`}
                       </p>
                     </div>
@@ -329,19 +411,38 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
                     <table className="w-full text-sm">
                       <thead className="bg-muted/50 text-muted-foreground">
                         <tr>
-                          <th className="px-4 py-2 text-left font-medium">Article</th>
-                          <th className="px-4 py-2 text-right font-medium">Commandé</th>
-                          <th className="px-4 py-2 text-right font-medium">Déjà livré</th>
-                          <th className="px-4 py-2 text-right font-medium">Restant</th>
-                          <th className="px-4 py-2 text-right font-medium">Prix unité (Ar)</th>
-                          <th className="px-4 py-2 text-right font-medium">Reçu maintenant</th>
+                          <th className="px-4 py-2 text-left font-medium">
+                            Article
+                          </th>
+                          <th className="px-4 py-2 text-right font-medium">
+                            Commandé
+                          </th>
+                          <th className="px-4 py-2 text-right font-medium">
+                            Déjà livré
+                          </th>
+                          <th className="px-4 py-2 text-right font-medium">
+                            Restant
+                          </th>
+                          <th className="px-4 py-2 text-right font-medium">
+                            Prix unité (Ar)
+                          </th>
+                          <th className="px-4 py-2 text-right font-medium">
+                            Reçu maintenant
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/40">
                         {p.details.map((detail) => {
-                          const currentQty = qtyMap.get(detail.idPurchaseDetail) ?? 0;
-                          const currentPrice = priceMap.get(detail.idPurchaseDetail) ?? Number(detail.unitPrice) ?? 0;
-                          const displayRemaining = Math.max(0, detail.remaining - currentQty);
+                          const currentQty =
+                            qtyMap.get(detail.idPurchaseDetail) ?? 0;
+                          const currentPrice =
+                            priceMap.get(detail.idPurchaseDetail) ??
+                            Number(detail.unitPrice) ??
+                            0;
+                          const displayRemaining = Math.max(
+                            0,
+                            detail.remaining - currentQty,
+                          );
                           // "Livré" badge only if already fully delivered from backend (before user types anything)
                           const alreadyFullyDelivered = detail.remaining <= 0;
 
@@ -351,7 +452,8 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
                               className={`${alreadyFullyDelivered ? "opacity-50" : ""}`}
                             >
                               <td className="px-4 py-2.5 font-medium">
-                                {detail.suppliedItem?.item?.label ?? "Article inconnu"}
+                                {detail.suppliedItem?.item?.label ??
+                                  "Article inconnu"}
                               </td>
                               <td className="px-4 py-2.5 text-right text-muted-foreground">
                                 {detail.quantity}
@@ -372,7 +474,13 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
                                     Livré
                                   </span>
                                 ) : (
-                                  <span className={displayRemaining === 0 ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-amber-600 dark:text-amber-400"}>
+                                  <span
+                                    className={
+                                      displayRemaining === 0
+                                        ? "text-emerald-600 dark:text-emerald-400 font-medium"
+                                        : "text-amber-600 dark:text-amber-400"
+                                    }
+                                  >
                                     {displayRemaining}
                                   </span>
                                 )}
@@ -383,10 +491,15 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
                                   min="0"
                                   step="0.01"
                                   value={currentPrice === 0 ? "" : currentPrice}
-                                  placeholder={Number(detail.unitPrice).toString()}
+                                  placeholder={Number(
+                                    detail.unitPrice,
+                                  ).toString()}
                                   disabled={!isActive}
                                   onChange={(e) =>
-                                    handlePriceChange(detail.idPurchaseDetail, e.target.value)
+                                    handlePriceChange(
+                                      detail.idPurchaseDetail,
+                                      e.target.value,
+                                    )
                                   }
                                   className="w-24 text-right border border-border rounded-md px-2 py-1 text-sm bg-background
                                     focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary
@@ -402,7 +515,10 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
                                   placeholder="0"
                                   disabled={!isActive}
                                   onChange={(e) =>
-                                    handleQtyChange(detail.idPurchaseDetail, e.target.value)
+                                    handleQtyChange(
+                                      detail.idPurchaseDetail,
+                                      e.target.value,
+                                    )
                                   }
                                   className="w-24 text-right border border-border rounded-md px-2 py-1 text-sm bg-background
                                     focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary
@@ -415,10 +531,16 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
                       </tbody>
                       <tfoot className="bg-muted/30">
                         <tr>
-                          <td colSpan={4} className="px-4 py-2 text-right text-xs text-muted-foreground">
+                          <td
+                            colSpan={4}
+                            className="px-4 py-2 text-right text-xs text-muted-foreground"
+                          >
                             Total commande
                           </td>
-                          <td colSpan={2} className="px-4 py-2 text-right font-semibold text-sm">
+                          <td
+                            colSpan={2}
+                            className="px-4 py-2 text-right font-semibold text-sm"
+                          >
                             {formatCurrency(p.totalAmount)}
                           </td>
                         </tr>
@@ -434,8 +556,12 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
         {/* Footer: messages + submit button */}
         <div className="sticky bottom-0 bg-background border-t border-border/50 pt-4 pb-2 space-y-3">
           <div className="flex justify-between items-center px-1">
-            <span className="font-semibold text-muted-foreground">Montant total de la livraison :</span>
-            <span className="text-lg font-bold text-primary">{formatCurrency(currentTotalAmount)}</span>
+            <span className="font-semibold text-muted-foreground">
+              Montant total de la livraison :
+            </span>
+            <span className="text-lg font-bold text-primary">
+              {formatCurrency(currentTotalAmount)}
+            </span>
           </div>
 
           {submitError && (
@@ -444,27 +570,32 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 {submitError}
               </div>
-              {submitError.includes("existe déjà pour la commande") && onGoToDeliveries && purchase && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-xs text-red-600 border-red-200 hover:bg-red-500/20"
-                  onClick={() => {
-                    const savedState = {
-                      purchase,
-                      qtyMap: Array.from(qtyMap.entries()),
-                      activePurchaseIds: Array.from(activePurchaseIds),
-                      expandedIds: Array.from(expandedIds)
-                    };
-                    sessionStorage.setItem("deliverySheetSavedState", JSON.stringify(savedState));
+              {submitError.includes("existe déjà pour la commande") &&
+                onGoToDeliveries &&
+                purchase && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs text-red-600 border-red-200 hover:bg-red-500/20"
+                    onClick={() => {
+                      const savedState = {
+                        purchase,
+                        qtyMap: Array.from(qtyMap.entries()),
+                        activePurchaseIds: Array.from(activePurchaseIds),
+                        expandedIds: Array.from(expandedIds),
+                      };
+                      sessionStorage.setItem(
+                        "deliverySheetSavedState",
+                        JSON.stringify(savedState),
+                      );
 
-                    onGoToDeliveries(purchase.idPurchase);
-                    // onClose(); // Removed to prevent any race condition with unmounting
-                  }}
-                >
-                  Voir les livraisons en cours
-                </Button>
-              )}
+                      onGoToDeliveries(purchase.idPurchase);
+                      // onClose(); // Removed to prevent any race condition with unmounting
+                    }}
+                  >
+                    Voir les livraisons en cours
+                  </Button>
+                )}
             </div>
           )}
           {submitSuccess && (
@@ -473,12 +604,14 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
               {submitSuccess}
             </div>
           )}
-          
+
           <div className="flex items-start gap-2 bg-blue-500/10 p-3 rounded-md border border-blue-500/20 text-blue-700 dark:text-blue-400 text-sm">
             <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
             <p>
-              <strong>Note :</strong> Cette livraison sera enregistrée avec le statut <strong>"Ouverte" (Brouillon)</strong>. 
-              Le stock ne sera pas mis à jour et vous ne pourrez pas effectuer de paiement tant qu'elle ne sera pas validée définitivement.
+              <strong>Note :</strong> Cette livraison sera enregistrée avec le
+              statut <strong>"Ouverte" (Brouillon)</strong>. Le stock ne sera
+              pas mis à jour et vous ne pourrez pas effectuer de paiement tant
+              qu'elle ne sera pas validée définitivement.
             </p>
           </div>
 
@@ -487,7 +620,11 @@ export const DeliverySheet: React.FC<DeliverySheetProps> = ({ purchase, delivery
             disabled={isPending || (isEditMode && !deliveryDetails)}
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
           >
-            {isPending ? "Enregistrement..." : (isEditMode ? "Enregistrer les modifications" : "Enregistrer la réception")}
+            {isPending
+              ? "Enregistrement..."
+              : isEditMode
+                ? "Enregistrer les modifications"
+                : "Enregistrer la réception"}
           </Button>
         </div>
       </SheetContent>

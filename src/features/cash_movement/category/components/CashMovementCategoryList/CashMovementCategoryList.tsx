@@ -1,9 +1,18 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Search } from "lucide-react";
 import { CashMovementCategoryService } from "../../services/cash-movement-category.service";
-import type { CashMovementCategory, CashMovementCategoryDto } from "../../../types";
+import type {
+  CashMovementCategory,
+  CashMovementCategoryDto,
+} from "../../../types";
 import { Button } from "@/components/ui/Button/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/Dialog/dialog";
 import { Input } from "@/components/ui/Inputs/input";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
@@ -15,19 +24,32 @@ export function CashMovementCategoryList() {
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<CashMovementCategory | null>(null);
-  const [formData, setFormData] = useState<CashMovementCategoryDto>({ label: "", allowedDirection: 0 });
+  const [selectedCategory, setSelectedCategory] =
+    useState<CashMovementCategory | null>(null);
+  const [formData, setFormData] = useState<CashMovementCategoryDto>({
+    label: "",
+    allowedDirection: 0,
+  });
 
-  const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({ message: "", type: "info", isOpen: false });
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: SnackbarType;
+    isOpen: boolean;
+  }>({ message: "", type: "info", isOpen: false });
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState<CashMovementCategory | null>(null);
+  const [categoryToDelete, setCategoryToDelete] =
+    useState<CashMovementCategory | null>(null);
 
-  const showSnackbar = (message: string, type: SnackbarType = "info") => setSnackbar({ message, type, isOpen: true });
+  const showSnackbar = (message: string, type: SnackbarType = "info") =>
+    setSnackbar({ message, type, isOpen: true });
 
   const loadCategories = async () => {
     setIsLoading(true);
     try {
-      const data = await CashMovementCategoryService.getAll({ search, limit: 100 });
+      const data = await CashMovementCategoryService.getAll({
+        search,
+        limit: 100,
+      });
       setCategories(data.records);
     } catch (err) {
       showSnackbar("Erreur lors du chargement des catégories", "error");
@@ -44,7 +66,10 @@ export function CashMovementCategoryList() {
   const handleOpenDialog = (category?: CashMovementCategory) => {
     if (category) {
       setSelectedCategory(category);
-      setFormData({ label: category.label, allowedDirection: category.allowedDirection });
+      setFormData({
+        label: category.label,
+        allowedDirection: category.allowedDirection,
+      });
     } else {
       setSelectedCategory(null);
       setFormData({ label: "", allowedDirection: 0 });
@@ -59,7 +84,10 @@ export function CashMovementCategoryList() {
     }
     try {
       if (selectedCategory) {
-        await CashMovementCategoryService.update(selectedCategory.idCashMovementCategory, formData);
+        await CashMovementCategoryService.update(
+          selectedCategory.idCashMovementCategory,
+          formData,
+        );
         showSnackbar("Catégorie modifiée", "success");
       } else {
         await CashMovementCategoryService.create(formData);
@@ -80,7 +108,9 @@ export function CashMovementCategoryList() {
   const executeDelete = async () => {
     if (!categoryToDelete) return;
     try {
-      await CashMovementCategoryService.delete(categoryToDelete.idCashMovementCategory);
+      await CashMovementCategoryService.delete(
+        categoryToDelete.idCashMovementCategory,
+      );
       showSnackbar("Catégorie supprimée", "success");
       loadCategories();
     } catch (err: any) {
@@ -90,8 +120,6 @@ export function CashMovementCategoryList() {
       setCategoryToDelete(null);
     }
   };
-
-
 
   return (
     <div className="flex flex-col gap-4">
@@ -123,26 +151,49 @@ export function CashMovementCategoryList() {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={3} className="text-center py-4 text-muted-foreground">Chargement...</td>
+                <td
+                  colSpan={3}
+                  className="text-center py-4 text-muted-foreground"
+                >
+                  Chargement...
+                </td>
               </tr>
             ) : categories.length === 0 ? (
               <tr>
-                <td colSpan={3} className="text-center py-4 text-muted-foreground">Aucune catégorie trouvée</td>
+                <td
+                  colSpan={3}
+                  className="text-center py-4 text-muted-foreground"
+                >
+                  Aucune catégorie trouvée
+                </td>
               </tr>
             ) : (
               categories.map((cat) => (
-                <tr key={cat.idCashMovementCategory} className="border-t hover:bg-muted/50">
+                <tr
+                  key={cat.idCashMovementCategory}
+                  className="border-t hover:bg-muted/50"
+                >
                   <td className="px-4 py-3">{cat.label}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${cat.allowedDirection === 5 ? 'bg-green-100 text-green-700' : cat.allowedDirection === -5 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${cat.allowedDirection === 5 ? "bg-green-100 text-green-700" : cat.allowedDirection === -5 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}
+                    >
                       {getDirectionLabel(cat.allowedDirection)}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(cat)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleOpenDialog(cat)}
+                    >
                       <Edit2 className="w-4 h-4 text-blue-500" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => confirmDelete(cat)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => confirmDelete(cat)}
+                    >
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
                   </td>
@@ -156,14 +207,18 @@ export function CashMovementCategoryList() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{selectedCategory ? "Modifier" : "Nouvelle"} Catégorie</DialogTitle>
+            <DialogTitle>
+              {selectedCategory ? "Modifier" : "Nouvelle"} Catégorie
+            </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-4">
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium">Libellé *</label>
               <Input
                 value={formData.label}
-                onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, label: e.target.value })
+                }
                 placeholder="Ex: Fournitures"
               />
             </div>
@@ -172,7 +227,12 @@ export function CashMovementCategoryList() {
               <select
                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={formData.allowedDirection}
-                onChange={(e) => setFormData({ ...formData, allowedDirection: Number(e.target.value) })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    allowedDirection: Number(e.target.value),
+                  })
+                }
               >
                 <option value={-5}>Sortie</option>
                 <option value={5}>Entrée </option>
@@ -181,7 +241,9 @@ export function CashMovementCategoryList() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Annuler
+            </Button>
             <Button onClick={handleSave}>Enregistrer</Button>
           </DialogFooter>
         </DialogContent>
@@ -196,7 +258,11 @@ export function CashMovementCategoryList() {
       />
 
       {snackbar.isOpen && (
-        <Snackbar message={snackbar.message} type={snackbar.type} onClose={() => setSnackbar({ ...snackbar, isOpen: false })} />
+        <Snackbar
+          message={snackbar.message}
+          type={snackbar.type}
+          onClose={() => setSnackbar({ ...snackbar, isOpen: false })}
+        />
       )}
     </div>
   );

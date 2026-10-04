@@ -1,7 +1,15 @@
 import { toIsoDate } from "@/utils/date";
 import React, { useState, useEffect, useCallback } from "react";
-import type { Metric, DashboardSummary, TopProductsResult, ProductDetail } from "../types/dashboard";
-import { CaDashboardService, BenefitDashboardService } from "../services/dashboard.service";
+import type {
+  Metric,
+  DashboardSummary,
+  TopProductsResult,
+  ProductDetail,
+} from "../types/dashboard";
+import {
+  CaDashboardService,
+  BenefitDashboardService,
+} from "../services/dashboard.service";
 import { DashboardFilter } from "./DashboardFilter";
 import { SummaryCards } from "./SummaryCards";
 import { TrendChart } from "./TrendChart";
@@ -27,9 +35,15 @@ export const DashboardPage: React.FC = () => {
   const [endDate, setEndDate] = useState(defaults.end);
 
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [topProducts, setTopProducts] = useState<TopProductsResult | null>(null);
-  const [productDetail, setProductDetail] = useState<ProductDetail | null>(null);
-  const [allProducts, setAllProducts] = useState<{ value: string; label: string }[]>([]);
+  const [topProducts, setTopProducts] = useState<TopProductsResult | null>(
+    null,
+  );
+  const [productDetail, setProductDetail] = useState<ProductDetail | null>(
+    null,
+  );
+  const [allProducts, setAllProducts] = useState<
+    { value: string; label: string }[]
+  >([]);
 
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [loadingTop, setLoadingTop] = useState(false);
@@ -38,7 +52,8 @@ export const DashboardPage: React.FC = () => {
   const [selectedIdMenu, setSelectedIdMenu] = useState<string | null>(null);
 
   // Sélectionner le bon service selon l'onglet actif
-  const service = metric === "ca" ? CaDashboardService : BenefitDashboardService;
+  const service =
+    metric === "ca" ? CaDashboardService : BenefitDashboardService;
 
   // ── Fetch summary ──────────────────────────────────────────────────────────
   const fetchSummary = useCallback(async () => {
@@ -74,19 +89,26 @@ export const DashboardPage: React.FC = () => {
   }, [startDate, endDate, metric]);
 
   // ── Fetch product detail ───────────────────────────────────────────────────
-  const fetchProductDetail = useCallback(async (idMenu: string) => {
-    if (!startDate || !endDate) return;
-    setLoadingDetail(true);
-    try {
-      const result = await service.getProductDetail(idMenu, startDate, endDate);
-      setProductDetail(result);
-    } catch (e) {
-      console.error("[DashboardPage] fetchProductDetail error", e);
-      setProductDetail(null);
-    } finally {
-      setLoadingDetail(false);
-    }
-  }, [startDate, endDate, metric]);
+  const fetchProductDetail = useCallback(
+    async (idMenu: string) => {
+      if (!startDate || !endDate) return;
+      setLoadingDetail(true);
+      try {
+        const result = await service.getProductDetail(
+          idMenu,
+          startDate,
+          endDate,
+        );
+        setProductDetail(result);
+      } catch (e) {
+        console.error("[DashboardPage] fetchProductDetail error", e);
+        setProductDetail(null);
+      } finally {
+        setLoadingDetail(false);
+      }
+    },
+    [startDate, endDate, metric],
+  );
 
   useEffect(() => {
     SaleService.getMenuItems()
@@ -95,7 +117,9 @@ export const DashboardPage: React.FC = () => {
           setAllProducts(res.payload);
         }
       })
-      .catch((err) => console.error("Failed to load products for dashboard", err));
+      .catch((err) =>
+        console.error("Failed to load products for dashboard", err),
+      );
   }, []);
 
   // ── Effects ────────────────────────────────────────────────────────────────
@@ -146,7 +170,10 @@ export const DashboardPage: React.FC = () => {
       {/* ── Trend chart ──────────────────────────────────────────────────── */}
       <div className="bg-card border border-border/50 rounded-2xl p-6 shadow-sm">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-          {metric === "ca" ? "Évolution du Chiffre d'affaires" : "Évolution du Bénéfice"} sur la période
+          {metric === "ca"
+            ? "Évolution du Chiffre d'affaires"
+            : "Évolution du Bénéfice"}{" "}
+          sur la période
         </p>
         <TrendChart
           data={summary?.chartData ?? []}
@@ -159,7 +186,8 @@ export const DashboardPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-card border border-border/50 rounded-2xl p-6 shadow-sm">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-            Top 5 produits — {metric === "ca" ? "Chiffre d'affaires" : "Bénéfice"}
+            Top 5 produits —{" "}
+            {metric === "ca" ? "Chiffre d'affaires" : "Bénéfice"}
           </p>
           <TopProductsChart
             products={topProducts?.top5 ?? []}
@@ -195,7 +223,9 @@ export const DashboardPage: React.FC = () => {
               onChange={(e) => setSelectedIdMenu(e.target.value)}
               className="w-full text-sm rounded-xl border border-border bg-background px-3 py-2 outline-none focus:border-primary transition-colors"
             >
-              <option value="" disabled>Sélectionner un produit...</option>
+              <option value="" disabled>
+                Sélectionner un produit...
+              </option>
               {allProducts.map((p: any) => (
                 <option key={p.value} value={p.value}>
                   {p.label}

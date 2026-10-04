@@ -6,7 +6,9 @@ const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 
 export const TeamService = {
   getAll: async (): Promise<Team[]> => {
-    const res = await axios.get<ApiResponse<{ records: Team[] }>>(`${BASE}/teams?limit=100`);
+    const res = await axios.get<ApiResponse<{ records: Team[] }>>(
+      `${BASE}/teams?limit=100`,
+    );
     if (!res.data.ok) throw new Error(res.data.error);
     return res.data.payload.records || [];
   },
@@ -24,24 +26,33 @@ export const TeamService = {
   },
 
   getMembers: async (idTeam: string): Promise<any[]> => {
-    const res = await axios.get<ApiResponse<any[]>>(`${BASE}/teams/${idTeam}/members`);
+    const res = await axios.get<ApiResponse<any[]>>(
+      `${BASE}/teams/${idTeam}/members`,
+    );
     if (!res.data.ok) throw new Error(res.data.error);
     return res.data.payload;
   },
 
   getAvailableEmployees: async (): Promise<any[]> => {
-    const res = await axios.get<ApiResponse<any[]>>(`${BASE}/teams/available-members`);
+    const res = await axios.get<ApiResponse<any[]>>(
+      `${BASE}/teams/available-members`,
+    );
     if (!res.data.ok) throw new Error(res.data.error);
     return res.data.payload;
   },
 
   addMembers: async (idTeam: string, employeeIds: string[]): Promise<void> => {
-    const res = await axios.post<ApiResponse<void>>(`${BASE}/teams/${idTeam}/members`, { employeeIds });
+    const res = await axios.post<ApiResponse<void>>(
+      `${BASE}/teams/${idTeam}/members`,
+      { employeeIds },
+    );
     if (!res.data.ok) throw new Error(res.data.error);
   },
 
   removeMember: async (idTeam: string, idEmployee: string): Promise<void> => {
-    const res = await axios.delete<ApiResponse<void>>(`${BASE}/teams/${idTeam}/members/${idEmployee}`);
+    const res = await axios.delete<ApiResponse<void>>(
+      `${BASE}/teams/${idTeam}/members/${idEmployee}`,
+    );
     if (!res.data.ok) throw new Error(res.data.error);
   },
 

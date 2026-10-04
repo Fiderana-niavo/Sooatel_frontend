@@ -13,7 +13,11 @@ type Step = "choice" | "email" | "key";
 
 const accentColor = "from-[#e4a192] to-[#d89282]";
 
-export function ForgotPasswordForm({ onBackToLogin, onSubmitEmail, onSubmitKey }: ForgotPasswordFormProps) {
+export function ForgotPasswordForm({
+  onBackToLogin,
+  onSubmitEmail,
+  onSubmitKey,
+}: ForgotPasswordFormProps) {
   const [step, setStep] = useState<Step>("choice");
   const [isLoading, setIsLoading] = useState(false);
   const [identifier, setIdentifier] = useState("");
@@ -54,8 +58,12 @@ export function ForgotPasswordForm({ onBackToLogin, onSubmitEmail, onSubmitKey }
     return (
       <div className="animate-in fade-in slide-in-from-left-8 duration-500 mt-8 md:mt-0">
         <div className="mb-8 text-center md:text-left">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Récupération</h2>
-          <p className="text-slate-500">Comment souhaitez-vous réinitialiser votre mot de passe ?</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
+            Récupération
+          </h2>
+          <p className="text-slate-500">
+            Comment souhaitez-vous réinitialiser votre mot de passe ?
+          </p>
         </div>
 
         <div className="space-y-4">
@@ -120,13 +128,19 @@ export function ForgotPasswordForm({ onBackToLogin, onSubmitEmail, onSubmitKey }
         </button>
 
         <div className="mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Réinitialisation par email</h2>
-          <p className="text-slate-500">Entrez votre adresse email ou nom d'utilisateur.</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
+            Réinitialisation par email
+          </h2>
+          <p className="text-slate-500">
+            Entrez votre adresse email ou nom d'utilisateur.
+          </p>
         </div>
 
         <form onSubmit={handleEmailSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700 ml-1">Email ou nom d'utilisateur</label>
+            <label className="text-sm font-medium text-slate-700 ml-1">
+              Email ou nom d'utilisateur
+            </label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#223c56] transition-colors">
                 <Mail className="size-5" />
@@ -176,13 +190,19 @@ export function ForgotPasswordForm({ onBackToLogin, onSubmitEmail, onSubmitKey }
       </button>
 
       <div className="mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Clé manager</h2>
-        <p className="text-slate-500">Entrez votre nom d'utilisateur et la clé fournie par votre manager.</p>
+        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
+          Clé manager
+        </h2>
+        <p className="text-slate-500">
+          Entrez votre nom d'utilisateur et la clé fournie par votre manager.
+        </p>
       </div>
 
       <form onSubmit={handleKeySubmit} className="space-y-5">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700 ml-1">Nom d'utilisateur</label>
+          <label className="text-sm font-medium text-slate-700 ml-1">
+            Nom d'utilisateur
+          </label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#223c56] transition-colors">
               <Mail className="size-5" />
@@ -200,7 +220,9 @@ export function ForgotPasswordForm({ onBackToLogin, onSubmitEmail, onSubmitKey }
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700 ml-1">Clé de récupération</label>
+          <label className="text-sm font-medium text-slate-700 ml-1">
+            Clé de récupération
+          </label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#223c56] transition-colors">
               <Key className="size-5" />

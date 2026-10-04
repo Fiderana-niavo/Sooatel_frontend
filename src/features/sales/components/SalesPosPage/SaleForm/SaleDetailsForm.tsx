@@ -20,7 +20,18 @@ interface SaleDetailsProps {
 }
 
 export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
-  saleDate, invoiceNumber, tableNumber, chargeToRoom, idRoom, idSaler, salers, rooms, comment, onChange, locationType, onLocationChange
+  saleDate,
+  invoiceNumber,
+  tableNumber,
+  chargeToRoom,
+  idRoom,
+  idSaler,
+  salers,
+  rooms,
+  comment,
+  onChange,
+  locationType,
+  onLocationChange,
 }) => {
   const handleLocationChange = (type: "restaurant" | "room") => {
     onLocationChange(type);
@@ -34,10 +45,11 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
     }
   };
 
-
   return (
     <div className="bg-card p-6 rounded-xl border border-border/50 shadow-sm space-y-4">
-      <h3 className="text-lg font-semibold text-primary mb-4">Détails de la Vente</h3>
+      <h3 className="text-lg font-semibold text-primary mb-4">
+        Détails de la Vente
+      </h3>
 
       {/* Location Type Selector */}
       <div className="flex gap-4 mb-4">
@@ -49,7 +61,9 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
             onChange={() => handleLocationChange("restaurant")}
             className="w-4 h-4 text-primary focus:ring-primary"
           />
-          <span className="text-sm font-medium">Consommation au Restaurant</span>
+          <span className="text-sm font-medium">
+            Consommation au Restaurant
+          </span>
         </label>
         <label className="flex items-center space-x-2 cursor-pointer">
           <input
@@ -59,13 +73,17 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
             onChange={() => handleLocationChange("room")}
             className="w-4 h-4 text-primary focus:ring-primary"
           />
-          <span className="text-sm font-medium">Service en Chambre (Room Service)</span>
+          <span className="text-sm font-medium">
+            Service en Chambre (Room Service)
+          </span>
         </label>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Numéro de Facture <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium mb-1">
+            Numéro de Facture <span className="text-red-500">*</span>
+          </label>
           <Input
             value={invoiceNumber}
             onChange={(e) => onChange("invoiceNumber", e.target.value)}
@@ -73,7 +91,9 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Date de Vente <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium mb-1">
+            Date de Vente <span className="text-red-500">*</span>
+          </label>
           <Input
             type="datetime-local"
             value={saleDate}
@@ -81,7 +101,9 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
           />
         </div>
         <div className="flex-1">
-          <label className="block text-sm font-medium mb-1">Vendeur <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium mb-1">
+            Vendeur <span className="text-red-500">*</span>
+          </label>
           <SearchableSelect
             value={idSaler}
             onChange={(val) => onChange("idSaler", val)}
@@ -97,14 +119,25 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
             </label>
             <Input
               type="number"
-              value={tableNumber !== undefined && tableNumber !== null ? tableNumber : ""}
-              onChange={(e) => onChange("tableNumber", e.target.value ? Number(e.target.value) : "")}
+              value={
+                tableNumber !== undefined && tableNumber !== null
+                  ? tableNumber
+                  : ""
+              }
+              onChange={(e) =>
+                onChange(
+                  "tableNumber",
+                  e.target.value ? Number(e.target.value) : "",
+                )
+              }
               placeholder="Ex: 12"
             />
           </div>
         ) : (
           <div>
-            <label className="block text-sm font-medium mb-1">Chambre <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium mb-1">
+              Chambre <span className="text-red-500">*</span>
+            </label>
             <SearchableSelect
               value={idRoom}
               onChange={(val) => onChange("idRoom", val)}
@@ -115,7 +148,9 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
         )}
 
         <div>
-          <label className="block text-sm font-medium mb-1">Commentaire additionnel (Optionnel)</label>
+          <label className="block text-sm font-medium mb-1">
+            Commentaire additionnel (Optionnel)
+          </label>
           <textarea
             className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             placeholder="Ex: Pas de salade, sans oignon..."
@@ -137,13 +172,17 @@ export const SaleDetailsForm: React.FC<SaleDetailsProps> = ({
               }}
               className="w-4 h-4 text-primary rounded focus:ring-primary flex-shrink-0"
             />
-            <span className="text-sm font-medium">Payer à la caisse de l'hôtel (Imputer sur la chambre) ?</span>
+            <span className="text-sm font-medium">
+              Payer à la caisse de l'hôtel (Imputer sur la chambre) ?
+            </span>
           </label>
         </div>
 
         {locationType === "restaurant" && chargeToRoom && (
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium mb-1">Chambre à imputer <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium mb-1">
+              Chambre à imputer <span className="text-red-500">*</span>
+            </label>
             <SearchableSelect
               value={idRoom}
               onChange={(val) => onChange("idRoom", val)}

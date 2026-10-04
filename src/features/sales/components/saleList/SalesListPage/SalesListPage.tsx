@@ -26,20 +26,60 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
   const [dateFilter, setDateFilter] = useState<string>("");
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>("");
   const [menuFilter, setMenuFilter] = useState<string | number>("");
-  const [menuOptions, setMenuOptions] = useState<{ value: string; label: string }[]>([{ value: "", label: "Tous les produits" }]);
-  const [paymentMethods, setPaymentMethods] = useState<{ idPaymentMethod: string; methodName: string }[]>([]);
-  const [payModal, setPayModal] = useState<{ isOpen: boolean; saleId: string; balanceDue: number; methodId: string; paymentCode: string; amount: string; paymentDate: string; isPartial: boolean; saleDate: string }>({ isOpen: false, saleId: "", balanceDue: 0, methodId: "", paymentCode: "", amount: "", paymentDate: toIsoDateTime(new Date()), isPartial: false, saleDate: "" });
-  const [managePaymentDialog, setManagePaymentDialog] = useState<{ isOpen: boolean; sale: SaleRecord | null }>({ isOpen: false, sale: null });
+  const [menuOptions, setMenuOptions] = useState<
+    { value: string; label: string }[]
+  >([{ value: "", label: "Tous les produits" }]);
+  const [paymentMethods, setPaymentMethods] = useState<
+    { idPaymentMethod: string; methodName: string }[]
+  >([]);
+  const [payModal, setPayModal] = useState<{
+    isOpen: boolean;
+    saleId: string;
+    balanceDue: number;
+    methodId: string;
+    paymentCode: string;
+    amount: string;
+    paymentDate: string;
+    isPartial: boolean;
+    saleDate: string;
+  }>({
+    isOpen: false,
+    saleId: "",
+    balanceDue: 0,
+    methodId: "",
+    paymentCode: "",
+    amount: "",
+    paymentDate: toIsoDateTime(new Date()),
+    isPartial: false,
+    saleDate: "",
+  });
+  const [managePaymentDialog, setManagePaymentDialog] = useState<{
+    isOpen: boolean;
+    sale: SaleRecord | null;
+  }>({ isOpen: false, sale: null });
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedSale, setSelectedSale] = useState<SaleRecord | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [snackbar, setSnackbar] = useState<{ isOpen: boolean; message: string; type: SnackbarType }>({
-    isOpen: false, message: "", type: "info"
+  const [snackbar, setSnackbar] = useState<{
+    isOpen: boolean;
+    message: string;
+    type: SnackbarType;
+  }>({
+    isOpen: false,
+    message: "",
+    type: "info",
   });
-  const [reopenDialog, setReopenDialog] = useState<{ isOpen: boolean; saleId: string }>({ isOpen: false, saleId: "" });
+  const [reopenDialog, setReopenDialog] = useState<{
+    isOpen: boolean;
+    saleId: string;
+  }>({ isOpen: false, saleId: "" });
   const [showCancelled, setShowCancelled] = useState(false);
-  const [cancelOverpaymentDialog, setCancelOverpaymentDialog] = useState<{ isOpen: boolean; saleId: string; totalPaid: number }>({ isOpen: false, saleId: "", totalPaid: 0 });
+  const [cancelOverpaymentDialog, setCancelOverpaymentDialog] = useState<{
+    isOpen: boolean;
+    saleId: string;
+    totalPaid: number;
+  }>({ isOpen: false, saleId: "", totalPaid: 0 });
   const [cancelRefundMethodId, setCancelRefundMethodId] = useState<string>("");
 
   const showSnackbar = (message: string, type: SnackbarType = "info") =>
@@ -50,7 +90,8 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
     try {
       const filters: any = {};
       if (dateFilter) filters.date = dateFilter;
-      if (paymentStatusFilter) filters.paymentStatus = paymentStatusFilter as any;
+      if (paymentStatusFilter)
+        filters.paymentStatus = paymentStatusFilter as any;
       if (menuFilter && menuFilter !== "") filters.idMenu = String(menuFilter);
       filters.status = showCancelled ? [-3] : [0, 5];
 
@@ -79,15 +120,27 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
   }, [loadDependencies]);
 
   const resolveError = (err: any, fallback: string): string => {
-    if (err.response?.status === 403) return "Vous n'avez pas la permission pour cette action.";
-    return err.response?.data?.error || err.response?.data?.message || err.message || fallback;
+    if (err.response?.status === 403)
+      return "Vous n'avez pas la permission pour cette action.";
+    return (
+      err.response?.data?.error ||
+      err.response?.data?.message ||
+      err.message ||
+      fallback
+    );
   };
 
-  const handleCancel = async (id: string, overpaymentAction?: "REFUND" | "ADJUST", idPaymentMethodRefund?: string) => {
+  const handleCancel = async (
+    id: string,
+    overpaymentAction?: "REFUND" | "ADJUST",
+    idPaymentMethodRefund?: string,
+  ) => {
     if (!overpaymentAction) {
-      const saleToCancel = sales.find(s => s.idSale === id);
+      const saleToCancel = sales.find((s) => s.idSale === id);
       if (saleToCancel && saleToCancel.invoice) {
-        const totalPaid = Number(saleToCancel.invoice.totalAmount) - Number(saleToCancel.invoice.balanceDue);
+        const totalPaid =
+          Number(saleToCancel.invoice.totalAmount) -
+          Number(saleToCancel.invoice.balanceDue);
         if (totalPaid > 0) {
           setCancelOverpaymentDialog({ isOpen: true, saleId: id, totalPaid });
           return;
@@ -97,7 +150,11 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
 
     setActionLoading(true);
     try {
-      await SaleService.cancelSale(id, overpaymentAction, idPaymentMethodRefund);
+      await SaleService.cancelSale(
+        id,
+        overpaymentAction,
+        idPaymentMethodRefund,
+      );
       showSnackbar("Vente annulée avec succès.", "success");
       setSheetOpen(false);
       fetchSales();
@@ -119,10 +176,14 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
       fetchSales();
       if (onEditSale) {
         const fullSale = await SaleService.getSaleById(saleIdToReopen);
-        if (fullSale) onEditSale({ ...fullSale, _wasJustReopened: true } as any);
+        if (fullSale)
+          onEditSale({ ...fullSale, _wasJustReopened: true } as any);
       }
     } catch (err: any) {
-      showSnackbar(resolveError(err, "Erreur lors de la réouverture."), "error");
+      showSnackbar(
+        resolveError(err, "Erreur lors de la réouverture."),
+        "error",
+      );
     } finally {
       setActionLoading(false);
     }
@@ -150,35 +211,54 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
       setSheetOpen(false);
       fetchSales();
     } catch (err: any) {
-      showSnackbar(resolveError(err, "Erreur lors de la suppression."), "error");
+      showSnackbar(
+        resolveError(err, "Erreur lors de la suppression."),
+        "error",
+      );
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleAdjustPayment = async (idSale: string, idPayment: string, newAmount: number): Promise<void> => {
+  const handleAdjustPayment = async (
+    idSale: string,
+    idPayment: string,
+    newAmount: number,
+  ): Promise<void> => {
     try {
       await SaleService.adjustPayment(idSale, idPayment, newAmount);
       const updated = await SaleService.getSaleById(idSale);
       if (updated) {
         setSelectedSale(updated);
-        setManagePaymentDialog(prev => prev.sale?.idSale === idSale ? { ...prev, sale: updated } : prev);
+        setManagePaymentDialog((prev) =>
+          prev.sale?.idSale === idSale ? { ...prev, sale: updated } : prev,
+        );
       }
       fetchSales();
     } catch (err: any) {
-      const msg = resolveError(err, "Erreur lors de la modification du paiement.");
+      const msg = resolveError(
+        err,
+        "Erreur lors de la modification du paiement.",
+      );
       showSnackbar(msg, "error");
       throw new Error(msg);
     }
   };
 
-  const handleRefundPayment = async (idSale: string, amount: number, idPaymentMethod: string, reason?: string): Promise<void> => {
+  const handleRefundPayment = async (
+    idSale: string,
+    amount: number,
+    idPaymentMethod: string,
+    reason?: string,
+  ): Promise<void> => {
     try {
       await SaleService.refundPayment(idSale, amount, idPaymentMethod, reason);
       const updated = await SaleService.getSaleById(idSale);
       if (updated) {
         setSelectedSale(updated);
-        setManagePaymentDialog(prev => prev.sale?.idSale === idSale ? { ...prev, sale: updated } : prev);
+        setManagePaymentDialog((prev) =>
+          prev.sale?.idSale === idSale ? { ...prev, sale: updated } : prev,
+        );
       }
       fetchSales();
     } catch (err: any) {
@@ -196,10 +276,16 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
 
   const handleOpenPayModal = (sale: SaleRecord) => {
     if (!sale.invoice || !sale.invoice.idInvoice) {
-      showSnackbar("Cette vente n'a pas de facture associée (ancienne vente). Veuillez contacter l'administrateur.", "error");
+      showSnackbar(
+        "Cette vente n'a pas de facture associée (ancienne vente). Veuillez contacter l'administrateur.",
+        "error",
+      );
       return;
     }
-    const balanceDue = (sale.invoice.balanceDue ?? sale.totalAmount) != null ? Number((sale.invoice.balanceDue ?? sale.totalAmount)) : Number(sale.totalAmount);
+    const balanceDue =
+      (sale.invoice.balanceDue ?? sale.totalAmount) != null
+        ? Number(sale.invoice.balanceDue ?? sale.totalAmount)
+        : Number(sale.totalAmount);
     setPayModal({
       isOpen: true,
       saleId: sale.invoice.idInvoice,
@@ -209,7 +295,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
       amount: String(balanceDue),
       paymentDate: toIsoDate(new Date()),
       isPartial: false,
-      saleDate: sale.saleDate ? toIsoDateTime(new Date(sale.saleDate)) : ""
+      saleDate: sale.saleDate ? toIsoDateTime(new Date(sale.saleDate)) : "",
     });
   };
 
@@ -221,13 +307,26 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
     setActionLoading(true);
     try {
       await PaymentService.addPayment(payModal.saleId, {
-        amount: payModal.isPartial && payModal.amount ? Number(payModal.amount) : payModal.balanceDue,
+        amount:
+          payModal.isPartial && payModal.amount
+            ? Number(payModal.amount)
+            : payModal.balanceDue,
         idPaymentMethod: payModal.methodId,
         paymentDate: payModal.paymentDate,
-        paymentCode: payModal.paymentCode || undefined
+        paymentCode: payModal.paymentCode || undefined,
       });
       showSnackbar("Paiement enregistré avec succès.", "success");
-      setPayModal({ isOpen: false, saleId: "", balanceDue: 0, methodId: "", paymentCode: "", amount: "", paymentDate: toIsoDateTime(new Date()), isPartial: false, saleDate: "" });
+      setPayModal({
+        isOpen: false,
+        saleId: "",
+        balanceDue: 0,
+        methodId: "",
+        paymentCode: "",
+        amount: "",
+        paymentDate: toIsoDateTime(new Date()),
+        isPartial: false,
+        saleDate: "",
+      });
       setSheetOpen(false);
       fetchSales();
     } catch (err: any) {
@@ -241,14 +340,26 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
     <div className="flex flex-col gap-6">
       <SalesListFilters
         showCancelled={showCancelled}
-        onToggleCancelled={() => { setShowCancelled(!showCancelled); setPage(1); }}
+        onToggleCancelled={() => {
+          setShowCancelled(!showCancelled);
+          setPage(1);
+        }}
         dateFilter={dateFilter}
-        onDateFilterChange={(val) => { setDateFilter(val); setPage(1); }}
+        onDateFilterChange={(val) => {
+          setDateFilter(val);
+          setPage(1);
+        }}
         menuFilter={menuFilter}
-        onMenuFilterChange={(val) => { setMenuFilter(val); setPage(1); }}
+        onMenuFilterChange={(val) => {
+          setMenuFilter(val);
+          setPage(1);
+        }}
         menuOptions={menuOptions}
         paymentStatusFilter={paymentStatusFilter}
-        onPaymentStatusFilterChange={(val) => { setPaymentStatusFilter(val); setPage(1); }}
+        onPaymentStatusFilterChange={(val) => {
+          setPaymentStatusFilter(val);
+          setPage(1);
+        }}
       />
 
       <SalesListTable
@@ -258,14 +369,19 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         totalPages={totalPages}
         onPageChange={setPage}
         showCancelled={showCancelled}
-        onSaleClick={(sale) => { setSelectedSale(sale); setSheetOpen(true); }}
+        onSaleClick={(sale) => {
+          setSelectedSale(sale);
+          setSheetOpen(true);
+        }}
         onEditSale={handleEdit}
         onClose={handleClose}
         onReopen={(id) => setReopenDialog({ isOpen: true, saleId: id })}
         onCancel={handleCancel}
         onPay={handleOpenPayModal}
         onDelete={handleDelete}
-        onManagePayment={(sale) => setManagePaymentDialog({ isOpen: true, sale })}
+        onManagePayment={(sale) =>
+          setManagePaymentDialog({ isOpen: true, sale })
+        }
       />
 
       <SaleDetailSheet
@@ -286,18 +402,32 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
 
       <PaymentModal
         open={payModal.isOpen}
-        onOpenChange={(open) => !open && setPayModal(p => ({ ...p, isOpen: false }))}
+        onOpenChange={(open) =>
+          !open && setPayModal((p) => ({ ...p, isOpen: false }))
+        }
         balanceDue={payModal.balanceDue}
         paymentDate={payModal.paymentDate}
-        onPaymentDateChange={(val) => setPayModal(p => ({ ...p, paymentDate: val }))}
+        onPaymentDateChange={(val) =>
+          setPayModal((p) => ({ ...p, paymentDate: val }))
+        }
         isPartial={payModal.isPartial}
-        onIsPartialChange={(val) => setPayModal(p => ({ ...p, isPartial: val, amount: val ? "" : String(p.balanceDue) }))}
+        onIsPartialChange={(val) =>
+          setPayModal((p) => ({
+            ...p,
+            isPartial: val,
+            amount: val ? "" : String(p.balanceDue),
+          }))
+        }
         amount={payModal.amount}
-        onAmountChange={(val) => setPayModal(p => ({ ...p, amount: val }))}
+        onAmountChange={(val) => setPayModal((p) => ({ ...p, amount: val }))}
         paymentCode={payModal.paymentCode}
-        onPaymentCodeChange={(val) => setPayModal(p => ({ ...p, paymentCode: val }))}
+        onPaymentCodeChange={(val) =>
+          setPayModal((p) => ({ ...p, paymentCode: val }))
+        }
         methodId={payModal.methodId}
-        onMethodIdChange={(val) => setPayModal(p => ({ ...p, methodId: val }))}
+        onMethodIdChange={(val) =>
+          setPayModal((p) => ({ ...p, methodId: val }))
+        }
         paymentMethods={paymentMethods}
         actionLoading={actionLoading}
         onConfirm={handlePay}
@@ -308,15 +438,34 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         invoiceNumber={managePaymentDialog.sale?.invoice?.invoiceNumber}
         payments={managePaymentDialog.sale?.invoice?.payments || []}
         isOpen={managePaymentDialog.isOpen}
-        canManage={useAppStore.getState().hasPermission('sale.manage')}
+        canManage={useAppStore.getState().hasPermission("sale.manage")}
         onClose={() => setManagePaymentDialog({ isOpen: false, sale: null })}
-        onAdjust={(idPayment, newAmount) => managePaymentDialog.sale ? handleAdjustPayment(managePaymentDialog.sale.idSale, idPayment, newAmount) : Promise.resolve()}
-        onRefund={(amount, methodId, reason) => managePaymentDialog.sale ? handleRefundPayment(managePaymentDialog.sale.idSale, amount, methodId, reason) : Promise.resolve()}
+        onAdjust={(idPayment, newAmount) =>
+          managePaymentDialog.sale
+            ? handleAdjustPayment(
+                managePaymentDialog.sale.idSale,
+                idPayment,
+                newAmount,
+              )
+            : Promise.resolve()
+        }
+        onRefund={(amount, methodId, reason) =>
+          managePaymentDialog.sale
+            ? handleRefundPayment(
+                managePaymentDialog.sale.idSale,
+                amount,
+                methodId,
+                reason,
+              )
+            : Promise.resolve()
+        }
       />
 
       <InputDialog
         open={reopenDialog.isOpen}
-        onOpenChange={(open) => setReopenDialog(p => ({ ...p, isOpen: open }))}
+        onOpenChange={(open) =>
+          setReopenDialog((p) => ({ ...p, isOpen: open }))
+        }
         title="Rouvrir la vente"
         description="Veuillez indiquer le motif de la réouverture. Cette information sera conservée dans les logs d'audit."
         placeholder="Ex: Le client a changé d'avis et souhaite ajouter un article..."
@@ -329,7 +478,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         open={cancelOverpaymentDialog.isOpen}
         onOpenChange={(open) => {
           if (!open) {
-            setCancelOverpaymentDialog(p => ({ ...p, isOpen: false }));
+            setCancelOverpaymentDialog((p) => ({ ...p, isOpen: false }));
             setCancelRefundMethodId("");
           }
         }}
@@ -338,8 +487,12 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         onRefundMethodIdChange={setCancelRefundMethodId}
         paymentMethods={paymentMethods}
         onConfirmRefund={() => {
-          setCancelOverpaymentDialog(p => ({ ...p, isOpen: false }));
-          handleCancel(cancelOverpaymentDialog.saleId, "REFUND", cancelRefundMethodId);
+          setCancelOverpaymentDialog((p) => ({ ...p, isOpen: false }));
+          handleCancel(
+            cancelOverpaymentDialog.saleId,
+            "REFUND",
+            cancelRefundMethodId,
+          );
           setCancelRefundMethodId("");
         }}
       />
@@ -348,7 +501,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         <Snackbar
           message={snackbar.message}
           type={snackbar.type}
-          onClose={() => setSnackbar(p => ({ ...p, isOpen: false }))}
+          onClose={() => setSnackbar((p) => ({ ...p, isOpen: false }))}
         />
       )}
     </div>

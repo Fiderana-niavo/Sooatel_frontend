@@ -1,9 +1,12 @@
 import type { EmployeeRequirement } from "@/features/job-titles/types/type";
-import type { GeneratedScheduleRow, RequirementSlot } from "../types/timetable.type";
+import type {
+  GeneratedScheduleRow,
+  RequirementSlot,
+} from "../types/timetable.type";
 
 export function computeSlots(
   requirements: EmployeeRequirement[],
-  displayedRows: GeneratedScheduleRow[]
+  displayedRows: GeneratedScheduleRow[],
 ): RequirementSlot[] {
   const slots = requirements.reduce<RequirementSlot[]>((acc, r) => {
     const exists = acc.find(
@@ -37,7 +40,9 @@ export function computeSlots(
   }
 
   for (const r of displayedRows) {
-    const exists = slots.find(s => s.idJobTitle === r.idJobTitle && s.idShiftType === r.idShiftType);
+    const exists = slots.find(
+      (s) => s.idJobTitle === r.idJobTitle && s.idShiftType === r.idShiftType,
+    );
     const slotKey = `${r.idShiftType ?? "custom"}__${r.idJobTitle ?? "any"}`;
     const needed = maxCountPerSlot.get(slotKey) ?? 1;
 

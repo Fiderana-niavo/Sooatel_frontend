@@ -3,7 +3,13 @@ import { Plus, Edit2, Trash2, Search } from "lucide-react";
 import { OutflowCategoryService } from "../services/category.service";
 import type { OutflowCategory, OutflowCategoryDto } from "../../types";
 import { Button } from "@/components/ui/Button/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/Dialog/dialog";
 import { Input } from "@/components/ui/Inputs/input";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
@@ -14,14 +20,24 @@ export function OutflowCategoryList() {
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<OutflowCategory | null>(null);
-  const [formData, setFormData] = useState<OutflowCategoryDto>({ label: "", code: "" });
-  
-  const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({ message: "", type: "info", isOpen: false });
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState<OutflowCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] =
+    useState<OutflowCategory | null>(null);
+  const [formData, setFormData] = useState<OutflowCategoryDto>({
+    label: "",
+    code: "",
+  });
 
-  const showSnackbar = (message: string, type: SnackbarType = "info") => setSnackbar({ message, type, isOpen: true });
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: SnackbarType;
+    isOpen: boolean;
+  }>({ message: "", type: "info", isOpen: false });
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] =
+    useState<OutflowCategory | null>(null);
+
+  const showSnackbar = (message: string, type: SnackbarType = "info") =>
+    setSnackbar({ message, type, isOpen: true });
 
   const loadCategories = async () => {
     setIsLoading(true);
@@ -58,7 +74,10 @@ export function OutflowCategoryList() {
     }
     try {
       if (selectedCategory) {
-        await OutflowCategoryService.update(selectedCategory.idOutflowCategory, formData);
+        await OutflowCategoryService.update(
+          selectedCategory.idOutflowCategory,
+          formData,
+        );
         showSnackbar("Catégorie modifiée", "success");
       } else {
         await OutflowCategoryService.create(formData);
@@ -120,22 +139,43 @@ export function OutflowCategoryList() {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={3} className="text-center py-4 text-muted-foreground">Chargement...</td>
+                <td
+                  colSpan={3}
+                  className="text-center py-4 text-muted-foreground"
+                >
+                  Chargement...
+                </td>
               </tr>
             ) : categories.length === 0 ? (
               <tr>
-                <td colSpan={3} className="text-center py-4 text-muted-foreground">Aucune catégorie trouvée</td>
+                <td
+                  colSpan={3}
+                  className="text-center py-4 text-muted-foreground"
+                >
+                  Aucune catégorie trouvée
+                </td>
               </tr>
             ) : (
               categories.map((cat) => (
-                <tr key={cat.idOutflowCategory} className="border-t hover:bg-muted/50">
+                <tr
+                  key={cat.idOutflowCategory}
+                  className="border-t hover:bg-muted/50"
+                >
                   <td className="px-4 py-3">{cat.label}</td>
                   <td className="px-4 py-3">{cat.code || "-"}</td>
                   <td className="px-4 py-3 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(cat)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleOpenDialog(cat)}
+                    >
                       <Edit2 className="w-4 h-4 text-blue-500" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => confirmDelete(cat)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => confirmDelete(cat)}
+                    >
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
                   </td>
@@ -149,14 +189,18 @@ export function OutflowCategoryList() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{selectedCategory ? "Modifier" : "Nouvelle"} Catégorie</DialogTitle>
+            <DialogTitle>
+              {selectedCategory ? "Modifier" : "Nouvelle"} Catégorie
+            </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-4">
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium">Libellé *</label>
               <Input
                 value={formData.label}
-                onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, label: e.target.value })
+                }
                 placeholder="Ex: Fournitures"
               />
             </div>
@@ -164,13 +208,17 @@ export function OutflowCategoryList() {
               <label className="text-sm font-medium">Code (Optionnel)</label>
               <Input
                 value={formData.code || ""}
-                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, code: e.target.value })
+                }
                 placeholder="Ex: FRN-001"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Annuler
+            </Button>
             <Button onClick={handleSave}>Enregistrer</Button>
           </DialogFooter>
         </DialogContent>
@@ -185,7 +233,11 @@ export function OutflowCategoryList() {
       />
 
       {snackbar.isOpen && (
-        <Snackbar message={snackbar.message} type={snackbar.type} onClose={() => setSnackbar({ ...snackbar, isOpen: false })} />
+        <Snackbar
+          message={snackbar.message}
+          type={snackbar.type}
+          onClose={() => setSnackbar({ ...snackbar, isOpen: false })}
+        />
       )}
     </div>
   );

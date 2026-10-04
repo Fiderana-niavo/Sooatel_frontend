@@ -8,7 +8,9 @@ export function DeactivatedEmployeesPage({
 }: {
   setPageTitle: (title: string) => void;
 }) {
-  const [deactivations, setDeactivations] = useState<{ idEmployee: string; fullName: string; endDate: string }[]>([]);
+  const [deactivations, setDeactivations] = useState<
+    { idEmployee: string; fullName: string; endDate: string }[]
+  >([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 15;
@@ -35,8 +37,10 @@ export function DeactivatedEmployeesPage({
             Historique des désactivations automatiques
           </h4>
           <p className="text-sm mt-1 text-amber-800/80">
-            Voici la liste complète des comptes utilisateurs qui ont été désactivés automatiquement suite à l'échéance de leur contrat.
-            Vous pouvez réactiver ces comptes en effectuant un changement ou un renouvellement de poste depuis la liste principale.
+            Voici la liste complète des comptes utilisateurs qui ont été
+            désactivés automatiquement suite à l'échéance de leur contrat. Vous
+            pouvez réactiver ces comptes en effectuant un changement ou un
+            renouvellement de poste depuis la liste principale.
           </p>
         </div>
       </div>
@@ -45,21 +49,33 @@ export function DeactivatedEmployeesPage({
         <table className="w-full text-sm text-left">
           <thead className="bg-muted/50 border-b">
             <tr>
-              <th className="px-6 py-4 font-semibold text-muted-foreground uppercase tracking-wider text-xs">Employé</th>
-              <th className="px-6 py-4 font-semibold text-muted-foreground uppercase tracking-wider text-xs w-48">Date de fin de contrat</th>
+              <th className="px-6 py-4 font-semibold text-muted-foreground uppercase tracking-wider text-xs">
+                Employé
+              </th>
+              <th className="px-6 py-4 font-semibold text-muted-foreground uppercase tracking-wider text-xs w-48">
+                Date de fin de contrat
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {deactivations.length > 0 ? (
               deactivations.map((emp) => (
-                <tr key={emp.idEmployee} className="hover:bg-muted/30 transition-colors">
+                <tr
+                  key={emp.idEmployee}
+                  className="hover:bg-muted/30 transition-colors"
+                >
                   <td className="px-6 py-4 font-medium">{emp.fullName}</td>
-                  <td className="px-6 py-4 text-muted-foreground">{new Date(emp.endDate).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-muted-foreground">
+                    {new Date(emp.endDate).toLocaleDateString()}
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={2} className="px-6 py-8 text-center text-muted-foreground">
+                <td
+                  colSpan={2}
+                  className="px-6 py-8 text-center text-muted-foreground"
+                >
                   Aucun compte n'a été désactivé récemment.
                 </td>
               </tr>
@@ -84,7 +100,9 @@ export function DeactivatedEmployeesPage({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
                 disabled={currentPage === totalPages}
               >
                 Suivant

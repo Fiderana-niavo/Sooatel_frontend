@@ -1,7 +1,11 @@
 import { useState } from "react";
 
 import { RoomsModal, RoomService, type Room } from "@/features/rooms";
-import { RoomTypesModal, RoomTypeService, type RoomType } from "@/features/room-types";
+import {
+  RoomTypesModal,
+  RoomTypeService,
+  type RoomType,
+} from "@/features/room-types";
 import { EventsModal, EventService, type Event } from "@/features/events";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { Snackbar, type SnackbarType } from "@/components/ui/Snackbar/snackbar";
@@ -10,7 +14,11 @@ import { HOTEL_MODULES } from "@/constants/app.constants";
 import { useCrud } from "@/hooks/useCrud";
 
 export function HotelConfigPage() {
-  const [snackbar, setSnackbar] = useState<{ message: string; type: SnackbarType; isOpen: boolean }>({
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: SnackbarType;
+    isOpen: boolean;
+  }>({
     message: "",
     type: "info",
     isOpen: false,
@@ -20,9 +28,27 @@ export function HotelConfigPage() {
     setSnackbar({ message, type, isOpen: true });
   };
 
-  const rooms = useCrud<Room>(RoomService.getAll, RoomService.create, RoomService.update, RoomService.delete, "idRoom" as keyof Room);
-  const roomTypes = useCrud<RoomType>(RoomTypeService.getAll, RoomTypeService.create, RoomTypeService.update, RoomTypeService.delete, "idRoomType" as keyof RoomType);
-  const events = useCrud<Event>(EventService.getAll, EventService.create, EventService.update, EventService.delete, "idEvent" as keyof Event);
+  const rooms = useCrud<Room>(
+    RoomService.getAll,
+    RoomService.create,
+    RoomService.update,
+    RoomService.delete,
+    "idRoom" as keyof Room,
+  );
+  const roomTypes = useCrud<RoomType>(
+    RoomTypeService.getAll,
+    RoomTypeService.create,
+    RoomTypeService.update,
+    RoomTypeService.delete,
+    "idRoomType" as keyof RoomType,
+  );
+  const events = useCrud<Event>(
+    EventService.getAll,
+    EventService.create,
+    EventService.update,
+    EventService.delete,
+    "idEvent" as keyof Event,
+  );
 
   const modalActions: Record<string, () => void> = {
     rooms: () => rooms.setIsOpen(true),
@@ -44,16 +70,22 @@ export function HotelConfigPage() {
                   onClick={modalActions[card.id]}
                   className="bg-card border border-border/50 rounded-[2rem] p-6 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] hover:border-primary/30 transition-all cursor-pointer group"
                 >
-                  <div className={`p-3 rounded-xl w-fit mb-4 group-hover:scale-110 transition-all duration-300 ${card.colorClass} ${card.hoverClass}`}>
+                  <div
+                    className={`p-3 rounded-xl w-fit mb-4 group-hover:scale-110 transition-all duration-300 ${card.colorClass} ${card.hoverClass}`}
+                  >
                     <Icon className="size-6" />
                   </div>
                   <h3 className="text-lg font-bold mb-2">{card.title}</h3>
-                  <p className="text-muted-foreground text-sm">{card.description}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {card.description}
+                  </p>
                 </div>
               );
             })}
           </div>
-          {idx < HOTEL_MODULES.length - 1 && <div className="h-px w-full bg-border/50 my-8"></div>}
+          {idx < HOTEL_MODULES.length - 1 && (
+            <div className="h-px w-full bg-border/50 my-8"></div>
+          )}
         </div>
       ))}
 

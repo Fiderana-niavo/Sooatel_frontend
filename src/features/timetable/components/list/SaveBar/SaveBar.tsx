@@ -8,7 +8,13 @@ interface SaveBarProps {
   onReset: () => void;
 }
 
-export function SaveBar({ isDirty, isSaving, rowCount, onSave, onReset }: SaveBarProps) {
+export function SaveBar({
+  isDirty,
+  isSaving,
+  rowCount,
+  onSave,
+  onReset,
+}: SaveBarProps) {
   if (!isDirty) return null;
 
   return (

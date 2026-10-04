@@ -10,13 +10,19 @@ interface ChangePasswordModalProps {
   onSubmit: (current: string, next: string) => Promise<void>;
 }
 
-export function ChangePasswordModal({ isOpen, isLoading, onClose, onSubmit }: ChangePasswordModalProps) {
+export function ChangePasswordModal({
+  isOpen,
+  isLoading,
+  onClose,
+  onSubmit,
+}: ChangePasswordModalProps) {
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
 
   const mismatch = next.length > 0 && confirm.length > 0 && next !== confirm;
-  const disabled = isLoading || !current || !next || !confirm || next !== confirm;
+  const disabled =
+    isLoading || !current || !next || !confirm || next !== confirm;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +52,9 @@ export function ChangePasswordModal({ isOpen, isLoading, onClose, onSubmit }: Ch
       <div className="relative z-10 w-full max-w-md mx-4 bg-card border border-border/60 rounded-[2rem] shadow-2xl p-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-xl font-bold text-foreground">Changer le mot de passe</h2>
+            <h2 className="text-xl font-bold text-foreground">
+              Changer le mot de passe
+            </h2>
             <p className="text-sm text-muted-foreground mt-1">
               Sécurisez votre accès avec un nouveau mot de passe.
             </p>
@@ -60,8 +68,10 @@ export function ChangePasswordModal({ isOpen, isLoading, onClose, onSubmit }: Ch
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-                    <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground/80">Mot de passe actuel</label>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground/80">
+              Mot de passe actuel
+            </label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors z-10">
                 <Lock className="size-4" />
@@ -76,8 +86,10 @@ export function ChangePasswordModal({ isOpen, isLoading, onClose, onSubmit }: Ch
             </div>
           </div>
 
-                    <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground/80">Nouveau mot de passe</label>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground/80">
+              Nouveau mot de passe
+            </label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors z-10">
                 <Lock className="size-4" />
@@ -92,8 +104,10 @@ export function ChangePasswordModal({ isOpen, isLoading, onClose, onSubmit }: Ch
             </div>
           </div>
 
-                    <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground/80">Confirmer le nouveau mot de passe</label>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground/80">
+              Confirmer le nouveau mot de passe
+            </label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors z-10">
                 <Lock className="size-4" />

@@ -1,6 +1,10 @@
 import axios from "axios";
 import type { ApiResponse, PaginatedResponse } from "@/types/api.type";
-import type { DishProduction, DishProductionDto, DishProductionFilters } from "../types";
+import type {
+  DishProduction,
+  DishProductionDto,
+  DishProductionFilters,
+} from "../types";
 
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 
@@ -8,15 +12,17 @@ const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 const extractError = (err: unknown, fallback: string): Error => {
   const e = err as Record<string, any>;
   const msg =
-    e?.response?.data?.error ||
-    e?.response?.data?.message ||
-    fallback;
+    e?.response?.data?.message || e?.response?.data?.error || fallback;
   return new Error(msg);
 };
 
 export const dishProductionService = {
-  getAll: async (filters: Partial<DishProductionFilters> = {}): Promise<PaginatedResponse<DishProduction>> => {
-    const { data } = await axios.get<ApiResponse<PaginatedResponse<DishProduction>>>(`${BASE}/dish-productions`, {
+  getAll: async (
+    filters: Partial<DishProductionFilters> = {},
+  ): Promise<PaginatedResponse<DishProduction>> => {
+    const { data } = await axios.get<
+      ApiResponse<PaginatedResponse<DishProduction>>
+    >(`${BASE}/dish-productions`, {
       params: filters,
     });
     return data.payload;
@@ -24,7 +30,10 @@ export const dishProductionService = {
 
   create: async (dto: DishProductionDto): Promise<DishProduction> => {
     try {
-      const { data } = await axios.post<ApiResponse<DishProduction>>(`${BASE}/dish-productions`, dto);
+      const { data } = await axios.post<ApiResponse<DishProduction>>(
+        `${BASE}/dish-productions`,
+        dto,
+      );
       return data.payload;
     } catch (err) {
       throw extractError(err, "Impossible de créer la production.");

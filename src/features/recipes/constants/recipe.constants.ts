@@ -1,7 +1,7 @@
 export const getActivationConfirmationMessage = (
   requiresConfirmation: boolean,
   currentCost?: number,
-  siblingVersion?: number
+  siblingVersion?: number,
 ): string => {
   if (!requiresConfirmation) {
     return "Êtes-vous sûr de vouloir activer cette version ? La version actuellement active ne le sera plus.";

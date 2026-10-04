@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
@@ -17,7 +24,13 @@ interface ItemUnitFormDialogProps {
   onAdd: (data: CreateItemUnitDto) => void;
 }
 
-export function ItemUnitFormDialog({ isOpen, onClose, items, units, onAdd }: ItemUnitFormDialogProps) {
+export function ItemUnitFormDialog({
+  isOpen,
+  onClose,
+  items,
+  units,
+  onAdd,
+}: ItemUnitFormDialogProps) {
   const [idItem, setIdItem] = useState("");
   const [idUnit, setIdUnit] = useState("");
   const [ratio, setRatio] = useState("");
@@ -48,27 +61,34 @@ export function ItemUnitFormDialog({ isOpen, onClose, items, units, onAdd }: Ite
 
   const selectedItem = items.find((i) => i.idItem === idItem);
   const usedUnitIds = fetchedItemUnits.map((iu) => iu.alternativeUnitId);
-  
+
   const defaultUnitId = selectedItem?.idUnit;
-  
+
   const availableUnits = units.filter(
-    (u) => u.idUnit !== defaultUnitId && !usedUnitIds.includes(u.idUnit)
+    (u) => u.idUnit !== defaultUnitId && !usedUnitIds.includes(u.idUnit),
   );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={(e) => e.preventDefault()}>
+      <DialogContent
+        className="sm:max-w-[425px]"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Ajouter une Unité Alternative</DialogTitle>
           <DialogDescription>
-            Définissez le ratio de conversion entre une unité d'achat et l'unité de stock.
+            Définissez le ratio de conversion entre une unité d'achat et l'unité
+            de stock.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Article</label>
             <SearchableSelect
-              options={items.map((i) => ({ value: i.idItem, label: i.label + (i.unit?.symbol ? ` (${i.unit.symbol})` : "") }))}
+              options={items.map((i) => ({
+                value: i.idItem,
+                label: i.label + (i.unit?.symbol ? ` (${i.unit.symbol})` : ""),
+              }))}
               value={idItem}
               onChange={(val) => setIdItem(val.toString())}
               placeholder="Sélectionner un article..."
@@ -77,14 +97,19 @@ export function ItemUnitFormDialog({ isOpen, onClose, items, units, onAdd }: Ite
           <div className="space-y-2">
             <label className="text-sm font-medium">Unité Alternative</label>
             <SearchableSelect
-              options={availableUnits.map((u) => ({ value: u.idUnit, label: `${u.label} (${u.symbol})` }))}
+              options={availableUnits.map((u) => ({
+                value: u.idUnit,
+                label: `${u.label} (${u.symbol})`,
+              }))}
               value={idUnit}
               onChange={(val) => setIdUnit(val.toString())}
               placeholder="Sélectionner une unité..."
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Ratio (Vers l'unité de stock principale)</label>
+            <label className="text-sm font-medium">
+              Ratio (Vers l'unité de stock principale)
+            </label>
             <Input
               type="number"
               placeholder="Ex: 1000 pour 1kg -> 1000g"
