@@ -149,28 +149,32 @@ export function PermissionsGrid({
                             className={`flex-1 text-xs py-1.5 rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 ${currentOverride === "default" ? "bg-background shadow font-semibold text-foreground ring-1 ring-border/50" : "text-muted-foreground hover:text-foreground"}`}
                           >
                             <Shield className="size-3.5 text-muted-foreground" />
-                            <span>Défaut</span>
+                            <span>Défaut {isInherited ? "(Autorisé)" : "(Bloqué)"}</span>
                           </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              onOverrideChange(perm.idPermission, "grant")
-                            }
-                            className={`flex-1 text-xs py-1.5 rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 ${currentOverride === "grant" ? "bg-green-500/10 text-green-700 shadow font-semibold ring-1 ring-green-500/20" : "text-muted-foreground hover:text-green-600 hover:bg-green-500/5"}`}
-                          >
-                            <Check className="size-3.5 text-green-500" />
-                            <span>Forcer</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              onOverrideChange(perm.idPermission, "deny")
-                            }
-                            className={`flex-1 text-xs py-1.5 rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 ${currentOverride === "deny" ? "bg-red-500/10 text-red-700 shadow font-semibold ring-1 ring-red-500/20" : "text-muted-foreground hover:text-red-600 hover:bg-red-500/5"}`}
-                          >
-                            <Ban className="size-3.5 text-red-500" />
-                            <span>Refuser</span>
-                          </button>
+                          {!isInherited && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                onOverrideChange(perm.idPermission, "grant")
+                              }
+                              className={`flex-1 text-xs py-1.5 rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 ${currentOverride === "grant" ? "bg-green-500/10 text-green-700 shadow font-semibold ring-1 ring-green-500/20" : "text-muted-foreground hover:text-green-600 hover:bg-green-500/5"}`}
+                            >
+                              <Check className="size-3.5 text-green-500" />
+                              <span>Forcer</span>
+                            </button>
+                          )}
+                          {isInherited && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                onOverrideChange(perm.idPermission, "deny")
+                              }
+                              className={`flex-1 text-xs py-1.5 rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 ${currentOverride === "deny" ? "bg-red-500/10 text-red-700 shadow font-semibold ring-1 ring-red-500/20" : "text-muted-foreground hover:text-red-600 hover:bg-red-500/5"}`}
+                            >
+                              <Ban className="size-3.5 text-red-500" />
+                              <span>Refuser</span>
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

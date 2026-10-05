@@ -30,6 +30,7 @@ import utopiaLogo from "@/assets/Utopia.jpeg";
 import { useSidebar } from "@/components/ui/Sidebar/hooks/sidebar.hook";
 import { useAppStore } from "@/store/app.store";
 import { ChangePasswordModal } from "@/features/auth/components/ChangePasswordModal";
+import { EditProfileModal } from "@/features/auth/components/EditProfileModal";
 import { AuthService } from "@/features/auth/services/auth.service";
 import { Snackbar, type SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
@@ -104,6 +105,7 @@ function UserProfileMenu() {
   const { connectedUser, clear } = useAppStore();
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = React.useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = React.useState(false);
   const [isChangingPassword, setIsChangingPassword] = React.useState(false);
   const [snackbar, setSnackbar] = React.useState<{
     message: string;
@@ -179,10 +181,20 @@ function UserProfileMenu() {
           <div className="absolute bottom-full left-0 mb-2 w-full bg-popover border border-border shadow-lg rounded-xl overflow-hidden z-50 flex flex-col p-1 animate-in fade-in slide-in-from-bottom-2">
             <button
               onClick={() => {
-                setIsPasswordModalOpen(true);
+                setIsProfileModalOpen(true);
                 setIsOpen(false);
               }}
               className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground rounded-md transition-colors w-full text-left"
+            >
+              <Users className="size-4 shrink-0 text-primary" />
+              <span className="truncate">Modifier mon profil</span>
+            </button>
+            <button
+              onClick={() => {
+                setIsPasswordModalOpen(true);
+                setIsOpen(false);
+              }}
+              className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground rounded-md transition-colors w-full text-left mt-1"
             >
               <KeyRound className="size-4 shrink-0 text-primary" />
               <span className="truncate">Changer le mot de passe</span>
@@ -203,6 +215,11 @@ function UserProfileMenu() {
         isLoading={isChangingPassword}
         onClose={() => setIsPasswordModalOpen(false)}
         onSubmit={handleChangePassword}
+      />
+
+      <EditProfileModal 
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
       />
 
       {snackbar.isOpen && (

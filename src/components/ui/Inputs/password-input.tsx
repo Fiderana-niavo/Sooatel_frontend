@@ -5,7 +5,7 @@ import { cn } from "@/utils/ui";
 interface PasswordInputProps extends Omit<
   React.ComponentProps<"input">,
   "type"
-> {}
+> { }
 
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ className, ...props }, ref) => {
@@ -20,6 +20,9 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
             className,
           )}
           ref={ref}
+          onCopy={(e) => e.preventDefault()}
+          // onPaste={(e) => e.preventDefault()}
+          onCut={(e) => e.preventDefault()}
           {...props}
         />
         <button

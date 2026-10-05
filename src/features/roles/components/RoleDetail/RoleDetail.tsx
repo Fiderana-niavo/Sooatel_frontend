@@ -193,10 +193,9 @@ export function RoleDetail({
                       <label
                         key={permission.idPermission}
                         className={`flex items-start space-x-3 p-3 rounded-lg border transition-all cursor-pointer
-                          ${
-                            selectedPermissions.has(permission.idPermission)
-                              ? "border-primary/40 bg-primary/5 shadow-sm"
-                              : "border-border/30 hover:border-primary/30 hover:bg-muted/30"
+                          ${selectedPermissions.has(permission.idPermission)
+                            ? "border-primary/40 bg-primary/5 shadow-sm"
+                            : "border-border/30 hover:border-primary/30 hover:bg-muted/30"
                           }
                         `}
                       >

@@ -53,10 +53,9 @@ export function RolesList({
               key={role.idRole}
               onClick={() => onSelectRole(role)}
               className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center justify-between group
-                ${
-                  isActive
-                    ? "bg-white text-secondary font-bold shadow-sm border border-border/50"
-                    : "bg-transparent text-muted-foreground hover:bg-muted/30 border border-transparent hover:border-border/50"
+                ${isActive
+                  ? "bg-white text-secondary font-bold shadow-sm border border-border/50"
+                  : "bg-transparent text-muted-foreground hover:bg-muted/30 border border-transparent hover:border-border/50"
                 }
               `}
             >
