@@ -10,7 +10,6 @@ import {
   Contact,
   CalendarDays,
   HeartHandshake,
-  Settings,
   ShieldCheck,
   LayoutDashboard,
   CreditCard,
@@ -29,6 +28,8 @@ import {
   ClipboardList,
   CalendarCheck,
   Settings2,
+  Briefcase,
+  ShoppingCart,
 } from "lucide-react";
 
 // ============================================================================
@@ -134,10 +135,10 @@ export const NAVIGATION_GROUPS = [
     ],
   },
   {
-    title: "Inventaire & logistique",
-    icon: Package,
+    title: "Inventaire & Stocks",
+    icon: Boxes,
     permission: "stock.access",
-    scopes: ["utopia", "sooatel"], // Visible des deux côtés
+    scopes: ["utopia"],
     items: [
       {
         title: "Gestion des Produits & Inventaire",
@@ -152,11 +153,37 @@ export const NAVIGATION_GROUPS = [
         permission: "stock.read",
       },
       {
-        title: "Recettes",
-        url: "/inventory/recipes",
-        icon: BookOpen,
+        title: "Mouvements",
+        url: "/inventory/movements",
+        icon: ArrowRightLeft,
+        permission: "stock.read",
+      },
+      {
+        title: "Inventaire Physique",
+        url: "/inventory/count",
+        icon: ClipboardList,
         permission: "stock.manage",
       },
+      {
+        title: "Audits & Alertes",
+        url: "/inventory/audits",
+        icon: AlertTriangle,
+        permission: "stock.audit",
+      },
+      {
+        title: "Prévisions IA",
+        url: "/inventory/ai",
+        icon: TrendingUp,
+        permission: "stock.forecast",
+      },
+    ],
+  },
+  {
+    title: "Achats & Fournisseurs",
+    icon: ShoppingCart,
+    permission: "supplier.manage",
+    scopes: ["utopia"],
+    items: [
       {
         title: "Fournisseurs & Achats",
         url: "/inventory/suppliers",
@@ -175,16 +202,18 @@ export const NAVIGATION_GROUPS = [
         icon: PackageCheck,
         permission: "stock.manage",
       },
+    ],
+  },
+  {
+    title: "Production Cuisine",
+    icon: ChefHat,
+    permission: "stock.manage",
+    scopes: ["utopia"],
+    items: [
       {
-        title: "Mouvements",
-        url: "/inventory/movements",
-        icon: ArrowRightLeft,
-        permission: "stock.read",
-      },
-      {
-        title: "Inventaire Physique",
-        url: "/inventory/count",
-        icon: ClipboardList,
+        title: "Recettes",
+        url: "/inventory/recipes",
+        icon: BookOpen,
         permission: "stock.manage",
       },
       {
@@ -193,61 +222,19 @@ export const NAVIGATION_GROUPS = [
         icon: ChefHat,
         permission: "stock.manage",
       },
-      {
-        title: "Audits & Alertes",
-        url: "/inventory/audits",
-        icon: AlertTriangle,
-        permission: "stock.audit",
-      },
-      {
-        title: "Prévisions IA",
-        url: "/inventory/ai",
-        icon: TrendingUp,
-        permission: "stock.forecast",
-      },
     ],
   },
   {
-    title: "Ressources humaines",
+    title: "Administration RH",
     icon: Users,
     permission: "hr.access",
-    scopes: ["utopia", "sooatel"], // Visible des deux côtés
+    scopes: ["utopia", "sooatel"],
     items: [
       {
         title: "Annuaire du Personnel",
         url: "/hr/directory",
         icon: Contact,
         permission: "hr.access",
-      },
-      {
-        title: "Congés & Absences",
-        url: "/hr/leaves",
-        icon: HeartHandshake,
-        permission: "hr.access",
-      },
-      {
-        title: "Congés à venir",
-        url: "/hr/upcoming-leaves",
-        icon: CalendarDays,
-        permission: "hr.access",
-      },
-      {
-        title: "Types de Congés",
-        url: "/hr/leave-types",
-        icon: Settings2,
-        permission: "hr.access",
-      },
-      {
-        title: "Équipes & Quarts",
-        url: "/hr/planning",
-        icon: CalendarDays,
-        permission: "hr.schedule",
-      },
-      {
-        title: "Emploi du Temps",
-        url: "/hr/timetable",
-        icon: CalendarCheck,
-        permission: "hr.schedule",
       },
       {
         title: "Bien-être de l'Équipe",
@@ -267,19 +254,55 @@ export const NAVIGATION_GROUPS = [
         icon: ShieldCheck,
         permission: "security.access",
       },
+      {
+        title: "Gestion des Postes",
+        url: "/hr/jobs",
+        icon: Briefcase,
+        permission: "hr.access",
+      },
+      {
+        title: "Besoins en Personnel",
+        url: "/hr/job-requirements",
+        icon: Users,
+        permission: "hr.access",
+      },
     ],
   },
   {
-    title: "Configuration",
-    icon: Settings,
-    permission: "settings.access",
-    scopes: ["utopia", "sooatel"], // Visible des deux côtés
+    title: "Temps & Planification",
+    icon: CalendarDays,
+    permission: "hr.schedule",
+    scopes: ["utopia", "sooatel"],
     items: [
       {
-        title: "Paramètres Globaux",
-        url: "/settings/global",
-        icon: Settings,
-        permission: "settings.access",
+        title: "Équipes & Quarts",
+        url: "/hr/planning",
+        icon: CalendarDays,
+        permission: "hr.schedule",
+      },
+      {
+        title: "Emploi du Temps",
+        url: "/hr/timetable",
+        icon: CalendarCheck,
+        permission: "hr.schedule",
+      },
+      {
+        title: "Congés & Absences",
+        url: "/hr/leaves",
+        icon: HeartHandshake,
+        permission: "hr.access",
+      },
+      {
+        title: "Congés à venir",
+        url: "/hr/upcoming-leaves",
+        icon: CalendarDays,
+        permission: "hr.access",
+      },
+      {
+        title: "Types de Congés",
+        url: "/hr/leave-types",
+        icon: Settings2,
+        permission: "hr.access",
       },
     ],
   },

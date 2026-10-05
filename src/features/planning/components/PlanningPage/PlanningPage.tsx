@@ -237,7 +237,11 @@ export function PlanningPage() {
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         title="Confirmation de suppression"
-        description={`Êtes-vous sûr de vouloir supprimer cet élément ?`}
+        description={
+          deleteType === "team"
+            ? "Êtes-vous sûr de vouloir supprimer cette équipe ? Si elle contient des membres, ils seront retirés de l'équipe (mais resteront dans le système)."
+            : "Êtes-vous sûr de vouloir supprimer cet élément ?"
+        }
         onConfirm={executeDelete}
         loading={isDeleting}
       />

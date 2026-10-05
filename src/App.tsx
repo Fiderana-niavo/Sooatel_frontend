@@ -11,8 +11,8 @@ import { EmployeesPage } from "@/features/employees";
 import { LoginPage } from "@/features/auth";
 import { RolesPage } from "@/features/roles";
 import { PlanningPage } from "@/features/planning";
+import { JobTitlesPage, JobRequirementsPage } from "@/features/job-titles";
 
-import { SettingsPage } from "@/features/settings";
 import { HotelConfigPage } from "@/features/hotel-config";
 import { RestaurantCatalogPage } from "@/features/restaurant-catalog";
 import { InventoryCatalogPage } from "@/features/inventory-catalog";
@@ -241,7 +241,8 @@ function App() {
                       activeTab !== "Congés à venir" &&
                       activeTab !== "Types de Congés" &&
                       activeTab !== "Emploi du Temps" &&
-                      activeTab !== "Paramètres Globaux" &&
+                      activeTab !== "Gestion des Postes" &&
+                      activeTab !== "Besoins en Personnel" &&
                       activeTab !== "Chambres & Évènements" &&
                       activeTab !== "Catalogue & Menus" &&
                       activeTab !== "Caisse & PDV" &&
@@ -313,10 +314,16 @@ function App() {
                           <TimetablePage />
                         </ProtectedRoute>
                       </div>
-                    ) : activeTab === "Paramètres Globaux" ? (
+                    ) : activeTab === "Gestion des Postes" ? (
                       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                        <ProtectedRoute permission="settings.access">
-                          <SettingsPage />
+                        <ProtectedRoute permission="hr.access">
+                          <JobTitlesPage />
+                        </ProtectedRoute>
+                      </div>
+                    ) : activeTab === "Besoins en Personnel" ? (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+                        <ProtectedRoute permission="hr.access">
+                          <JobRequirementsPage />
                         </ProtectedRoute>
                       </div>
                     ) : activeTab === "Chambres & Évènements" ? (

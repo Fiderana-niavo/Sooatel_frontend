@@ -1,5 +1,6 @@
 import { RefreshCw, Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import type { Team, ShiftType } from "@/features/planning/types/type";
+import type { LastRotationInfo } from "@/features/timetable/types/timetable.type";
 
 interface TeamRotationPanelProps {
   teams: Team[];
@@ -7,8 +8,11 @@ interface TeamRotationPanelProps {
   selectedTeamIds: string[];
   idRotationShift: string;
   isGenerating: boolean;
+  continueRotation: boolean;
+  lastRotationInfo: LastRotationInfo | null;
   onSelectedTeamsChange: (ids: string[]) => void;
   onRotationShiftChange: (idShiftType: string) => void;
+  onContinueRotationChange: (val: boolean) => void;
   onGenerate: () => void;
 }
 
@@ -22,8 +26,11 @@ export function TeamRotationPanel({
   selectedTeamIds,
   idRotationShift,
   isGenerating,
+  continueRotation,
+  lastRotationInfo,
   onSelectedTeamsChange,
   onRotationShiftChange,
+  onContinueRotationChange,
   onGenerate,
 }: TeamRotationPanelProps) {
   const toggleTeam = (id: string) => {
@@ -165,6 +172,31 @@ export function TeamRotationPanel({
           )}
         </div>
       </div>
+
+      {lastRotationInfo?.lastTeamId && lastRotationInfo?.nextTeamId && (
+        <div className="mt-2 p-4 bg-muted/30 rounded-xl border border-muted">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={continueRotation}
+              onChange={(e) => onContinueRotationChange(e.target.checked)}
+              className="mt-1 size-4 rounded border-border text-primary focus:ring-primary/50"
+            />
+            <div>
+              <p className="text-sm font-semibold text-secondary">
+                Continuer la rotation précédente
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                La dernière rotation enregistrée s'est terminée avec l'équipe{" "}
+                <strong className="text-foreground">{lastRotationInfo.lastTeamName}</strong>. 
+                Si vous activez cette option, la prochaine rotation commencera avec l'équipe{" "}
+                <strong className="text-foreground">{lastRotationInfo.nextTeamName}</strong>, 
+                quel que soit l'ordre indiqué ci-dessus.
+              </p>
+            </div>
+          </label>
+        </div>
+      )}
 
       {/* Generate button */}
 

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TeamRotationPanel } from "../forms/TeamRotationPanel/TeamRotationPanel";
 import { ScheduleGrid } from "../list/ScheduleGrid/ScheduleGrid";
@@ -39,6 +39,7 @@ export function TimetablePage() {
 
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
   const [idRotationShift, setIdRotationShift] = useState<string>("");
+  const [continueRotation, setContinueRotation] = useState<boolean>(true);
 
   const [overwriteWarning, setOverwriteWarning] =
     useState<CheckExistingResult | null>(null);
@@ -75,6 +76,22 @@ export function TimetablePage() {
     queryFn: () => TimetableService.getByRange(startDate, endDate),
     enabled: !!(startDate && endDate),
   });
+
+  const lastRotationQuery = useQuery({
+    queryKey: ["last-rotation", startDate, idRotationShift, selectedTeamIds],
+    queryFn: () => TimetableService.getLastRotationInfo(startDate, idRotationShift, selectedTeamIds),
+    enabled: !!(startDate && idRotationShift),
+  });
+
+  useEffect(() => {
+    if (
+      lastRotationQuery.data?.previousRotationTeamIds &&
+      lastRotationQuery.data.previousRotationTeamIds.length > 0 &&
+      selectedTeamIds.length === 0
+    ) {
+      setSelectedTeamIds(lastRotationQuery.data.previousRotationTeamIds);
+    }
+  }, [lastRotationQuery.data?.previousRotationTeamIds, selectedTeamIds.length]);
 
   // When existing data loads and grid is empty, populate from existing
   const existingRows: GeneratedScheduleRow[] = (existingQuery.data ?? []).map(
@@ -232,6 +249,7 @@ export function TimetablePage() {
         idRotationShift,
         teamIds: selectedTeamIds,
         shiftIds: [idRotationShift],
+        continueRotation,
       });
       setGeneratedRows(rows);
       setIsDirty(true);
@@ -326,8 +344,11 @@ export function TimetablePage() {
             selectedTeamIds={selectedTeamIds}
             idRotationShift={idRotationShift}
             isGenerating={isGenerating}
+            continueRotation={continueRotation}
+            lastRotationInfo={lastRotationQuery.data ?? null}
             onSelectedTeamsChange={setSelectedTeamIds}
             onRotationShiftChange={setIdRotationShift}
+            onContinueRotationChange={setContinueRotation}
             onGenerate={handleGenerateByTeam}
           />
         </div>

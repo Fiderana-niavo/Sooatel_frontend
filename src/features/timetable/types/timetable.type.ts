@@ -43,6 +43,15 @@ export interface GenerateByTeamDto {
   idRotationShift: string;
   teamIds: string[];
   shiftIds: string[];
+  continueRotation?: boolean;
+}
+
+export interface LastRotationInfo {
+  lastTeamId: string | null;
+  lastTeamName: string | null;
+  nextTeamId: string | null;
+  nextTeamName: string | null;
+  previousRotationTeamIds: string[];
 }
 
 export interface SaveScheduleDto {

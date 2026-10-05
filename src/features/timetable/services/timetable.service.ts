@@ -7,6 +7,7 @@ import type {
   ScheduleResponse,
   AvailableEmployee,
   CheckExistingResult,
+  LastRotationInfo,
 } from "../types/timetable.type";
 
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
@@ -65,6 +66,23 @@ export const TimetableService = {
     if (params.idJobTitle) query.set("idJobTitle", params.idJobTitle);
     const res = await axios.get<ApiResponse<AvailableEmployee[]>>(
       `${BASE}/schedules/available-employees?${query.toString()}`,
+    );
+    if (!res.data.ok) throw new Error(res.data.error);
+    return res.data.payload;
+  },
+
+  getLastRotationInfo: async (
+    startDate: string,
+    idRotationShift: string,
+    teamIds: string[]
+  ): Promise<LastRotationInfo> => {
+    const params = new URLSearchParams();
+    params.append("startDate", startDate);
+    params.append("idShiftType", idRotationShift);
+    teamIds.forEach(id => params.append("teamIds", id));
+    
+    const res = await axios.get<ApiResponse<LastRotationInfo>>(
+      `${BASE}/schedules/last-rotation?${params.toString()}`
     );
     if (!res.data.ok) throw new Error(res.data.error);
     return res.data.payload;

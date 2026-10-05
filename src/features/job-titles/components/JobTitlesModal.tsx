@@ -108,78 +108,88 @@ export function JobTitlesModal({
             </Button>
           </div>
 
-          <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scrollbar">
             {jobTitles.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
                 Aucun poste n'a été créé pour le moment.
               </div>
             ) : (
-              jobTitles.map((job) => (
-                <div key={job.idJobTitle} className="space-y-2">
-                  <div className="flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors group">
-                    {editingId === job.idJobTitle ? (
-                      <div className="flex-1 flex items-center gap-2 mr-4">
-                        <Input
-                          autoFocus
-                          value={editingTitle}
-                          onChange={(e) => setEditingTitle(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") saveEdit();
-                            if (e.key === "Escape") cancelEdit();
-                          }}
-                          className="h-9 flex-1"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex-1 font-semibold text-foreground text-sm">
-                        {job.title}
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-1 shrink-0">
-                      {editingId === job.idJobTitle ? (
-                        <>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={saveEdit}
-                            className="size-8 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg"
-                          >
-                            <Check className="size-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={cancelEdit}
-                            className="size-8 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
-                          >
-                            <X className="size-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => startEdit(job)}
-                            className="size-8 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Edit className="size-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleDelete(job.idJobTitle)}
-                            className="size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
+              <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-muted/50 text-muted-foreground text-xs uppercase font-semibold">
+                    <tr>
+                      <th className="px-6 py-4">Intitulé du poste</th>
+                      <th className="px-6 py-4 text-right w-24">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {jobTitles.map((job) => (
+                      <tr key={job.idJobTitle} className="hover:bg-muted/30 transition-colors group">
+                        {editingId === job.idJobTitle ? (
+                          <td colSpan={2} className="px-6 py-2">
+                            <div className="flex items-center gap-3">
+                              <Input
+                                autoFocus
+                                value={editingTitle}
+                                onChange={(e) => setEditingTitle(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") saveEdit();
+                                  if (e.key === "Escape") cancelEdit();
+                                }}
+                                className="h-9 flex-1"
+                              />
+                              <div className="flex justify-end gap-1 w-24">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={saveEdit}
+                                  className="text-green-600 hover:text-green-700 hover:bg-green-50 rounded-full"
+                                >
+                                  <Check className="size-4" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={cancelEdit}
+                                  className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full"
+                                >
+                                  <X className="size-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </td>
+                        ) : (
+                          <>
+                            <td className="px-6 py-4 font-semibold text-foreground">
+                              {job.title}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => startEdit(job)}
+                                  className="size-8 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <Edit className="size-4" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => handleDelete(job.idJobTitle)}
+                                  className="size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </div>
