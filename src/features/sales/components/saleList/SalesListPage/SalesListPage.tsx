@@ -25,6 +25,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [dateFilter, setDateFilter] = useState<string>("");
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
   const [menuFilter, setMenuFilter] = useState<string | number>("");
   const [menuOptions, setMenuOptions] = useState<
     { value: string; label: string }[]
@@ -88,12 +89,29 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
   const fetchSales = useCallback(async () => {
     setLoading(true);
     try {
-      const filters: any = {};
+      const filters: {
+        idMenu?: string;
+        date?: string;
+        status?: number[];
+        paymentStatus?: "UNPAID" | "PARTIAL" | "PAID";
+      } = {};
       if (dateFilter) filters.date = dateFilter;
       if (paymentStatusFilter)
-        filters.paymentStatus = paymentStatusFilter as any;
+        filters.paymentStatus = paymentStatusFilter as
+          | "UNPAID"
+          | "PARTIAL"
+          | "PAID";
       if (menuFilter && menuFilter !== "") filters.idMenu = String(menuFilter);
-      filters.status = showCancelled ? [-3] : [0, 5];
+
+      if (showCancelled) {
+        filters.status = [-3];
+      } else if (statusFilter === "OPEN") {
+        filters.status = [5];
+      } else if (statusFilter === "CLOSED") {
+        filters.status = [0];
+      } else {
+        filters.status = [0, 5];
+      }
 
       const result = await SaleService.getAllSales(page, 10, filters);
       setSales(result.records);
@@ -103,7 +121,22 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
     } finally {
       setLoading(false);
     }
-  }, [page, dateFilter, paymentStatusFilter, menuFilter, showCancelled]);
+  }, [
+    page,
+    dateFilter,
+    paymentStatusFilter,
+    statusFilter,
+    menuFilter,
+    showCancelled,
+  ]);
+
+  const handleResetFilters = () => {
+    setDateFilter("");
+    setMenuFilter("");
+    setStatusFilter("");
+    setPaymentStatusFilter("");
+    setPage(1);
+  };
 
   const loadDependencies = useCallback(async () => {
     const deps = await fetchSalesListDependencies();
@@ -355,11 +388,17 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
           setPage(1);
         }}
         menuOptions={menuOptions}
+        statusFilter={statusFilter}
+        onStatusFilterChange={(val) => {
+          setStatusFilter(val);
+          setPage(1);
+        }}
         paymentStatusFilter={paymentStatusFilter}
         onPaymentStatusFilterChange={(val) => {
           setPaymentStatusFilter(val);
           setPage(1);
         }}
+        onResetFilters={handleResetFilters}
       />
 
       <SalesListTable
