@@ -14,8 +14,38 @@ const BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 let currentSessionId: string | undefined;
 
-export function resetSession(): void {
+export function getSessionId(): string | undefined {
+  return currentSessionId;
+}
+
+async function clearServerSession(sessionId: string): Promise<void> {
+  const token =
+    localStorage.getItem("authToken") || localStorage.getItem("token");
+  try {
+    await axios.delete(`${BASE}/chatbot/session/${encodeURIComponent(sessionId)}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  } catch {
+    // Best-effort: ignore network errors on clear
+  }
+}
+
+export async function resetSession(): Promise<void> {
+  if (currentSessionId) {
+    await clearServerSession(currentSessionId);
+  }
   currentSessionId = undefined;
+}
+
+// Called on tab close / beforeunload via sendBeacon (no async needed)
+export function beaconClearSession(): void {
+  if (!currentSessionId) return;
+  const token =
+    localStorage.getItem("authToken") || localStorage.getItem("token");
+  const url = `${BASE}/chatbot/session/${encodeURIComponent(currentSessionId)}`;
+  const headers = new Headers({ Authorization: `Bearer ${token ?? ""}` });
+  // sendBeacon doesn't support custom headers, so we use fetch keepalive as fallback
+  void fetch(url, { method: "DELETE", headers, keepalive: true }).catch(() => null);
 }
 
 // ─── API Call ─────────────────────────────────────────────────────────────────

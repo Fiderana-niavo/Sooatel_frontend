@@ -459,11 +459,7 @@ function App() {
                           <DishProductionPage />
                         </ProtectedRoute>
                       </div>
-                    ) : activeTab === "Assistant IA" ? (
-                      <div className="h-full w-full !mt-0 flex-1 min-h-0 flex flex-col overflow-hidden animate-in fade-in duration-300">
-                        <ChatbotView />
-                      </div>
-                    ) : (
+                    ) : activeTab !== "Assistant IA" ? (
                       <div className="bg-muted/30 rounded-2xl p-6 border border-border/50 flex flex-col items-center justify-center min-h-[300px] text-center">
                         <h3 className="text-xl font-semibold mb-2">
                           Contenu : {activeTab}
@@ -472,7 +468,17 @@ function App() {
                           Cette section est en cours de développement.
                         </p>
                       </div>
-                    )}
+                    ) : null}
+
+                    <div
+                      className={
+                        activeTab === "Assistant IA"
+                          ? "h-full w-full !mt-0 flex-1 min-h-0 flex flex-col overflow-hidden animate-in fade-in duration-300"
+                          : "hidden"
+                      }
+                    >
+                      <ChatbotView />
+                    </div>
                   </section>
                 </main>
               </SidebarInset>

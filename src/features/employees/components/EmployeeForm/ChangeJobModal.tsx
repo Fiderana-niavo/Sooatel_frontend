@@ -22,6 +22,7 @@ interface ChangeJobModalProps {
     assignmentDate: string;
     endDate: string;
     hasFixedSchedule: boolean;
+    baseSalary?: number | null;
   }) => void;
 }
 
@@ -38,6 +39,7 @@ export function ChangeJobModal({
   const [assignmentDate, setAssignmentDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [hasFixedSchedule, setHasFixedSchedule] = useState(false);
+  const [baseSalary, setBaseSalary] = useState<number | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -46,6 +48,7 @@ export function ChangeJobModal({
       setAssignmentDate("");
       setEndDate("");
       setHasFixedSchedule(currentJobData?.hasFixedSchedule || false);
+      setBaseSalary(currentJobData?.baseSalary ?? null);
     }
   }, [isOpen, currentJobData]);
 
@@ -59,6 +62,7 @@ export function ChangeJobModal({
       assignmentDate,
       endDate,
       hasFixedSchedule,
+      baseSalary,
     });
     onClose();
   };
@@ -140,7 +144,25 @@ export function ChangeJobModal({
                 />
               </div>
 
-              <div className="md:col-span-2 flex items-center gap-3 mt-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Salaire de base (Ar)
+                </label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="any"
+                  placeholder="Ex: 500000"
+                  className="bg-background"
+                  value={baseSalary ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setBaseSalary(val === "" ? null : Number(val));
+                  }}
+                />
+              </div>
+
+              <div className="flex items-center gap-3 self-end h-9">
                 <Switch
                   checked={hasFixedSchedule}
                   onCheckedChange={setHasFixedSchedule}

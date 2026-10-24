@@ -1,6 +1,6 @@
 import React from "react";
 import { MessagePrimitive, ActionBarPrimitive } from "@assistant-ui/react";
-import { Bot, Copy, RotateCcw } from "lucide-react";
+import { Bot, Copy, RotateCcw, Check } from "lucide-react";
 import { MarkdownContent } from "./MarkdownContent";
 import { LoadingIndicator } from "./LoadingIndicator";
 import { ToolCallIndicator } from "./ToolCallIndicator";
@@ -42,8 +42,14 @@ export const AssistantMessage: React.FC = () => {
               className="inline-flex items-center gap-1 px-2 py-1 rounded hover:bg-muted/80 hover:text-foreground transition-colors cursor-pointer"
               title="Copier la réponse"
             >
-              <Copy className="size-3" />
-              <span>Copier</span>
+              <MessagePrimitive.If copied>
+                <Check className="size-3 text-emerald-500" />
+                <span className="text-emerald-500">Copié</span>
+              </MessagePrimitive.If>
+              <MessagePrimitive.If copied={false}>
+                <Copy className="size-3" />
+                <span>Copier</span>
+              </MessagePrimitive.If>
             </button>
           </ActionBarPrimitive.Copy>
 

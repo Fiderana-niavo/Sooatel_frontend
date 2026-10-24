@@ -3,8 +3,7 @@ import axios from "axios";
 export const setupAxiosInterceptors = () => {
   // Attach the Bearer token to every outgoing request
   axios.interceptors.request.use((config) => {
-    const token =
-      localStorage.getItem("authToken") || localStorage.getItem("token");
+    const token = localStorage.getItem("authToken");
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }

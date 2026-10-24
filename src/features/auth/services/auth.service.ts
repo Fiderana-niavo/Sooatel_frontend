@@ -1,4 +1,5 @@
 import axios from "axios";
+import { beaconClearSession } from "../../chatbot/services/chatbot.service";
 import type {
   ChangeAuthenticatedPasswordDto,
   ChangePasswordDto,
@@ -23,6 +24,7 @@ export const AuthService = {
   },
 
   logout: () => {
+    beaconClearSession();
     localStorage.removeItem("authToken");
     localStorage.removeItem("refreshToken");
   },

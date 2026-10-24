@@ -134,4 +134,11 @@ export const EmployeeService = {
     if (!res.data.ok) throw new Error(res.data.error);
     return res.data.payload;
   },
+
+  confirmJob: async (id: string): Promise<void> => {
+    const res = await axios.post<ApiResponse<void>>(
+      `${BASE}/employees/${id}/confirm`,
+    );
+    if (!res.data.ok) throw new Error(res.data.error);
+  },
 };

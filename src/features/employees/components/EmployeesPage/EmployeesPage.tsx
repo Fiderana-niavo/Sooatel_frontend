@@ -1,4 +1,5 @@
 import { toIsoDate } from "@/utils/date";
+import { formatCurrency } from "@/utils/formatters";
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { EmployeesTable } from "../EmployeesTable/EmployeesTable";
@@ -22,6 +23,7 @@ import {
   Mail,
   Phone,
   AlertTriangle,
+  CheckCircle2,
 } from "lucide-react";
 import {
   Dialog,
@@ -271,6 +273,7 @@ export function EmployeesPage({
     token: string;
     expiresAt: string;
   } | null>(null);
+  const [copiedKey, setCopiedKey] = useState(false);
 
   const handleGenerateKey = async () => {
     if (!selectedEmployeeDetail?.userAccount) return;
@@ -298,6 +301,7 @@ export function EmployeesPage({
   const [newEndDate, setNewEndDate] = useState("");
   const [newHasFixedSchedule, setNewHasFixedSchedule] = useState(false);
   const [newReactivateAccount, setNewReactivateAccount] = useState(true);
+  const [newBaseSalary, setNewBaseSalary] = useState<number | null>(null);
 
   const openChangeJobModal = (item: EmployeeListItem) => {
     setIsRenewal(false);
@@ -324,12 +328,18 @@ export function EmployeesPage({
       setNewHasFixedSchedule(
         selectedEmployeeDetail.job.hasFixedSchedule || false,
       );
+      setNewBaseSalary(
+        selectedEmployeeDetail.baseSalary ??
+          selectedEmployeeDetail.job.baseSalary ??
+          null,
+      );
     } else {
       setNewJobId(initialJobId);
       setNewEmpTypeId(employmentTypes[0]?.idEmploymentType || "");
       setNewAssignmentDate(toIsoDate(new Date()));
       setNewEndDate("");
       setNewHasFixedSchedule(false);
+      setNewBaseSalary(null);
     }
   };
 
@@ -357,12 +367,18 @@ export function EmployeesPage({
       setNewHasFixedSchedule(
         selectedEmployeeDetail.job.hasFixedSchedule || false,
       );
+      setNewBaseSalary(
+        selectedEmployeeDetail.baseSalary ??
+          selectedEmployeeDetail.job.baseSalary ??
+          null,
+      );
     } else {
       setNewJobId(initialJobId);
       setNewEmpTypeId(employmentTypes[0]?.idEmploymentType || "");
       setNewAssignmentDate(toIsoDate(new Date()));
       setNewEndDate("");
       setNewHasFixedSchedule(false);
+      setNewBaseSalary(null);
     }
   };
 
@@ -419,6 +435,10 @@ export function EmployeesPage({
         assignmentDate: newAssignmentDate,
         endDate: newEndDate || null,
         hasFixedSchedule: newHasFixedSchedule,
+        baseSalary:
+          newBaseSalary !== null && !isNaN(Number(newBaseSalary))
+            ? Number(newBaseSalary)
+            : null,
         reactivateAccount: newReactivateAccount,
       };
       if (isRenewal) {
@@ -565,6 +585,54 @@ export function EmployeesPage({
     setConfirmOpen(true);
   };
 
+  const [confirmJobOpen, setConfirmJobOpen] = useState(false);
+  const [employeeToConfirm, setEmployeeToConfirm] =
+    useState<EmployeeListItem | null>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
+
+  const promptConfirm = (item: EmployeeListItem) => {
+    setEmployeeToConfirm(item);
+    setConfirmJobOpen(true);
+  };
+
+  const executeConfirm = async () => {
+    if (!employeeToConfirm) return;
+    setIsConfirming(true);
+    try {
+      await EmployeeService.confirmJob(employeeToConfirm.idEmployee);
+      setConfirmJobOpen(false);
+      setEmployeeToConfirm(null);
+      showSnackbar("Employé confirmé avec succès.", "success");
+      loadEmployees();
+      if (selectedEmployeeDetail?.idEmployee === employeeToConfirm.idEmployee) {
+        const updated = await EmployeeService.getById(
+          employeeToConfirm.idEmployee,
+        );
+        setSelectedEmployeeDetail(updated);
+      }
+    } catch (err: unknown) {
+      console.error(err);
+      const error = err as {
+        response?: { data?: { error?: string; message?: string } };
+        message?: string;
+      };
+      showSnackbar(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          "Erreur lors de la confirmation de l'employé.",
+        "error",
+      );
+    } finally {
+      setIsConfirming(false);
+    }
+  };
+
+  const handleConfirmClick = () => {
+    const item = getSelectedEmployeeListItem();
+    if (item) promptConfirm(item);
+  };
+
   const executeDelete = async () => {
     if (!employeeToDelete) return;
     setIsDeleting(true);
@@ -614,6 +682,10 @@ export function EmployeesPage({
       emailContact: formData.emailContact || undefined,
       phoneNumber: formData.phoneNumber || undefined,
       notes: formData.notes || undefined,
+      baseSalary:
+        formData.baseSalary != null && !isNaN(Number(formData.baseSalary))
+          ? Number(formData.baseSalary)
+          : null,
       job: formData.idJobTitle
         ? {
             idJobTitle: formData.idJobTitle,
@@ -621,6 +693,10 @@ export function EmployeesPage({
             assignmentDate: formData.assignmentDate,
             endDate: formData.endDate || null,
             hasFixedSchedule: formData.hasFixedSchedule || false,
+            baseSalary:
+              formData.baseSalary != null && !isNaN(Number(formData.baseSalary))
+                ? Number(formData.baseSalary)
+                : null,
           }
         : null,
       internship: formData.internship
@@ -744,6 +820,7 @@ export function EmployeesPage({
             onViewDetails={handleViewDetails}
             onDelete={promptDelete}
             onChangeJob={openChangeJobModal}
+            onConfirm={promptConfirm}
             onEditPlanning={handleEditPlanning}
             onTerminateContract={openTerminateContractModal}
             onRenewContract={openRenewContractModal}
@@ -800,6 +877,10 @@ export function EmployeesPage({
                     selectedEmployeeDetail.emailContact || undefined,
                   phoneNumber: selectedEmployeeDetail.phoneNumber || undefined,
                   notes: selectedEmployeeDetail.notes || undefined,
+                  baseSalary:
+                    selectedEmployeeDetail.baseSalary ??
+                    selectedEmployeeDetail.job?.baseSalary ??
+                    null,
                   idJobTitle:
                     selectedEmployeeDetail.job?.idJobTitle || undefined,
                   assignmentDate: selectedEmployeeDetail.job?.assignmentDate
@@ -915,6 +996,23 @@ export function EmployeesPage({
                     Renouveler le contrat
                   </Button>
                 )}
+              </Can>
+              <Can permission="hr.access">
+                {selectedStatus === "active" &&
+                  (selectedEmployeeDetail.job?.status === 5 ||
+                    employeesList.find(
+                      (e) => e.idEmployee === selectedEmployeeDetail.idEmployee,
+                    )?.status === 5) && (
+                    <Button
+                      onClick={handleConfirmClick}
+                      variant="outline"
+                      size="sm"
+                      className="w-full rounded-lg gap-2 text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+                    >
+                      <CheckCircle2 className="size-4" />
+                      Confirmer l'employé
+                    </Button>
+                  )}
               </Can>
               <Can permission="employee.delete">
                 <Button
@@ -1080,6 +1178,22 @@ export function EmployeesPage({
                           {selectedEmployeeDetail.internship
                             ? "Stage"
                             : "CDI / CDD"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground block mb-1">
+                          Salaire de base
+                        </span>
+                        <span className="font-semibold text-foreground">
+                          {selectedEmployeeDetail.baseSalary != null ||
+                          selectedEmployeeDetail.job?.baseSalary != null
+                            ? formatCurrency(
+                                Number(
+                                  selectedEmployeeDetail.baseSalary ??
+                                    selectedEmployeeDetail.job?.baseSalary,
+                                ),
+                              )
+                            : "-"}
                         </span>
                       </div>
                     </div>
@@ -1387,6 +1501,23 @@ export function EmployeesPage({
               />
             </div>
 
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Salaire de base (Ar)
+              </label>
+              <Input
+                type="number"
+                min="0"
+                step="any"
+                placeholder="Ex: 500000"
+                value={newBaseSalary ?? ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setNewBaseSalary(val === "" ? null : Number(val));
+                }}
+              />
+            </div>
+
             <div className="flex items-center justify-between bg-muted/10 border border-border p-3.5 rounded-xl shadow-sm">
               <div>
                 <span className="text-sm font-semibold block text-foreground">
@@ -1508,7 +1639,12 @@ export function EmployeesPage({
 
       <Dialog
         open={!!generatedKey}
-        onOpenChange={(open) => !open && setGeneratedKey(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setGeneratedKey(null);
+            setCopiedKey(false);
+          }
+        }}
       >
         <DialogContent className="max-w-md rounded-[2rem] p-0 overflow-hidden bg-card border">
           <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 border-b">
@@ -1549,12 +1685,19 @@ export function EmployeesPage({
                     variant="outline"
                     className="size-12 rounded-xl shrink-0"
                     onClick={() => {
-                      if (generatedKey)
+                      if (generatedKey) {
                         navigator.clipboard.writeText(generatedKey.token);
+                        setCopiedKey(true);
+                        setTimeout(() => setCopiedKey(false), 2000);
+                      }
                     }}
-                    title="Copier"
+                    title={copiedKey ? "Copié !" : "Copier"}
                   >
-                    <Copy className="size-5 text-muted-foreground" />
+                    {copiedKey ? (
+                      <Check className="size-5 text-emerald-500" />
+                    ) : (
+                      <Copy className="size-5 text-muted-foreground" />
+                    )}
                   </Button>
                 </div>
               </div>
@@ -1600,6 +1743,16 @@ export function EmployeesPage({
         description={`Êtes-vous sûr de vouloir supprimer l'employé ${employeeToDelete?.name} ${employeeToDelete?.lastname} ?`}
         onConfirm={executeDelete}
         loading={isDeleting}
+      />
+
+      <ConfirmDialog
+        open={confirmJobOpen}
+        onOpenChange={setConfirmJobOpen}
+        title="Confirmation de l'employé"
+        description={`Êtes-vous sûr de vouloir confirmer l'employé ${employeeToConfirm?.name} ${employeeToConfirm?.lastname} dans son poste ?`}
+        confirmText="Confirmer l'employé"
+        onConfirm={executeConfirm}
+        loading={isConfirming}
       />
 
       {snackbar.isOpen && (

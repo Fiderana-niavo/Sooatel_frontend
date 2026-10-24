@@ -15,7 +15,9 @@ import {
   ArrowUpDown,
   CalendarDays,
   UserX,
+  CheckCircle2,
 } from "lucide-react";
+import { Can } from "@/components/Can/Can";
 
 interface EmployeesTableProps {
   employees: EmployeeListItem[];
@@ -29,6 +31,7 @@ interface EmployeesTableProps {
   onViewDetails: (employee: EmployeeListItem) => void;
   onDelete: (employee: EmployeeListItem) => void;
   onChangeJob: (employee: EmployeeListItem) => void;
+  onConfirm: (employee: EmployeeListItem) => void;
   onEditPlanning: (employee: EmployeeListItem) => void;
   onTerminateContract: (employee: EmployeeListItem) => void;
   onRenewContract: (employee: EmployeeListItem) => void;
@@ -59,6 +62,7 @@ export function EmployeesTable({
   onViewDetails,
   onDelete,
   onChangeJob,
+  onConfirm,
   onEditPlanning,
   onTerminateContract,
   onRenewContract,
@@ -177,11 +181,10 @@ export function EmployeesTable({
           onClick={() =>
             onStatusChange(selectedStatus === "active" ? "former" : "active")
           }
-          className={`h-8 px-3 py-1 text-xs font-semibold rounded-lg shadow-sm border transition-colors ${
-            selectedStatus === "former"
+          className={`h-8 px-3 py-1 text-xs font-semibold rounded-lg shadow-sm border transition-colors ${selectedStatus === "former"
               ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
               : "bg-background text-muted-foreground border-input hover:text-foreground"
-          }`}
+            }`}
         >
           {selectedStatus === "active"
             ? "Afficher les anciens employés"
@@ -256,8 +259,15 @@ export function EmployeesTable({
                           {emp.name} {emp.lastname}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-muted-foreground">
-                        {emp.jobTitle || "Aucun poste assigné"}
+                      <td className="px-6 py-4">
+                        <div className="text-foreground">
+                          {emp.jobTitle || "Aucun poste assigné"}
+                        </div>
+                        {emp.status === 5 && (
+                          <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                            En attente de confirmation
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         {emp.isInternship ? (
@@ -327,6 +337,19 @@ export function EmployeesTable({
                                   <Briefcase className="size-4" /> Changer de
                                   poste
                                 </button>
+                                <Can permission="hr.access">
+                                  {emp.status === 5 && (
+                                    <button
+                                      onClick={() => {
+                                        setOpenDropdownId(null);
+                                        onConfirm(emp);
+                                      }}
+                                      className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted rounded-lg transition-colors text-emerald-600 font-medium"
+                                    >
+                                      <CheckCircle2 className="size-4" /> Confirmer l'employé
+                                    </button>
+                                  )}
+                                </Can>
                                 <button
                                   onClick={() => {
                                     setOpenDropdownId(null);
