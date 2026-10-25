@@ -43,9 +43,15 @@ export interface DocumentSource {
   score?: number;
 }
 
+export interface PdfExport {
+  title: string;
+  content: string;
+}
+
 export interface ChatApiResponse {
   sessionId?: string;
   answer: string;
   sources?: DocumentSource[];
   agentUsed?: string;
+  pdfExport?: PdfExport;
 }

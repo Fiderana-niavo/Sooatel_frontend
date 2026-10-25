@@ -148,6 +148,12 @@ export function createChatAdapter(): ChatModelAdapter {
         currentSessionId = data.sessionId;
       }
 
+      // The PDF is not downloaded automatically: the message carries it and
+      // the UI shows a download card the user clicks when ready
+      const metadata = data.pdfExport
+        ? { custom: { pdfExport: data.pdfExport } }
+        : undefined;
+
       // Stream the answer progressively, word by word
       for await (const partial of streamWords(data.answer, signal)) {
         yield {
@@ -157,6 +163,7 @@ export function createChatAdapter(): ChatModelAdapter {
               text: partial,
             },
           ],
+          metadata,
         };
       }
     },
