@@ -2,7 +2,25 @@ import { jsPDF } from "jspdf";
 import utopiaLogo from "@/assets/Utopia.jpeg";
 import type { SaleRecord } from "../types";
 import type { TicketConfig } from "./ticketStorage";
-import { ESTABLISHMENT } from "../constants/ticket.constants";
+import {
+  TICKET_TEXTS,
+  type EstablishmentConfig,
+} from "../constants/ticket.constants";
+import { CompanyService } from "../services/company.service";
+
+let establishment: EstablishmentConfig = {
+  name: "",
+  subtitle: "",
+  address: "",
+  city: "",
+  phone: "",
+  ...TICKET_TEXTS,
+};
+
+const loadEstablishment = async (): Promise<void> => {
+  const company = await CompanyService.getInfo();
+  establishment = { ...company, ...TICKET_TEXTS };
+};
 
 let logoCache: string | null = null;
 
@@ -120,7 +138,11 @@ const computeHeight = (
   hasLogo: boolean,
 ): number => {
   const narrow = width < 65;
-  const dummy = new jsPDF({ orientation: "portrait", unit: "mm", format: [width, 400] });
+  const dummy = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: [width, 400],
+  });
 
   if (narrow) {
     const margin = 2.5;
@@ -135,7 +157,8 @@ const computeHeight = (
     y += 3.5 + 3.5; // dash + spacing
 
     for (const item of sale.saleItems) {
-      const label = item.menu?.item?.label || `Menu #${item.idMenu.slice(0, 6)}`;
+      const label =
+        item.menu?.item?.label || `Menu #${item.idMenu.slice(0, 6)}`;
       const split = dummy.splitTextToSize(label, content);
       y += split.length * 3.2 + 4;
     }
@@ -153,7 +176,8 @@ const computeHeight = (
 
     y += 5; // table header
     for (const item of sale.saleItems) {
-      const label = item.menu?.item?.label || `Menu #${item.idMenu.slice(0, 6)}`;
+      const label =
+        item.menu?.item?.label || `Menu #${item.idMenu.slice(0, 6)}`;
       const split = dummy.splitTextToSize(label, col2 - 2);
       const rowH = Math.max(5, split.length * 3.4 + 1.2);
       y += rowH;
@@ -185,18 +209,18 @@ const renderNarrowTicket = (
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
-  doc.text(ESTABLISHMENT.name, margin, y);
+  doc.text(establishment.name, margin, y);
   y += 3.5;
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
-  doc.text(ESTABLISHMENT.subtitle, margin, y);
+  doc.text(establishment.subtitle, margin, y);
   y += 3;
 
   doc.setFontSize(6);
-  doc.text(`${ESTABLISHMENT.address} - ${ESTABLISHMENT.city}`, margin, y);
+  doc.text(`${establishment.address} - ${establishment.city}`, margin, y);
   y += 2.8;
-  doc.text(`Tél : ${ESTABLISHMENT.phone}`, margin, y);
+  doc.text(`Tél : ${establishment.phone}`, margin, y);
   y += 3.5;
 
   drawDash(doc, margin, y, width - margin);
@@ -204,7 +228,7 @@ const renderNarrowTicket = (
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
-  doc.text(ESTABLISHMENT.receiptTitle, width / 2, y, { align: "center" });
+  doc.text(establishment.receiptTitle, width / 2, y, { align: "center" });
   y += 3.5;
 
   doc.setFont("helvetica", "normal");
@@ -263,7 +287,8 @@ const renderNarrowTicket = (
   y += 5;
 
   // Reste à payer en bas
-  const balance = sale.invoice?.balanceDue != null ? Number(sale.invoice.balanceDue) : 0;
+  const balance =
+    sale.invoice?.balanceDue != null ? Number(sale.invoice.balanceDue) : 0;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(6.5);
   doc.text(`Reste à payer : ${formatAmount(balance)}`, margin, y);
@@ -271,7 +296,7 @@ const renderNarrowTicket = (
 
   doc.setFont("helvetica", "italic");
   doc.setFontSize(5.5);
-  doc.text(ESTABLISHMENT.legalText, width / 2, y, {
+  doc.text(establishment.legalText, width / 2, y, {
     align: "center",
   });
   y += 4;
@@ -286,7 +311,7 @@ const renderNarrowTicket = (
   y += 10;
 
   doc.setFontSize(6);
-  doc.text(ESTABLISHMENT.thankYou, width / 2, y, { align: "center" });
+  doc.text(establishment.thankYou, width / 2, y, { align: "center" });
 };
 
 const renderStandardTicket = (
@@ -307,21 +332,25 @@ const renderStandardTicket = (
   const startY = y + 15; // clear gap between logo and UTOPIA
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.5);
-  doc.text(ESTABLISHMENT.name, margin, startY);
+  doc.text(establishment.name, margin, startY);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(6.5);
-  doc.text(ESTABLISHMENT.subtitle, margin, startY + 3);
+  doc.text(establishment.subtitle, margin, startY + 3);
 
   doc.setFontSize(5.5);
-  doc.text(`${ESTABLISHMENT.address} - ${ESTABLISHMENT.city}`, margin, startY + 5.8);
-  doc.text(`Tél : ${ESTABLISHMENT.phone}`, margin, startY + 8.6);
+  doc.text(
+    `${establishment.address} - ${establishment.city}`,
+    margin,
+    startY + 5.8,
+  );
+  doc.text(`Tél : ${establishment.phone}`, margin, startY + 8.6);
 
   // Top header Right: Invoice details
   const rightX = width - margin;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10.5);
-  doc.text(ESTABLISHMENT.receiptTitle, rightX, 6.5, { align: "right" });
+  doc.text(establishment.receiptTitle, rightX, 6.5, { align: "right" });
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(6.5);
@@ -436,11 +465,12 @@ const renderStandardTicket = (
   // Somme arrêtée
   doc.setFont("helvetica", "italic");
   doc.setFontSize(5.5);
-  doc.text(ESTABLISHMENT.legalText, margin, y);
+  doc.text(establishment.legalText, margin, y);
   y += 3.5;
 
   // Reste à payer en bas (remplace les répétitions de règlements)
-  const balanceDue = sale.invoice?.balanceDue != null ? Number(sale.invoice.balanceDue) : 0;
+  const balanceDue =
+    sale.invoice?.balanceDue != null ? Number(sale.invoice.balanceDue) : 0;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(6.5);
   doc.text(`Reste à payer : ${formatAmount(balanceDue)}`, margin, y);
@@ -457,7 +487,7 @@ const renderStandardTicket = (
   y += 10;
 
   doc.setFontSize(6);
-  doc.text(ESTABLISHMENT.thankYou, width / 2, y, { align: "center" });
+  doc.text(establishment.thankYou, width / 2, y, { align: "center" });
 };
 
 export const generateThermalTicket = (
@@ -508,18 +538,18 @@ export const generateInvoicePage = (
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(format === "a5" ? 11 : 13);
-  doc.text(ESTABLISHMENT.name, margin, y);
+  doc.text(establishment.name, margin, y);
   y += 4;
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(format === "a5" ? 8.5 : 9.5);
-  doc.text(ESTABLISHMENT.subtitle, margin, y);
+  doc.text(establishment.subtitle, margin, y);
   y += 3.5;
 
   doc.setFontSize(format === "a5" ? 7.5 : 8.5);
-  doc.text(`${ESTABLISHMENT.address} - ${ESTABLISHMENT.city}`, margin, y);
+  doc.text(`${establishment.address} - ${establishment.city}`, margin, y);
   y += 3.2;
-  doc.text(`Tél : ${ESTABLISHMENT.phone}`, margin, y);
+  doc.text(`Tél : ${establishment.phone}`, margin, y);
 
   // Header Right: Invoice Card
   const cardW = format === "a5" ? 64 : 76;
@@ -536,7 +566,9 @@ export const generateInvoicePage = (
   doc.setFont("helvetica", "bold");
   doc.setFontSize(format === "a5" ? 11 : 13);
   doc.setTextColor(30, 41, 59);
-  doc.text(ESTABLISHMENT.receiptTitle, cardX + cardW / 2, cardTextY, { align: "center" });
+  doc.text(establishment.receiptTitle, cardX + cardW / 2, cardTextY, {
+    align: "center",
+  });
   cardTextY += 5;
 
   doc.setFont("helvetica", "normal");
@@ -549,7 +581,11 @@ export const generateInvoicePage = (
   doc.text(`Date : ${formatDate(sale.saleDate)}`, cardX + 4, cardTextY);
   cardTextY += 4;
 
-  doc.text("Doit : .....................................................", cardX + 4, cardTextY);
+  doc.text(
+    "Doit : .....................................................",
+    cardX + 4,
+    cardTextY,
+  );
   cardTextY += 4;
 
   doc.text(`N° de table : ${sale.tableNumber ?? "—"}`, cardX + 4, cardTextY);
@@ -559,7 +595,11 @@ export const generateInvoicePage = (
   cardTextY += 4;
 
   if (sale.saler) {
-    doc.text(`Serveur : ${sale.saler.name} ${sale.saler.lastname}`, cardX + 4, cardTextY);
+    doc.text(
+      `Serveur : ${sale.saler.name} ${sale.saler.lastname}`,
+      cardX + 4,
+      cardTextY,
+    );
   }
 
   doc.setTextColor(0, 0, 0);
@@ -655,7 +695,8 @@ export const generateInvoicePage = (
   y += totalBoxH + 4;
 
   // Reste à payer
-  const bal = sale.invoice?.balanceDue != null ? Number(sale.invoice.balanceDue) : 0;
+  const bal =
+    sale.invoice?.balanceDue != null ? Number(sale.invoice.balanceDue) : 0;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(format === "a5" ? 7.5 : 8.5);
   doc.text(`Reste à payer : ${formatAmount(bal)}`, margin, y);
@@ -663,7 +704,7 @@ export const generateInvoicePage = (
 
   doc.setFont("helvetica", "italic");
   doc.setFontSize(format === "a5" ? 7 : 8);
-  doc.text(ESTABLISHMENT.legalText, margin, y);
+  doc.text(establishment.legalText, margin, y);
 
   y += 8;
 
@@ -686,8 +727,11 @@ export const generateInvoicePage = (
     doc.setPage(i);
     doc.setFontSize(6.5);
     doc.setTextColor(148, 163, 184);
+    const mailSuffix = establishment.mail
+      ? ` - Mail : ${establishment.mail}`
+      : "";
     doc.text(
-      `${ESTABLISHMENT.name} ${ESTABLISHMENT.subtitle} - ${ESTABLISHMENT.address}, ${ESTABLISHMENT.city} - Tél : ${ESTABLISHMENT.phone}`,
+      `${establishment.name} ${establishment.subtitle} - ${establishment.address}, ${establishment.city} - Tél : ${establishment.phone}${mailSuffix}`,
       margin,
       pageH - 6,
     );
@@ -703,6 +747,7 @@ export const generatePdfBlob = async (
   sale: SaleRecord,
   config: TicketConfig,
 ): Promise<Blob> => {
+  await loadEstablishment();
   const logo = await getLogoData();
   let doc: jsPDF;
 
@@ -711,7 +756,8 @@ export const generatePdfBlob = async (
   } else if (config.type === "A5") {
     doc = generateInvoicePage(sale, "a5", logo);
   } else {
-    const width = config.type === "58mm" ? 58 : config.type === "80mm" ? 80 : config.width;
+    const width =
+      config.type === "58mm" ? 58 : config.type === "80mm" ? 80 : config.width;
     doc = generateThermalTicket(sale, width, logo);
   }
 

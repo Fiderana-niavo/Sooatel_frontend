@@ -141,10 +141,6 @@ export const RevenuePage: React.FC = () => {
     if (filterMenuId) filters.idMenu = filterMenuId;
 
     const res = await SaleService.getRevenue(pageNum, limit, filters);
-    console.log(
-      `[Revenus] Données récupérées pour la page ${pageNum}:`,
-      res.payload.data,
-    );
 
     if (pageNum === 1) {
       setIsNotJournalised(res.payload.isNotJournalised);
