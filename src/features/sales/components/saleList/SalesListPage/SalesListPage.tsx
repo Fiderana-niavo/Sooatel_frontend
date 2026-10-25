@@ -8,10 +8,14 @@ import { SalesListFilters } from "../SalesListFilters/SalesListFilters";
 import { SalesListTable } from "../SalesListTable/SalesListTable";
 import { PaymentModal } from "../SalesListModals/PaymentModal";
 import { CancelSaleModal } from "../SalesListModals/CancelSaleModal";
+import { TicketFormatModal } from "../SalesListModals/TicketFormatModal";
+import { PrintSaleModal } from "../SalesListModals/PrintSaleModal";
 import { Snackbar } from "@/components/ui/Snackbar/snackbar";
 import { InputDialog } from "@/components/ui/InputDialog/InputDialog";
 import { PaymentManagementDialog } from "../../../../payments/components/PaymentManagementDialog";
 import { useAppStore } from "@/store/app.store";
+import { getTicketConfig, type TicketConfig } from "../../../utils/ticketStorage";
+import { executePrint } from "../../../utils/executePrint";
 import type { SaleRecord } from "../../../types";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
@@ -82,6 +86,10 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
     totalPaid: number;
   }>({ isOpen: false, saleId: "", totalPaid: 0 });
   const [cancelRefundMethodId, setCancelRefundMethodId] = useState<string>("");
+  const [ticketConfig, setTicketConfig] = useState<TicketConfig>(getTicketConfig);
+  const [formatModalOpen, setFormatModalOpen] = useState(false);
+  const [printSale, setPrintSale] = useState<SaleRecord | null>(null);
+  const [printLoading, setPrintLoading] = useState(false);
 
   const showSnackbar = (message: string, type: SnackbarType = "info") =>
     setSnackbar({ isOpen: true, message, type });
@@ -152,15 +160,71 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
     loadDependencies();
   }, [loadDependencies]);
 
-  const resolveError = (err: any, fallback: string): string => {
-    if (err.response?.status === 403)
+  const resolveError = (err: unknown, fallback: string): string => {
+    const error = err as {
+      response?: { status?: number; data?: { error?: string; message?: string } };
+      message?: string;
+    };
+    if (error.response?.status === 403)
       return "Vous n'avez pas la permission pour cette action.";
     return (
-      err.response?.data?.error ||
-      err.response?.data?.message ||
-      err.message ||
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      error.message ||
       fallback
     );
+  };
+
+  const handlePrintSale = (sale: SaleRecord) => {
+    setPrintSale(sale);
+  };
+
+  const handleExecutePrint = async (
+    sale: SaleRecord,
+    config: TicketConfig,
+    win: Window | null,
+  ) => {
+    setTicketConfig(config);
+    setPrintLoading(true);
+
+    try {
+      let targetSale = sale;
+
+      // If sale is open, close it first
+      if (sale.status !== 0) {
+        setActionLoading(true);
+        await SaleService.closeSale(sale.idSale);
+        showSnackbar("Vente fermée avec succès.", "success");
+
+        try {
+          const fresh = await SaleService.getSaleById(sale.idSale);
+          if (fresh) targetSale = fresh;
+          else targetSale = { ...sale, status: 0 };
+        } catch {
+          targetSale = { ...sale, status: 0 };
+        }
+
+        await fetchSales();
+        if (selectedSale?.idSale === sale.idSale) {
+          setSelectedSale(targetSale);
+        }
+        setActionLoading(false);
+      }
+
+      await executePrint(targetSale, win, config);
+      showSnackbar("Document généré pour impression.", "success");
+    } catch (err: unknown) {
+      if (win && !win.closed) {
+        win.close();
+      }
+      showSnackbar(
+        resolveError(err, "Erreur lors de la génération du document."),
+        "error",
+      );
+    } finally {
+      setPrintLoading(false);
+      setActionLoading(false);
+    }
   };
 
   const handleCancel = async (
@@ -399,6 +463,8 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
           setPage(1);
         }}
         onResetFilters={handleResetFilters}
+        onOpenFormatModal={() => setFormatModalOpen(true)}
+        ticketFormatLabel={ticketConfig.type === "custom" ? `${ticketConfig.width} mm` : ticketConfig.type}
       />
 
       <SalesListTable
@@ -421,6 +487,7 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         onManagePayment={(sale) =>
           setManagePaymentDialog({ isOpen: true, sale })
         }
+        onPrint={handlePrintSale}
       />
 
       <SaleDetailSheet
@@ -436,7 +503,9 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         onAdjustPayment={handleAdjustPayment}
         onRefundPayment={handleRefundPayment}
         onPay={handleOpenPayModal}
-        loading={actionLoading}
+        onPrint={handlePrintSale}
+        onOpenFormatModal={() => setFormatModalOpen(true)}
+        loading={actionLoading || printLoading}
       />
 
       <PaymentModal
@@ -482,20 +551,20 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
         onAdjust={(idPayment, newAmount) =>
           managePaymentDialog.sale
             ? handleAdjustPayment(
-                managePaymentDialog.sale.idSale,
-                idPayment,
-                newAmount,
-              )
+              managePaymentDialog.sale.idSale,
+              idPayment,
+              newAmount,
+            )
             : Promise.resolve()
         }
         onRefund={(amount, methodId, reason) =>
           managePaymentDialog.sale
             ? handleRefundPayment(
-                managePaymentDialog.sale.idSale,
-                amount,
-                methodId,
-                reason,
-              )
+              managePaymentDialog.sale.idSale,
+              amount,
+              methodId,
+              reason,
+            )
             : Promise.resolve()
         }
       />
@@ -543,6 +612,26 @@ export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
           onClose={() => setSnackbar((p) => ({ ...p, isOpen: false }))}
         />
       )}
+
+      <TicketFormatModal
+        open={formatModalOpen}
+        onOpenChange={setFormatModalOpen}
+        onSave={(newConfig) => {
+          setTicketConfig(newConfig);
+          showSnackbar(
+            `Format d'impression enregistré : ${newConfig.type === "custom" ? `${newConfig.width} mm` : newConfig.type}`,
+            "success",
+          );
+        }}
+      />
+
+      <PrintSaleModal
+        sale={printSale}
+        open={Boolean(printSale)}
+        onOpenChange={(open) => !open && setPrintSale(null)}
+        onConfirmPrint={handleExecutePrint}
+        loading={actionLoading || printLoading}
+      />
     </div>
   );
 };

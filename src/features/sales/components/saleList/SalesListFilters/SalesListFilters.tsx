@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertTriangle, ChevronDown, RotateCcw } from "lucide-react";
+import { AlertTriangle, ChevronDown, RotateCcw, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
@@ -17,6 +17,8 @@ interface SalesListFiltersProps {
   paymentStatusFilter: string;
   onPaymentStatusFilterChange: (val: string) => void;
   onResetFilters?: () => void;
+  onOpenFormatModal?: () => void;
+  ticketFormatLabel?: string;
 }
 
 export const SalesListFilters: React.FC<SalesListFiltersProps> = ({
@@ -32,6 +34,8 @@ export const SalesListFilters: React.FC<SalesListFiltersProps> = ({
   paymentStatusFilter,
   onPaymentStatusFilterChange,
   onResetFilters,
+  onOpenFormatModal,
+  ticketFormatLabel,
 }) => {
   const hasActiveFilters = Boolean(
     dateFilter || menuFilter || statusFilter || paymentStatusFilter,
@@ -51,6 +55,17 @@ export const SalesListFilters: React.FC<SalesListFiltersProps> = ({
               : "Consultez et gérez toutes les ventes enregistrées."}
           </p>
         </div>
+        {onOpenFormatModal && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onOpenFormatModal}
+            className="self-start sm:self-auto gap-2 rounded-xl text-xs font-semibold shadow-xs hover:bg-muted"
+          >
+            <Receipt className="size-4 text-primary" />
+            Format ticket {ticketFormatLabel ? `(${ticketFormatLabel})` : ""}
+          </Button>
+        )}
       </div>
 
       {/* Filter Controls: 2 harmonious rows with identical dimensions and styles */}
