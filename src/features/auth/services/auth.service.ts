@@ -1,5 +1,8 @@
 import axios from "axios";
-import { beaconClearSession } from "../../chatbot/services/chatbot.service";
+import {
+  beaconClearSession,
+  resetSession,
+} from "../../chatbot/services/chatbot.service";
 import type {
   ChangeAuthenticatedPasswordDto,
   ChangePasswordDto,
@@ -25,8 +28,10 @@ export const AuthService = {
 
   logout: () => {
     beaconClearSession();
+    void resetSession();
     localStorage.removeItem("authToken");
     localStorage.removeItem("refreshToken");
+    localStorage.removeItem("token");
   },
 
   refresh: async (token: string): Promise<{ accessToken: string }> => {

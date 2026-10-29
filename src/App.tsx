@@ -171,6 +171,8 @@ function App() {
 
     if (firstPermittedTab) {
       setActiveTab(firstPermittedTab);
+    } else {
+      setActiveTab("Assistant IA");
     }
 
     navigate("/");
@@ -292,7 +294,7 @@ function App() {
 
                     {activeTab === "Gestion des Utilisateurs" ? (
                       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                        <ProtectedRoute permission="employee.read">
+                        <ProtectedRoute permission="employee.manage">
                           <EmployeesPage setPageTitle={setEmployeesPageTitle} />
                         </ProtectedRoute>
                       </div>
@@ -322,19 +324,19 @@ function App() {
                       </div>
                     ) : activeTab === "Équipes & Quarts" ? (
                       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                        <ProtectedRoute permission="hr.schedule">
+                        <ProtectedRoute permission="hr.manage">
                           <PlanningPage />
                         </ProtectedRoute>
                       </div>
                     ) : activeTab === "Emploi du Temps" ? (
                       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <ProtectedRoute permission="hr.schedule">
+                        <ProtectedRoute permission="hr.manage">
                           <TimetablePage />
                         </ProtectedRoute>
                       </div>
                     ) : activeTab === "Gestion des Postes" ? (
                       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                        <ProtectedRoute permission="hr.access">
+                        <ProtectedRoute permission="hr.manage">
                           <JobTitlesPage />
                         </ProtectedRoute>
                       </div>
@@ -352,7 +354,7 @@ function App() {
                       </div>
                     ) : activeTab === "Catalogue & Menus" ? (
                       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                        <ProtectedRoute permission="restaurant.access">
+                        <ProtectedRoute permission="sale.manage">
                           <RestaurantCatalogPage />
                         </ProtectedRoute>
                       </div>

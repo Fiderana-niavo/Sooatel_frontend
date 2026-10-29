@@ -947,7 +947,7 @@ export function EmployeesPage({
             </div>
 
             <div className="grid grid-cols-2 gap-2 w-fit xl:ml-auto">
-              <Can permission="employee.update">
+              <Can permission="employee.manage">
                 <Button
                   variant="outline"
                   onClick={handleEditClick}
@@ -959,9 +959,8 @@ export function EmployeesPage({
                 </Button>
               </Can>
               {selectedStatus === "active" && (
-                <Can permission="employee.update">
+                <Can permission="employee.manage">
                   <Button
-                    variant="outline"
                     onClick={handleEditPlanningClick}
                     size="sm"
                     className="w-full rounded-lg gap-2"
@@ -971,7 +970,7 @@ export function EmployeesPage({
                   </Button>
                 </Can>
               )}
-              <Can permission="employee.update">
+              <Can permission="employee.manage">
                 {selectedStatus === "active" ? (
                   <Button
                     onClick={handleChangeJobClick}
@@ -1014,7 +1013,7 @@ export function EmployeesPage({
                     </Button>
                   )}
               </Can>
-              <Can permission="employee.delete">
+              <Can permission="employee.manage">
                 <Button
                   onClick={handleDeleteClick}
                   variant="destructive"
