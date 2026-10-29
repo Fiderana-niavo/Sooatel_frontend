@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { purchaseService } from "../../services/purchase.service";
 import { Button } from "@/components/ui/Button/button";
@@ -46,10 +46,6 @@ export function PurchaseListPage({
       try {
         const parsed = JSON.parse(savedStr);
         if (parsed && parsed.purchase) {
-          console.log(
-            "PurchaseListPage restoring receptionPurchase from saved state:",
-            parsed.purchase.idPurchase,
-          );
           setReceptionPurchase(parsed.purchase);
         }
       } catch (e) {

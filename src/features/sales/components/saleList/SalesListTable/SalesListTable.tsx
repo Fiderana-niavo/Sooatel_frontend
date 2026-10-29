@@ -9,6 +9,7 @@ import {
   XCircle,
   Banknote,
   Trash2,
+  Printer,
 } from "lucide-react";
 import Pagination from "@/components/ui/Pagination/pagination";
 import { ActionDropdown } from "@/components/ui/ActionDropdown/ActionDropdown";
@@ -30,6 +31,7 @@ interface SalesListTableProps {
   onReopen?: (id: string) => void;
   onCancel?: (id: string) => void;
   onPay?: (sale: SaleRecord) => void;
+  onPrint?: (sale: SaleRecord) => void;
   showCancelled: boolean;
 }
 
@@ -47,6 +49,7 @@ export const SalesListTable: React.FC<SalesListTableProps> = ({
   onReopen,
   onCancel,
   onPay,
+  onPrint,
   showCancelled,
 }) => {
   if (loading) {
@@ -150,6 +153,12 @@ export const SalesListTable: React.FC<SalesListTableProps> = ({
                           label: "Détails",
                           icon: <Eye className="size-4" />,
                           onClick: () => onSaleClick(sale),
+                        },
+                        {
+                          label: "Imprimer",
+                          icon: <Printer className="size-4" />,
+                          hidden: !onPrint || sale.status === -3,
+                          onClick: () => onPrint?.(sale),
                         },
                         {
                           label: "Modifier",

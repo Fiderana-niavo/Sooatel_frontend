@@ -54,22 +54,32 @@ export function EmployeeForm({
   });
 
   const [formData, setFormData] = useState<Employee>(
-    initialData || {
-      employeeCode: "",
-      name: "",
-      lastname: "",
-      birthdate: "",
-      address: "",
-      idJobTitle: "",
-      assignmentDate: "",
-      endDate: "",
-      hasFixedSchedule: false,
-      idEmploymentType: "",
-      emailContact: "",
-      phoneNumber: "",
-      notes: "",
-      hasUserAccount: false,
-    },
+    initialData
+      ? {
+          ...initialData,
+          baseSalary:
+            initialData.baseSalary !== undefined &&
+            initialData.baseSalary !== null
+              ? initialData.baseSalary
+              : null,
+        }
+      : {
+          employeeCode: "",
+          name: "",
+          lastname: "",
+          birthdate: "",
+          address: "",
+          idJobTitle: "",
+          assignmentDate: "",
+          endDate: "",
+          hasFixedSchedule: false,
+          idEmploymentType: "",
+          baseSalary: null,
+          emailContact: "",
+          phoneNumber: "",
+          notes: "",
+          hasUserAccount: false,
+        },
   );
 
   const [username, setUsername] = useState(
@@ -116,6 +126,10 @@ export function EmployeeForm({
       emailContact: formData.emailContact?.trim(),
       phoneNumber: formData.phoneNumber?.trim(),
       notes: formData.notes?.trim(),
+      baseSalary:
+        formData.baseSalary != null && !isNaN(Number(formData.baseSalary))
+          ? Number(formData.baseSalary)
+          : null,
     };
     onSave({
       formData: trimmedFormData,
@@ -330,7 +344,27 @@ export function EmployeeForm({
                       }
                     />
                   </div>
-                  <div className="md:col-span-2 flex items-center gap-3 mt-1">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Salaire de base (Ar)
+                    </label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="any"
+                      placeholder="Ex: 500000"
+                      className="bg-background"
+                      value={formData.baseSalary ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFormData({
+                          ...formData,
+                          baseSalary: val === "" ? null : Number(val),
+                        });
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 self-end h-9">
                     <Switch
                       checked={formData.hasFixedSchedule}
                       onCheckedChange={(checked) =>

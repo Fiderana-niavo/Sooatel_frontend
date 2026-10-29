@@ -116,7 +116,7 @@ export const NAVIGATION_GROUPS = [
         title: "Catalogue & Menus",
         url: "/resto/catalog",
         icon: BookOpen,
-        permission: "restaurant.access",
+        permission: "sale.manage",
       },
     ],
   },
@@ -246,7 +246,7 @@ export const NAVIGATION_GROUPS = [
         title: "Gestion des Utilisateurs",
         url: "/hr/users",
         icon: Users,
-        permission: "employee.read",
+        permission: "employee.manage",
       },
       {
         title: "Rôles et Permissions",
@@ -258,7 +258,7 @@ export const NAVIGATION_GROUPS = [
         title: "Gestion des Postes",
         url: "/hr/jobs",
         icon: Briefcase,
-        permission: "hr.access",
+        permission: "hr.manage",
       },
       {
         title: "Besoins en Personnel",
@@ -271,20 +271,20 @@ export const NAVIGATION_GROUPS = [
   {
     title: "Temps & Planification",
     icon: CalendarDays,
-    permission: "hr.schedule",
+    permission: "hr.manage",
     scopes: ["utopia", "sooatel"],
     items: [
       {
         title: "Équipes & Quarts",
         url: "/hr/planning",
         icon: CalendarDays,
-        permission: "hr.schedule",
+        permission: "hr.manage",
       },
       {
         title: "Emploi du Temps",
         url: "/hr/timetable",
         icon: CalendarCheck,
-        permission: "hr.schedule",
+        permission: "hr.manage",
       },
       {
         title: "Congés & Absences",

@@ -169,7 +169,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       onLogin();
     },
     onError: (err: Error) => {
-      console.log(err);
       showSnackbar(err.message ?? "Identifiants incorrects.", "error");
     },
   });

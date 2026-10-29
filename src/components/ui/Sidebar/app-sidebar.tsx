@@ -348,7 +348,12 @@ export function AppSidebar({
       <SidebarFooter className="border-t border-border pt-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Assistant IA">
+            <SidebarMenuButton
+              tooltip="Assistant IA"
+              isActive={activeTab === "Assistant IA"}
+              onClick={() => setActiveTab("Assistant IA")}
+              className="cursor-pointer"
+            >
               <Bot className="size-5 text-accent" />
               <span>Assistant IA</span>
             </SidebarMenuButton>

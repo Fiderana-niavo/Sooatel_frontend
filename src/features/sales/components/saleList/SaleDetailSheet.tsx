@@ -13,7 +13,7 @@ import { PaymentManagementDialog } from "../../../payments/components/PaymentMan
 import { SaleStatusBadge, PaymentStatusBadge } from "./SaleStatusBadge";
 import { Can } from "@/components/Can/Can";
 import type { SaleRecord } from "../../types";
-import { RotateCcw, Trash2, XCircle, Edit, Banknote, Lock } from "lucide-react";
+import { RotateCcw, Trash2, XCircle, Edit, Banknote, Lock, Printer, Settings } from "lucide-react";
 
 interface SaleDetailSheetProps {
   sale: SaleRecord | null;
@@ -37,6 +37,8 @@ interface SaleDetailSheetProps {
     reason?: string,
   ) => Promise<void>;
   onPay?: (sale: SaleRecord) => void;
+  onPrint?: (sale: SaleRecord) => void;
+  onOpenFormatModal?: () => void;
   loading?: boolean;
 }
 
@@ -53,6 +55,8 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
   onAdjustPayment,
   onRefundPayment,
   onPay,
+  onPrint,
+  onOpenFormatModal,
   loading = false,
 }) => {
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -228,6 +232,17 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
 
             <div className="flex flex-col gap-4 pt-4 mt-2 border-t border-border/40">
               <div className="grid grid-cols-3 gap-2">
+                {onPrint && sale.status !== -3 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={loading}
+                    onClick={() => onPrint(sale)}
+                    className="w-full justify-start gap-2 h-auto py-2 px-3 whitespace-normal text-left text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium"
+                  >
+                    <Printer size={14} className="text-primary shrink-0" /> Imprimer
+                  </Button>
+                )}
                 <Can permission="sales.pos">
                   {sale.status === 5 && (
                     <Button
@@ -316,6 +331,16 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
                       </Button>
                     )}
                 </Can>
+                {onOpenFormatModal && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onOpenFormatModal}
+                    className="w-full justify-start gap-2 h-auto py-2 px-3 whitespace-normal text-left text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    <Settings size={13} className="shrink-0" /> Format d'impression
+                  </Button>
+                )}
               </div>
               <Can permission="sale.manage">
                 <div className="grid grid-cols-3 gap-2 pt-3 mt-1 border-t border-dashed border-border/30">

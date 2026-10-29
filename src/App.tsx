@@ -32,6 +32,7 @@ import { StockMovementPage } from "@/features/stock-movement";
 import { DishProductionPage } from "@/features/dish-production";
 import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { TimetablePage } from "@/features/timetable";
+import { ChatbotView } from "@/features/chatbot";
 import { useAppStore } from "@/store/app.store";
 
 function App() {
@@ -170,6 +171,8 @@ function App() {
 
     if (firstPermittedTab) {
       setActiveTab(firstPermittedTab);
+    } else {
+      setActiveTab("Assistant IA");
     }
 
     navigate("/");
@@ -203,8 +206,18 @@ function App() {
                 setActiveTab={handleTabChange}
               />
               <SidebarInset className="bg-secondary/5">
-                <main className="w-full flex flex-col min-h-svh transition-colors duration-300 p-4 md:px-8 md:pb-8 md:pt-[14px]">
-                  <div className="w-full mb-8 relative">
+                <main
+                  className={`w-full flex flex-col transition-colors duration-300 p-4 md:px-8 md:pb-6 md:pt-[14px] ${
+                    activeTab === "Assistant IA"
+                      ? "h-svh max-h-svh overflow-hidden"
+                      : "min-h-svh"
+                  }`}
+                >
+                  <div
+                    className={`w-full relative shrink-0 ${
+                      activeTab === "Assistant IA" ? "mb-3" : "mb-8"
+                    }`}
+                  >
                     <div className="absolute left-0 top-1">
                       <SidebarTrigger className="text-secondary hover:bg-secondary/20 hover:text-secondary-foreground -ml-4 md:-ml-6" />
                     </div>
@@ -231,7 +244,13 @@ function App() {
                     </div>
                   </div>
 
-                  <section className="bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-xl p-8 md:p-12 border border-border/50 flex-1 w-full max-w-5xl mx-auto space-y-10 relative overflow-hidden">
+                  <section
+                    className={`bg-card shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-xl border border-border/50 w-full max-w-5xl mx-auto relative overflow-hidden ${
+                      activeTab === "Assistant IA"
+                        ? "p-0 flex flex-col flex-1 min-h-0"
+                        : "p-8 md:p-12 space-y-10 flex-1"
+                    }`}
+                  >
                     <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
 
                     {activeTab !== "Gestion des Utilisateurs" &&
@@ -256,7 +275,8 @@ function App() {
                       activeTab !== "Recettes" &&
                       activeTab !== "Mouvements" &&
                       activeTab !== "Production de Plats" &&
-                      activeTab !== "Inventaire Physique" && (
+                      activeTab !== "Inventaire Physique" &&
+                      activeTab !== "Assistant IA" && (
                         <div>
                           <h2 className="text-2xl font-bold mb-2">
                             Bienvenue sur{" "}
@@ -274,7 +294,7 @@ function App() {
 
                     {activeTab === "Gestion des Utilisateurs" ? (
                       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                        <ProtectedRoute permission="employee.read">
+                        <ProtectedRoute permission="employee.manage">
                           <EmployeesPage setPageTitle={setEmployeesPageTitle} />
                         </ProtectedRoute>
                       </div>
@@ -304,19 +324,19 @@ function App() {
                       </div>
                     ) : activeTab === "Équipes & Quarts" ? (
                       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                        <ProtectedRoute permission="hr.schedule">
+                        <ProtectedRoute permission="hr.manage">
                           <PlanningPage />
                         </ProtectedRoute>
                       </div>
                     ) : activeTab === "Emploi du Temps" ? (
                       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <ProtectedRoute permission="hr.schedule">
+                        <ProtectedRoute permission="hr.manage">
                           <TimetablePage />
                         </ProtectedRoute>
                       </div>
                     ) : activeTab === "Gestion des Postes" ? (
                       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                        <ProtectedRoute permission="hr.access">
+                        <ProtectedRoute permission="hr.manage">
                           <JobTitlesPage />
                         </ProtectedRoute>
                       </div>
@@ -334,7 +354,7 @@ function App() {
                       </div>
                     ) : activeTab === "Catalogue & Menus" ? (
                       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-                        <ProtectedRoute permission="restaurant.access">
+                        <ProtectedRoute permission="sale.manage">
                           <RestaurantCatalogPage />
                         </ProtectedRoute>
                       </div>
@@ -441,7 +461,7 @@ function App() {
                           <DishProductionPage />
                         </ProtectedRoute>
                       </div>
-                    ) : (
+                    ) : activeTab !== "Assistant IA" ? (
                       <div className="bg-muted/30 rounded-2xl p-6 border border-border/50 flex flex-col items-center justify-center min-h-[300px] text-center">
                         <h3 className="text-xl font-semibold mb-2">
                           Contenu : {activeTab}
@@ -450,7 +470,17 @@ function App() {
                           Cette section est en cours de développement.
                         </p>
                       </div>
-                    )}
+                    ) : null}
+
+                    <div
+                      className={
+                        activeTab === "Assistant IA"
+                          ? "h-full w-full !mt-0 flex-1 min-h-0 flex flex-col overflow-hidden animate-in fade-in duration-300"
+                          : "hidden"
+                      }
+                    >
+                      <ChatbotView />
+                    </div>
                   </section>
                 </main>
               </SidebarInset>
