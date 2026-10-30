@@ -24,7 +24,7 @@ import {
 import type { MenuItem } from "../types";
 import type { MenuCategory } from "../../menu-categories/types";
 import type { Item } from "../../items/types/item.type";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MenuItemService } from "../services";
 
 interface MenuItemsModalProps {
@@ -34,8 +34,8 @@ interface MenuItemsModalProps {
   categories: MenuCategory[];
   selectedCategory: string;
   onCategoryChange: (categoryId: string) => void;
-  onAdd: (data: Partial<MenuItem>) => void;
-  onEdit: (id: string, data: Partial<MenuItem>) => void;
+  onAdd: (data: Partial<MenuItem>) => Promise<unknown> | void;
+  onEdit: (id: string, data: Partial<MenuItem>) => Promise<unknown> | void;
   onDelete: (id: string) => void;
 }
 
@@ -50,6 +50,7 @@ export function MenuItemsModal({
   onEdit,
   onDelete,
 }: MenuItemsModalProps) {
+  const queryClient = useQueryClient();
   const [newIdItem, setNewIdItem] = useState("");
   const [newSalePrice, setNewSalePrice] = useState("");
   const [newRecipeCost, setNewRecipeCost] = useState("");
@@ -65,26 +66,62 @@ export function MenuItemsModal({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const handleAdd = () => {
+  const allMenusResult = useQuery({
+    queryKey: ["menu-items-all"],
+    queryFn: () => MenuItemService.getAll(),
+    enabled: isOpen,
+  });
+
+  const allMenuItems = allMenusResult.data || [];
+  const registeredIds = new Set(
+    allMenuItems
+      .map((m) => m.idItem || m.item?.idItem)
+      .filter((id): id is string => Boolean(id)),
+  );
+
+  const otherRegisteredIds = new Set(
+    allMenuItems
+      .filter((m) => m.idMenu !== editingId)
+      .map((m) => m.idItem || m.item?.idItem)
+      .filter((id): id is string => Boolean(id)),
+  );
+
+  const availableItems = items.filter((i) => !registeredIds.has(i.idItem));
+  const editItems = items.filter((i) => !otherRegisteredIds.has(i.idItem));
+  const editingMenu = allMenuItems.find((m) => m.idMenu === editingId);
+  const currentItem =
+    editingMenu?.item || items.find((i) => i.idItem === editIdItem);
+  if (currentItem && !editItems.some((i) => i.idItem === currentItem.idItem)) {
+    editItems.unshift(currentItem);
+  }
+
+  const handleAdd = async () => {
     if (newIdItem && newSalePrice && newIdCategory) {
-      onAdd({
+      if (registeredIds.has(newIdItem)) {
+        return;
+      }
+      const added = await onAdd({
         idItem: newIdItem,
         salePrice: parseFloat(newSalePrice),
-        recipeCost: newRecipeCost ? parseFloat(newRecipeCost) : undefined,
+        unitCost: newRecipeCost ? parseFloat(newRecipeCost) : undefined,
         idCategory: newIdCategory,
-      } as any);
-      setNewIdItem("");
-      setNewSalePrice("");
-      setNewRecipeCost("");
-      setNewIdCategory("");
+      });
+      if (added !== undefined) {
+        await queryClient.invalidateQueries({ queryKey: ["menu-items-paginated"] });
+        await queryClient.invalidateQueries({ queryKey: ["menu-items-all"] });
+        setNewIdItem("");
+        setNewSalePrice("");
+        setNewRecipeCost("");
+        setNewIdCategory("");
+      }
     }
   };
 
-  const startEdit = (item: any) => {
+  const startEdit = (item: MenuItem) => {
     setEditingId(item.idMenu);
     setEditIdItem(item.idItem || item.item?.idItem || "");
     setEditSalePrice(item.salePrice?.toString() || "");
-    setEditRecipeCost(item.recipeCost?.toString() || "");
+    setEditRecipeCost(item.unitCost?.toString() || "");
     setEditIdCategory(item.idCategory || "");
   };
 
@@ -92,19 +129,24 @@ export function MenuItemsModal({
     setEditingId(null);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (editIdItem && editSalePrice && editIdCategory && editingId) {
-      onEdit(editingId, {
+      if (otherRegisteredIds.has(editIdItem)) {
+        return;
+      }
+      await onEdit(editingId, {
         idItem: editIdItem,
         salePrice: parseFloat(editSalePrice),
-        recipeCost: editRecipeCost ? parseFloat(editRecipeCost) : undefined,
+        unitCost: editRecipeCost ? parseFloat(editRecipeCost) : undefined,
         idCategory: editIdCategory,
-      } as any);
+      });
+      await queryClient.invalidateQueries({ queryKey: ["menu-items-paginated"] });
+      await queryClient.invalidateQueries({ queryKey: ["menu-items-all"] });
       setEditingId(null);
     }
   };
 
-  const { data: paginatedDataResult, isLoading } = useQuery({
+  const paginatedResult = useQuery({
     queryKey: ["menu-items-paginated", currentPage, search, selectedCategory],
     queryFn: () =>
       MenuItemService.getAllPaginated({
@@ -116,9 +158,10 @@ export function MenuItemsModal({
     enabled: isOpen,
   });
 
-  const paginatedData = paginatedDataResult?.records || [];
-  const totalPages = paginatedDataResult?.total
-    ? Math.ceil(paginatedDataResult.total / itemsPerPage)
+  const paginatedData = paginatedResult.data?.records || [];
+  const isLoading = paginatedResult.isLoading;
+  const totalPages = paginatedResult.data?.total
+    ? Math.ceil(paginatedResult.data.total / itemsPerPage)
     : 1;
 
   return (
@@ -180,7 +223,7 @@ export function MenuItemsModal({
                   className="w-full bg-background border border-input rounded-xl px-3 h-10 text-sm"
                 >
                   <option value="">Sélectionner...</option>
-                  {items.map((i) => (
+                  {availableItems.map((i) => (
                     <option key={i.idItem} value={i.idItem}>
                       {i.label + (i.unit?.symbol ? ` (${i.unit.symbol})` : "")}
                     </option>
@@ -219,7 +262,12 @@ export function MenuItemsModal({
               </div>
               <Button
                 onClick={handleAdd}
-                disabled={!newIdItem || !newSalePrice || !newIdCategory}
+                disabled={
+                  !newIdItem ||
+                  !newSalePrice ||
+                  !newIdCategory ||
+                  registeredIds.has(newIdItem)
+                }
                 className="gap-2 rounded-xl h-10 w-full"
               >
                 <Plus className="size-4" /> Ajouter
@@ -276,7 +324,7 @@ export function MenuItemsModal({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/50">
-                      {paginatedData.map((item: any) => (
+                      {paginatedData.map((item: MenuItem) => (
                         <tr
                           key={item.idMenu}
                           className="hover:bg-muted/30 transition-colors group"
@@ -292,7 +340,7 @@ export function MenuItemsModal({
                                   className="md:col-span-2 w-full bg-background border border-input rounded-md px-3 h-9 text-sm"
                                 >
                                   <option value="">Article...</option>
-                                  {items.map((i) => (
+                                  {editItems.map((i) => (
                                     <option key={i.idItem} value={i.idItem}>
                                       {i.label +
                                         (i.unit?.symbol

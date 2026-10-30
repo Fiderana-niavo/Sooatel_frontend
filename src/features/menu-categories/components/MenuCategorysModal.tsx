@@ -13,14 +13,14 @@ import Pagination from "@/components/ui/Pagination/pagination";
 import { List, Edit, Trash2, Plus, X, Check, Search } from "lucide-react";
 import type { MenuCategory } from "../types";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MenuCategoryService } from "../services";
 
 interface MenuCategorysModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (data: Partial<MenuCategory>) => void;
-  onEdit: (id: string, data: Partial<MenuCategory>) => void;
+  onAdd: (data: Partial<MenuCategory>) => Promise<unknown> | void;
+  onEdit: (id: string, data: Partial<MenuCategory>) => Promise<unknown> | void;
   onDelete: (id: string) => void;
 }
 
@@ -31,6 +31,7 @@ export function MenuCategorysModal({
   onEdit,
   onDelete,
 }: MenuCategorysModalProps) {
+  const queryClient = useQueryClient();
   const [newLabel, setNewLabel] = useState("");
   const [newDescription, setNewDescription] = useState("");
 
@@ -42,18 +43,20 @@ export function MenuCategorysModal({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (newLabel.trim()) {
-      onAdd({
+      await onAdd({
         label: newLabel.trim(),
-        description: newDescription.trim() || null,
-      } as any);
+        description: newDescription.trim() || undefined,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["menu-categories-paginated"] });
+      await queryClient.invalidateQueries({ queryKey: ["menuCategories"] });
       setNewLabel("");
       setNewDescription("");
     }
   };
 
-  const startEdit = (item: any) => {
+  const startEdit = (item: MenuCategory) => {
     setEditingId(item.idCategory);
     setEditLabel(item.label || "");
     setEditDescription(item.description || "");
@@ -63,17 +66,19 @@ export function MenuCategorysModal({
     setEditingId(null);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (editLabel.trim() && editingId) {
-      onEdit(editingId, {
+      await onEdit(editingId, {
         label: editLabel.trim(),
-        description: editDescription.trim() || null,
-      } as any);
+        description: editDescription.trim() || undefined,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["menu-categories-paginated"] });
+      await queryClient.invalidateQueries({ queryKey: ["menuCategories"] });
       setEditingId(null);
     }
   };
 
-  const { data: paginatedDataResult, isLoading } = useQuery({
+  const paginatedResult = useQuery({
     queryKey: ["menu-categories-paginated", currentPage, search],
     queryFn: () =>
       MenuCategoryService.getAllPaginated({
@@ -84,9 +89,10 @@ export function MenuCategorysModal({
     enabled: isOpen,
   });
 
-  const paginatedData = paginatedDataResult?.records || [];
-  const totalPages = paginatedDataResult?.total
-    ? Math.ceil(paginatedDataResult.total / itemsPerPage)
+  const paginatedData = paginatedResult.data?.records || [];
+  const isLoading = paginatedResult.isLoading;
+  const totalPages = paginatedResult.data?.total
+    ? Math.ceil(paginatedResult.data.total / itemsPerPage)
     : 1;
 
   return (
@@ -187,7 +193,7 @@ export function MenuCategorysModal({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/50">
-                      {paginatedData.map((item: any) => (
+                      {paginatedData.map((item: MenuCategory) => (
                         <tr
                           key={item.idCategory}
                           className="hover:bg-muted/30 transition-colors group"

@@ -1,13 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
 
-export function useCrud<T, C = any, U = any>(
+export function useCrud<T, C = never, U = never>(
   fetchFn: () => Promise<T[]>,
   createFn: (data: C) => Promise<T>,
   updateFn: (id: string, data: U) => Promise<T>,
   deleteFn: (id: string) => Promise<void>,
   idKey: keyof T,
+  queryKeys?: string[],
 ) {
+  const queryClient = useQueryClient();
   const [data, setData] = useState<T[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -30,21 +33,37 @@ export function useCrud<T, C = any, U = any>(
     fetchData();
   }, [fetchData]);
 
+  const invalidateQueries = useCallback(() => {
+    if (queryKeys && queryKeys.length > 0) {
+      queryKeys.forEach((key) => {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      });
+    }
+  }, [queryClient, queryKeys]);
+
   const handleAdd = async (
     newData: C,
     showSnackbar: (message: string, type: SnackbarType) => void,
-  ) => {
+  ): Promise<T | undefined> => {
     try {
       const created = await createFn(newData);
       setData((prev) => [...prev, created]);
+      invalidateQueries();
+      fetchData();
       showSnackbar("Ajout réussi.", "success");
-    } catch (error: any) {
+      return created;
+    } catch (error: unknown) {
+      const err = error as {
+        response?: { data?: { message?: string; error?: string } };
+        message?: string;
+      };
       const msg =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message ||
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
         "Erreur lors de l'ajout.";
       showSnackbar(msg, "error");
+      return undefined;
     }
   };
 
@@ -52,7 +71,7 @@ export function useCrud<T, C = any, U = any>(
     id: string,
     updatedData: U,
     showSnackbar: (message: string, type: SnackbarType) => void,
-  ) => {
+  ): Promise<T | undefined> => {
     try {
       const updated = await updateFn(id, updatedData);
       setData((prev) =>
@@ -62,14 +81,22 @@ export function useCrud<T, C = any, U = any>(
             : item,
         ),
       );
+      invalidateQueries();
+      fetchData();
       showSnackbar("Modification réussie.", "success");
-    } catch (error: any) {
+      return updated;
+    } catch (error: unknown) {
+      const err = error as {
+        response?: { data?: { message?: string; error?: string } };
+        message?: string;
+      };
       const msg =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message ||
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
         "Erreur lors de la modification.";
       showSnackbar(msg, "error");
+      return undefined;
     }
   };
 
@@ -80,7 +107,7 @@ export function useCrud<T, C = any, U = any>(
 
   const executeDelete = async (
     showSnackbar: (message: string, type: SnackbarType) => void,
-  ) => {
+  ): Promise<void> => {
     if (!itemToDelete) return;
     setIsDeleting(true);
     try {
@@ -90,12 +117,18 @@ export function useCrud<T, C = any, U = any>(
           (item) => (item[idKey] as unknown as string) !== itemToDelete,
         ),
       );
+      invalidateQueries();
+      fetchData();
       showSnackbar("Suppression réussie.", "success");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as {
+        response?: { data?: { message?: string; error?: string } };
+        message?: string;
+      };
       const msg =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message ||
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
         "Erreur lors de la suppression.";
       showSnackbar(msg, "error");
     } finally {
@@ -116,5 +149,6 @@ export function useCrud<T, C = any, U = any>(
     handleEdit,
     promptDelete,
     executeDelete,
+    fetchData,
   };
 }

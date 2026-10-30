@@ -5,10 +5,10 @@ import type { Item, CreateItemDto } from "../types/item.type";
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 
 export class ItemService {
-  static async getAll(params?: Record<string, any>): Promise<Item[]> {
+  static async getAll(params?: Record<string, unknown>): Promise<Item[]> {
     const res = await axios.get<ApiResponse<{ records: Item[] } | Item[]>>(
       `${BASE}/items`,
-      { params },
+      { params: { limit: 1000, ...params } },
     );
     if (!res.data.ok) throw new Error(res.data.error || "Erreur API");
     if (Array.isArray(res.data.payload)) {
@@ -18,7 +18,7 @@ export class ItemService {
   }
 
   static async getAllPaginated(
-    params?: Record<string, any>,
+    params?: Record<string, unknown>,
   ): Promise<{ records: Item[]; total: number }> {
     const res = await axios.get<
       ApiResponse<{ records: Item[]; total: number } | Item[]>

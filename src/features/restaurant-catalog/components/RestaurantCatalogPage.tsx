@@ -51,41 +51,66 @@ export function RestaurantCatalogPage() {
 
   const [selectedMenuCategory, setSelectedMenuCategory] = useState<string>("");
 
-  const items = useCrud<Item, any, any>(
+  const items = useCrud<
+    Item,
+    Parameters<typeof ItemService.create>[0],
+    Parameters<typeof ItemService.update>[1]
+  >(
     ItemService.getAll,
     ItemService.create,
     ItemService.update,
     ItemService.delete,
     "idItem" as keyof Item,
+    ["items-paginated", "items"],
   );
-  const itemTypes = useCrud<ItemType, any, any>(
+  const itemTypes = useCrud<
+    ItemType,
+    Parameters<typeof ItemTypeService.create>[0],
+    Parameters<typeof ItemTypeService.update>[1]
+  >(
     ItemTypeService.getAll,
     ItemTypeService.create,
     ItemTypeService.update,
     ItemTypeService.delete,
     "idProductType" as keyof ItemType,
+    ["item-types-paginated", "itemTypes"],
   );
-  const unitOfMeasures = useCrud<UnitOfMeasure, any, any>(
+  const unitOfMeasures = useCrud<
+    UnitOfMeasure,
+    Parameters<typeof UnitOfMeasureService.create>[0],
+    Parameters<typeof UnitOfMeasureService.update>[1]
+  >(
     UnitOfMeasureService.getAll,
     UnitOfMeasureService.create,
     UnitOfMeasureService.update,
     UnitOfMeasureService.delete,
     "idUnit" as keyof UnitOfMeasure,
+    ["unit-of-measures-paginated", "unitOfMeasures"],
   );
 
-  const menuItems = useCrud<MenuItem, any, any>(
+  const menuItems = useCrud<
+    MenuItem,
+    Parameters<typeof MenuItemService.create>[0],
+    Parameters<typeof MenuItemService.update>[1]
+  >(
     MenuItemService.getAll,
     MenuItemService.create,
     MenuItemService.update,
     MenuItemService.delete,
     "idMenu" as keyof MenuItem,
+    ["menu-items-paginated", "menu-items", "menu-items-all"],
   );
-  const menuCategories = useCrud<MenuCategory, any, any>(
+  const menuCategories = useCrud<
+    MenuCategory,
+    Parameters<typeof MenuCategoryService.create>[0],
+    Parameters<typeof MenuCategoryService.update>[1]
+  >(
     MenuCategoryService.getAll,
     MenuCategoryService.create,
     MenuCategoryService.update,
     MenuCategoryService.delete,
     "idCategory" as keyof MenuCategory,
+    ["menu-categories-paginated", "menuCategories"],
   );
 
   const modalActions: Record<string, () => void> = {
@@ -150,8 +175,19 @@ export function RestaurantCatalogPage() {
       <ItemTypesModal
         isOpen={itemTypes.isOpen}
         onClose={() => itemTypes.setIsOpen(false)}
-        onAdd={(data) => itemTypes.handleAdd(data, showSnackbar)}
-        onEdit={(id, data) => itemTypes.handleEdit(id, data, showSnackbar)}
+        onAdd={(data) =>
+          itemTypes.handleAdd(
+            data as Parameters<typeof ItemTypeService.create>[0],
+            showSnackbar,
+          )
+        }
+        onEdit={(id, data) =>
+          itemTypes.handleEdit(
+            id,
+            data as Parameters<typeof ItemTypeService.update>[1],
+            showSnackbar,
+          )
+        }
         onDelete={itemTypes.promptDelete}
       />
       <ConfirmDialog
@@ -166,8 +202,19 @@ export function RestaurantCatalogPage() {
       <UnitOfMeasuresModal
         isOpen={unitOfMeasures.isOpen}
         onClose={() => unitOfMeasures.setIsOpen(false)}
-        onAdd={(data) => unitOfMeasures.handleAdd(data, showSnackbar)}
-        onEdit={(id, data) => unitOfMeasures.handleEdit(id, data, showSnackbar)}
+        onAdd={(data) =>
+          unitOfMeasures.handleAdd(
+            data as Parameters<typeof UnitOfMeasureService.create>[0],
+            showSnackbar,
+          )
+        }
+        onEdit={(id, data) =>
+          unitOfMeasures.handleEdit(
+            id,
+            data as Parameters<typeof UnitOfMeasureService.update>[1],
+            showSnackbar,
+          )
+        }
         onDelete={unitOfMeasures.promptDelete}
       />
       <ConfirmDialog
@@ -186,8 +233,19 @@ export function RestaurantCatalogPage() {
         categories={menuCategories.data}
         selectedCategory={selectedMenuCategory}
         onCategoryChange={setSelectedMenuCategory}
-        onAdd={(data) => menuItems.handleAdd(data, showSnackbar)}
-        onEdit={(id, data) => menuItems.handleEdit(id, data, showSnackbar)}
+        onAdd={(data) =>
+          menuItems.handleAdd(
+            data as Parameters<typeof MenuItemService.create>[0],
+            showSnackbar,
+          )
+        }
+        onEdit={(id, data) =>
+          menuItems.handleEdit(
+            id,
+            data as Parameters<typeof MenuItemService.update>[1],
+            showSnackbar,
+          )
+        }
         onDelete={menuItems.promptDelete}
       />
       <ConfirmDialog
@@ -202,8 +260,19 @@ export function RestaurantCatalogPage() {
       <MenuCategorysModal
         isOpen={menuCategories.isOpen}
         onClose={() => menuCategories.setIsOpen(false)}
-        onAdd={(data) => menuCategories.handleAdd(data, showSnackbar)}
-        onEdit={(id, data) => menuCategories.handleEdit(id, data, showSnackbar)}
+        onAdd={(data) =>
+          menuCategories.handleAdd(
+            data as Parameters<typeof MenuCategoryService.create>[0],
+            showSnackbar,
+          )
+        }
+        onEdit={(id, data) =>
+          menuCategories.handleEdit(
+            id,
+            data as Parameters<typeof MenuCategoryService.update>[1],
+            showSnackbar,
+          )
+        }
         onDelete={menuCategories.promptDelete}
       />
       <ConfirmDialog

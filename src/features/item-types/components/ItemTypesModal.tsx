@@ -13,14 +13,14 @@ import Pagination from "@/components/ui/Pagination/pagination";
 import { Layers, Edit, Trash2, Plus, X, Check, Search } from "lucide-react";
 import type { ItemType } from "../types";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ItemTypeService } from "../services";
 
 interface ItemTypesModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (data: Partial<ItemType>) => void;
-  onEdit: (id: string, data: Partial<ItemType>) => void;
+  onAdd: (data: Partial<ItemType>) => Promise<unknown> | void;
+  onEdit: (id: string, data: Partial<ItemType>) => Promise<unknown> | void;
   onDelete: (id: string) => void;
 }
 
@@ -31,6 +31,7 @@ export function ItemTypesModal({
   onEdit,
   onDelete,
 }: ItemTypesModalProps) {
+  const queryClient = useQueryClient();
   const [newLabel, setNewLabel] = useState("");
   const [newDescription, setNewDescription] = useState("");
 
@@ -42,18 +43,20 @@ export function ItemTypesModal({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (newLabel.trim()) {
-      onAdd({
+      await onAdd({
         label: newLabel.trim(),
-        description: newDescription.trim() || null,
-      } as any);
+        description: newDescription.trim() || undefined,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["item-types-paginated"] });
+      await queryClient.invalidateQueries({ queryKey: ["itemTypes"] });
       setNewLabel("");
       setNewDescription("");
     }
   };
 
-  const startEdit = (item: any) => {
+  const startEdit = (item: ItemType) => {
     setEditingId(item.idProductType);
     setEditLabel(item.label || "");
     setEditDescription(item.description || "");
@@ -63,17 +66,19 @@ export function ItemTypesModal({
     setEditingId(null);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (editLabel.trim() && editingId) {
-      onEdit(editingId, {
+      await onEdit(editingId, {
         label: editLabel.trim(),
-        description: editDescription.trim() || null,
-      } as any);
+        description: editDescription.trim() || undefined,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["item-types-paginated"] });
+      await queryClient.invalidateQueries({ queryKey: ["itemTypes"] });
       setEditingId(null);
     }
   };
 
-  const { data: paginatedDataResult, isLoading } = useQuery({
+  const paginatedResult = useQuery({
     queryKey: ["item-types-paginated", currentPage, search],
     queryFn: () =>
       ItemTypeService.getAllPaginated({
@@ -84,9 +89,10 @@ export function ItemTypesModal({
     enabled: isOpen,
   });
 
-  const paginatedData = paginatedDataResult?.records || [];
-  const totalPages = paginatedDataResult?.total
-    ? Math.ceil(paginatedDataResult.total / itemsPerPage)
+  const paginatedData = paginatedResult.data?.records || [];
+  const isLoading = paginatedResult.isLoading;
+  const totalPages = paginatedResult.data?.total
+    ? Math.ceil(paginatedResult.data.total / itemsPerPage)
     : 1;
 
   return (
@@ -193,7 +199,7 @@ export function ItemTypesModal({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/50">
-                      {paginatedData.map((item: any) => (
+                      {paginatedData.map((item: ItemType) => (
                         <tr
                           key={item.idProductType}
                           className="hover:bg-muted/30 transition-colors group"

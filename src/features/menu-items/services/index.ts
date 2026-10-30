@@ -5,10 +5,10 @@ import type { MenuItem, CreateMenuItemDto } from "../types";
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 
 export class MenuItemService {
-  static async getAll(params?: Record<string, any>): Promise<MenuItem[]> {
+  static async getAll(params?: Record<string, unknown>): Promise<MenuItem[]> {
     const res = await axios.get<
       ApiResponse<{ records: MenuItem[] } | MenuItem[]>
-    >(`${BASE}/menu-items`, { params });
+    >(`${BASE}/menu-items`, { params: { limit: 1000, ...params } });
     if (!res.data.ok) throw new Error(res.data.error || "Erreur API");
     if (Array.isArray(res.data.payload)) {
       return res.data.payload;
@@ -17,7 +17,7 @@ export class MenuItemService {
   }
 
   static async getAllPaginated(
-    params?: Record<string, any>,
+    params?: Record<string, unknown>,
   ): Promise<{ records: MenuItem[]; total: number }> {
     const res = await axios.get<
       ApiResponse<{ records: MenuItem[]; total: number } | MenuItem[]>

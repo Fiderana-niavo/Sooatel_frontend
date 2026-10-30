@@ -77,15 +77,17 @@ export function InventoryCatalogPage({
     mutationFn: ItemService.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
+      queryClient.invalidateQueries({ queryKey: ["items-paginated"] });
       showSnackbar("Article ajouté", "success");
     },
     onError: () => showSnackbar("Erreur lors de l'ajout", "error"),
   });
   const updateItem = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof ItemService.update>[1] }) =>
       ItemService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
+      queryClient.invalidateQueries({ queryKey: ["items-paginated"] });
       showSnackbar("Article modifié", "success");
     },
     onError: () => showSnackbar("Erreur lors de la modification", "error"),
@@ -94,6 +96,7 @@ export function InventoryCatalogPage({
     mutationFn: ItemService.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
+      queryClient.invalidateQueries({ queryKey: ["items-paginated"] });
       showSnackbar("Article supprimé", "success");
       setItemsConfirm({ isOpen: false, id: "" });
     },
@@ -104,15 +107,17 @@ export function InventoryCatalogPage({
     mutationFn: ItemTypeService.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["itemTypes"] });
+      queryClient.invalidateQueries({ queryKey: ["item-types-paginated"] });
       showSnackbar("Type d'article ajouté", "success");
     },
     onError: () => showSnackbar("Erreur", "error"),
   });
   const updateItemType = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof ItemTypeService.update>[1] }) =>
       ItemTypeService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["itemTypes"] });
+      queryClient.invalidateQueries({ queryKey: ["item-types-paginated"] });
       showSnackbar("Type d'article modifié", "success");
     },
     onError: () => showSnackbar("Erreur", "error"),
@@ -121,6 +126,7 @@ export function InventoryCatalogPage({
     mutationFn: ItemTypeService.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["itemTypes"] });
+      queryClient.invalidateQueries({ queryKey: ["item-types-paginated"] });
       showSnackbar("Type d'article supprimé", "success");
       setItemTypesConfirm({ isOpen: false, id: "" });
     },
@@ -131,15 +137,17 @@ export function InventoryCatalogPage({
     mutationFn: UnitOfMeasureService.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["unitOfMeasures"] });
+      queryClient.invalidateQueries({ queryKey: ["unit-of-measures-paginated"] });
       showSnackbar("Unité ajoutée", "success");
     },
     onError: () => showSnackbar("Erreur", "error"),
   });
   const updateUnit = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof UnitOfMeasureService.update>[1] }) =>
       UnitOfMeasureService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["unitOfMeasures"] });
+      queryClient.invalidateQueries({ queryKey: ["unit-of-measures-paginated"] });
       showSnackbar("Unité modifiée", "success");
     },
     onError: () => showSnackbar("Erreur", "error"),
@@ -148,6 +156,7 @@ export function InventoryCatalogPage({
     mutationFn: UnitOfMeasureService.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["unitOfMeasures"] });
+      queryClient.invalidateQueries({ queryKey: ["unit-of-measures-paginated"] });
       showSnackbar("Unité supprimée", "success");
       setUnitsConfirm({ isOpen: false, id: "" });
     },

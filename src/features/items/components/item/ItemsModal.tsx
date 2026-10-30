@@ -27,7 +27,7 @@ import type { Item, CreateItemDto } from "../../types/item.type";
 import type { ItemType } from "../../../item-types/types";
 import type { UnitOfMeasure } from "../../../unit-of-measures/types";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ItemService } from "../../services/item.service";
 
 interface ItemsModalProps {
@@ -35,8 +35,8 @@ interface ItemsModalProps {
   onClose: () => void;
   itemTypes: ItemType[];
   unitOfMeasures: UnitOfMeasure[];
-  onAdd: (data: CreateItemDto) => void;
-  onEdit: (id: string, data: Partial<Item>) => void;
+  onAdd: (data: CreateItemDto) => Promise<unknown> | void;
+  onEdit: (id: string, data: Partial<Item>) => Promise<unknown> | void;
   onDelete: (id: string) => void;
 }
 
@@ -49,6 +49,7 @@ export function ItemsModal({
   onEdit,
   onDelete,
 }: ItemsModalProps) {
+  const queryClient = useQueryClient();
   const [newLabel, setNewLabel] = useState("");
   const [newIdProductType, setNewIdProductType] = useState("");
   const [newIdUnit, setNewIdUnit] = useState("");
@@ -74,9 +75,9 @@ export function ItemsModal({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (newLabel.trim() && newIdProductType && newIdUnit) {
-      onAdd({
+      await onAdd({
         label: newLabel.trim(),
         idProductType: newIdProductType,
         idUnit: newIdUnit,
@@ -89,6 +90,8 @@ export function ItemsModal({
         status: 0,
         description: newDescription.trim() || undefined,
       });
+      await queryClient.invalidateQueries({ queryKey: ["items-paginated"] });
+      await queryClient.invalidateQueries({ queryKey: ["items"] });
       setNewLabel("");
       setNewIdProductType("");
       setNewIdUnit("");
@@ -100,7 +103,7 @@ export function ItemsModal({
     }
   };
 
-  const startEdit = (item: any) => {
+  const startEdit = (item: Item) => {
     setEditingId(item.idItem);
     setEditLabel(item.label || "");
     setEditIdProductType(item.idProductType || "");
@@ -120,31 +123,35 @@ export function ItemsModal({
     setEditingId(null);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (editLabel.trim() && editingId) {
-      onEdit(editingId, {
+      await onEdit(editingId, {
         label: editLabel.trim(),
         idProductType: editIdProductType,
         idUnit: editIdUnit,
         minimumStockLevel: editMinStock ? parseFloat(editMinStock) : 0,
         reorderQuantity: editReorderQuantity
           ? parseFloat(editReorderQuantity)
-          : null,
+          : undefined,
         isPerishable: editIsPerishable,
         isProduced: editIsProduced,
-        description: editDescription.trim() || null,
-      } as any);
+        description: editDescription.trim() || undefined,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["items-paginated"] });
+      await queryClient.invalidateQueries({ queryKey: ["items"] });
       setEditingId(null);
     }
   };
 
-  const handleToggleStatus = (item: any) => {
-    onEdit(item.idItem, {
+  const handleToggleStatus = async (item: Item) => {
+    await onEdit(item.idItem, {
       status: item.status === 0 ? -1 : 0,
-    } as any);
+    });
+    await queryClient.invalidateQueries({ queryKey: ["items-paginated"] });
+    await queryClient.invalidateQueries({ queryKey: ["items"] });
   };
 
-  const { data: paginatedDataResult, isLoading } = useQuery({
+  const paginatedResult = useQuery({
     queryKey: ["items-paginated", currentPage, search],
     queryFn: () =>
       ItemService.getAllPaginated({
@@ -155,9 +162,10 @@ export function ItemsModal({
     enabled: isOpen,
   });
 
-  const paginatedData = paginatedDataResult?.records || [];
-  const totalPages = paginatedDataResult?.total
-    ? Math.ceil(paginatedDataResult.total / itemsPerPage)
+  const paginatedData = paginatedResult.data?.records || [];
+  const isLoading = paginatedResult.isLoading;
+  const totalPages = paginatedResult.data?.total
+    ? Math.ceil(paginatedResult.data.total / itemsPerPage)
     : 1;
 
   return (
@@ -350,7 +358,7 @@ export function ItemsModal({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/50">
-                      {paginatedData.map((item: any) => (
+                      {paginatedData.map((item: Item) => (
                         <Fragment key={item.idItem}>
                           <tr className="hover:bg-muted/30 transition-colors group">
                             {editingId === item.idItem ? (

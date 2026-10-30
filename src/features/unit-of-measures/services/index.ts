@@ -5,10 +5,10 @@ import type { UnitOfMeasure, CreateUnitOfMeasureDto } from "../types";
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 
 export class UnitOfMeasureService {
-  static async getAll(params?: Record<string, any>): Promise<UnitOfMeasure[]> {
+  static async getAll(params?: Record<string, unknown>): Promise<UnitOfMeasure[]> {
     const res = await axios.get<
       ApiResponse<{ records: UnitOfMeasure[] } | UnitOfMeasure[]>
-    >(`${BASE}/unit-of-measures`, { params });
+    >(`${BASE}/unit-of-measures`, { params: { limit: 1000, ...params } });
     if (!res.data.ok) throw new Error(res.data.error || "Erreur API");
     if (Array.isArray(res.data.payload)) {
       return res.data.payload;
@@ -17,7 +17,7 @@ export class UnitOfMeasureService {
   }
 
   static async getAllPaginated(
-    params?: Record<string, any>,
+    params?: Record<string, unknown>,
   ): Promise<{ records: UnitOfMeasure[]; total: number }> {
     const res = await axios.get<
       ApiResponse<{ records: UnitOfMeasure[]; total: number } | UnitOfMeasure[]>

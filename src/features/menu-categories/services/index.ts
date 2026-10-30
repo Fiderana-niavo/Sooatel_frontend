@@ -5,10 +5,10 @@ import type { MenuCategory, CreateMenuCategoryDto } from "../types";
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 
 export class MenuCategoryService {
-  static async getAll(params?: Record<string, any>): Promise<MenuCategory[]> {
+  static async getAll(params?: Record<string, unknown>): Promise<MenuCategory[]> {
     const res = await axios.get<
       ApiResponse<{ records: MenuCategory[] } | MenuCategory[]>
-    >(`${BASE}/menu-categories`, { params });
+    >(`${BASE}/menu-categories`, { params: { limit: 1000, ...params } });
     if (!res.data.ok) throw new Error(res.data.error || "Erreur API");
     if (Array.isArray(res.data.payload)) {
       return res.data.payload;
@@ -17,7 +17,7 @@ export class MenuCategoryService {
   }
 
   static async getAllPaginated(
-    params?: Record<string, any>,
+    params?: Record<string, unknown>,
   ): Promise<{ records: MenuCategory[]; total: number }> {
     const res = await axios.get<
       ApiResponse<{ records: MenuCategory[]; total: number } | MenuCategory[]>

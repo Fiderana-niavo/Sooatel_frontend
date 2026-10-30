@@ -13,14 +13,14 @@ import Pagination from "@/components/ui/Pagination/pagination";
 import { Ruler, Edit, Trash2, Plus, X, Check, Search } from "lucide-react";
 import type { UnitOfMeasure } from "../types";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { UnitOfMeasureService } from "../services";
 
 interface UnitOfMeasuresModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (data: Partial<UnitOfMeasure>) => void;
-  onEdit: (id: string, data: Partial<UnitOfMeasure>) => void;
+  onAdd: (data: Partial<UnitOfMeasure>) => Promise<unknown> | void;
+  onEdit: (id: string, data: Partial<UnitOfMeasure>) => Promise<unknown> | void;
   onDelete: (id: string) => void;
 }
 
@@ -31,6 +31,7 @@ export function UnitOfMeasuresModal({
   onEdit,
   onDelete,
 }: UnitOfMeasuresModalProps) {
+  const queryClient = useQueryClient();
   const [newLabel, setNewLabel] = useState("");
   const [newSymbol, setNewSymbol] = useState("");
 
@@ -42,18 +43,20 @@ export function UnitOfMeasuresModal({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (newLabel.trim()) {
-      onAdd({
+      await onAdd({
         label: newLabel.trim(),
-        symbol: newSymbol.trim() || null,
-      } as any);
+        symbol: newSymbol.trim() || undefined,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["unit-of-measures-paginated"] });
+      await queryClient.invalidateQueries({ queryKey: ["unitOfMeasures"] });
       setNewLabel("");
       setNewSymbol("");
     }
   };
 
-  const startEdit = (item: any) => {
+  const startEdit = (item: UnitOfMeasure) => {
     setEditingId(item.idUnit);
     setEditLabel(item.label || "");
     setEditSymbol(item.symbol || "");
@@ -63,17 +66,19 @@ export function UnitOfMeasuresModal({
     setEditingId(null);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (editLabel.trim() && editingId) {
-      onEdit(editingId, {
+      await onEdit(editingId, {
         label: editLabel.trim(),
-        symbol: editSymbol.trim() || null,
-      } as any);
+        symbol: editSymbol.trim() || undefined,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["unit-of-measures-paginated"] });
+      await queryClient.invalidateQueries({ queryKey: ["unitOfMeasures"] });
       setEditingId(null);
     }
   };
 
-  const { data: paginatedDataResult, isLoading } = useQuery({
+  const paginatedResult = useQuery({
     queryKey: ["unit-of-measures-paginated", currentPage, search],
     queryFn: () =>
       UnitOfMeasureService.getAllPaginated({
@@ -84,9 +89,10 @@ export function UnitOfMeasuresModal({
     enabled: isOpen,
   });
 
-  const paginatedData = paginatedDataResult?.records || [];
-  const totalPages = paginatedDataResult?.total
-    ? Math.ceil(paginatedDataResult.total / itemsPerPage)
+  const paginatedData = paginatedResult.data?.records || [];
+  const isLoading = paginatedResult.isLoading;
+  const totalPages = paginatedResult.data?.total
+    ? Math.ceil(paginatedResult.data.total / itemsPerPage)
     : 1;
 
   return (
@@ -193,7 +199,7 @@ export function UnitOfMeasuresModal({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/50">
-                      {paginatedData.map((item: any) => (
+                      {paginatedData.map((item: UnitOfMeasure) => (
                         <tr
                           key={item.idUnit}
                           className="hover:bg-muted/30 transition-colors group"
