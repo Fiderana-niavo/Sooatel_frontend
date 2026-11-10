@@ -167,7 +167,7 @@ function UserProfileMenu() {
             <span className="font-semibold text-sm truncate w-full text-left block">
               {connectedUser
                 ? `${connectedUser.name ?? ""} ${connectedUser.lastname ?? ""}`.trim() ||
-                  connectedUser.username
+                connectedUser.username
                 : "Administrateur"}
             </span>
             <span className="text-xs text-muted-foreground truncate w-full text-left block">
@@ -204,7 +204,7 @@ function UserProfileMenu() {
               className="flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive rounded-md transition-colors w-full text-left mt-1"
             >
               <LogOut className="size-4 shrink-0" />
-              <span className="truncate">Logout</span>
+              <span className="truncate">Déconnexion</span>
             </button>
           </div>
         )}
@@ -217,7 +217,7 @@ function UserProfileMenu() {
         onSubmit={handleChangePassword}
       />
 
-      <EditProfileModal 
+      <EditProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
       />
