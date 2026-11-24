@@ -27,6 +27,8 @@ export function ResetPasswordForm({
     setIsLoading(true);
     try {
       await onSubmit(newPassword.trim());
+    } catch {
+      // Handled by parent container
     } finally {
       setIsLoading(false);
     }

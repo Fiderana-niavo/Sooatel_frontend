@@ -6,6 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
+import { formatCurrency } from "@/utils/formatters";
 
 interface CancelSaleModalProps {
   open: boolean;
@@ -37,7 +38,7 @@ export const CancelSaleModal: React.FC<CancelSaleModalProps> = ({
         <div className="py-2 text-sm text-muted-foreground">
           Vous annulez une vente qui a déjà été payée (Total payé :{" "}
           <strong className="text-foreground">
-            {totalPaid.toLocaleString("fr-FR")} Ar
+            {formatCurrency(totalPaid)}
           </strong>
           ). L'annulation nécessite un remboursement.
         </div>

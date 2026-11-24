@@ -40,6 +40,8 @@ export function ForgotPasswordForm({
     setIsLoading(true);
     try {
       await onSubmitEmail(identifier.trim());
+    } catch {
+      // Handled by parent container
     } finally {
       setIsLoading(false);
     }
@@ -50,6 +52,8 @@ export function ForgotPasswordForm({
     setIsLoading(true);
     try {
       await onSubmitKey(recoveryKey.trim(), username.trim());
+    } catch {
+      // Handled by parent container
     } finally {
       setIsLoading(false);
     }

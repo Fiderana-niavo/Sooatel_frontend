@@ -29,6 +29,8 @@ export interface AvailableEmployee {
     dayOfWeek: number;
     idShiftType: string | null;
     shiftLabel: string | null;
+    customStartTime?: string | null;
+    customEndTime?: string | null;
   }>;
 }
 

@@ -1,4 +1,5 @@
 import { toIsoDateTime } from "@/utils/date";
+import { formatCurrency } from "@/utils/formatters";
 import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Search } from "lucide-react";
 import { CashOutflowService } from "../services/cash-outflow.service";
@@ -235,7 +236,7 @@ export function CashOutflowList() {
                     {out.reason || "-"}
                   </td>
                   <td className="px-4 py-3 text-right font-medium">
-                    {Number(out.amount).toLocaleString()} Ar
+                    {formatCurrency(out.amount)}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Button

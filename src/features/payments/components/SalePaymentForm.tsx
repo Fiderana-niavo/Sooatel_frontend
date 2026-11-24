@@ -2,6 +2,7 @@ import { toIsoDateTime } from "@/utils/date";
 import React, { useState } from "react";
 import { Input } from "@/components/ui/Inputs/input";
 import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
+import { formatCurrency } from "@/utils/formatters";
 import { Button } from "@/components/ui/Button/button";
 import type { SalePayment, PaymentMethodRef } from "../../sales/types";
 import { CalendarDays } from "lucide-react";
@@ -167,7 +168,7 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
               Monnaie à rendre
             </span>
             <span className="text-xl font-extrabold text-emerald-600">
-              {Math.abs(balanceDue).toLocaleString("fr-FR")} Ar
+              {formatCurrency(Math.abs(balanceDue))}
             </span>
           </div>
         ) : (
@@ -178,7 +179,7 @@ export const SalePaymentForm: React.FC<SalePaymentProps> = ({
             <span
               className={`text-xl font-bold ${balanceDue > 0 ? "text-orange-500" : "text-emerald-500"}`}
             >
-              {balanceDue.toLocaleString("fr-FR")} Ar
+              {formatCurrency(balanceDue)}
             </span>
           </div>
         )}

@@ -27,6 +27,11 @@ const COLORS = [
   "rgba(59, 130, 246, 0.85)",
 ];
 
+const truncateLabel = (text: string, maxLen = 22): string => {
+  if (text.length <= maxLen) return text;
+  return `${text.slice(0, maxLen).trim()}…`;
+};
+
 export const TopProductsChart: React.FC<Props> = ({
   products,
   metric,
@@ -48,7 +53,7 @@ export const TopProductsChart: React.FC<Props> = ({
     chartRef.current = new Chart(ctx, {
       type: "bar",
       data: {
-        labels: products.map((p) => p.name),
+        labels: products.map((p) => truncateLabel(p.name, 22)),
         datasets: [
           {
             label:
@@ -63,6 +68,9 @@ export const TopProductsChart: React.FC<Props> = ({
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: { left: 4 },
+        },
         indexAxis: "y",
         onClick: (_e, elements) => {
           if (elements.length > 0) {
@@ -74,6 +82,10 @@ export const TopProductsChart: React.FC<Props> = ({
           legend: { display: false },
           tooltip: {
             callbacks: {
+              title: (items) => {
+                const idx = items[0]?.dataIndex;
+                return products[idx]?.name ?? "";
+              },
               label: (ctx) => ` ${Number(ctx.raw).toLocaleString("fr-FR")} Ar`,
             },
           },

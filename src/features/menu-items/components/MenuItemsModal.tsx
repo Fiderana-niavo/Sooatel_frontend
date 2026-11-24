@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
 import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
+import { formatCurrency } from "@/utils/formatters";
 import Pagination from "@/components/ui/Pagination/pagination";
 import {
   Coffee,
@@ -107,7 +108,9 @@ export function MenuItemsModal({
         idCategory: newIdCategory,
       });
       if (added !== undefined) {
-        await queryClient.invalidateQueries({ queryKey: ["menu-items-paginated"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["menu-items-paginated"],
+        });
         await queryClient.invalidateQueries({ queryKey: ["menu-items-all"] });
         setNewIdItem("");
         setNewSalePrice("");
@@ -140,7 +143,9 @@ export function MenuItemsModal({
         unitCost: editRecipeCost ? parseFloat(editRecipeCost) : undefined,
         idCategory: editIdCategory,
       });
-      await queryClient.invalidateQueries({ queryKey: ["menu-items-paginated"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["menu-items-paginated"],
+      });
       await queryClient.invalidateQueries({ queryKey: ["menu-items-all"] });
       setEditingId(null);
     }
@@ -422,7 +427,7 @@ export function MenuItemsModal({
                                 </span>
                               </td>
                               <td className="px-6 py-4 text-right font-semibold text-emerald-600 whitespace-nowrap">
-                                {Number(item.salePrice).toLocaleString()} Ar
+                                {formatCurrency(item.salePrice)}
                               </td>
                               <td className="px-6 py-4 text-right">
                                 <div className="flex items-center justify-end gap-1">

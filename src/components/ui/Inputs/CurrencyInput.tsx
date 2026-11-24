@@ -31,10 +31,10 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
         value !== 0
       ) {
         setDisplayValue(
-          new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(
-            value,
-          ),
-        );
+            new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(
+              Math.round(value),
+            ),
+          );
       } else {
         setDisplayValue("");
       }
@@ -43,8 +43,7 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawInput = e.target.value;
-    // Strip non-numeric chars except digits and dot/comma
-    const cleanDigits = rawInput.replace(/[^\d.,]/g, "").replace(",", ".");
+    const cleanDigits = rawInput.replace(/[^\d]/g, "");
 
     if (cleanDigits === "") {
       setDisplayValue("");
@@ -52,17 +51,11 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
       return;
     }
 
-    const num = parseFloat(cleanDigits);
+    const num = parseInt(cleanDigits, 10);
     if (!isNaN(num)) {
-      const parts = cleanDigits.split(".");
-      const integerPart = parts[0]
-        ? new Intl.NumberFormat("fr-FR").format(parseInt(parts[0], 10))
-        : "0";
-      const formatted =
-        parts.length > 1
-          ? `${integerPart},${parts[1].slice(0, 2)}`
-          : integerPart;
-
+      const formatted = new Intl.NumberFormat("fr-FR", {
+        maximumFractionDigits: 0,
+      }).format(num);
       setDisplayValue(formatted);
       onChange(num);
     } else {
@@ -74,10 +67,10 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
     setIsFocused(true);
     if (value !== undefined && value !== null && !isNaN(value) && value !== 0) {
       setDisplayValue(
-        new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(
-          value,
-        ),
-      );
+          new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(
+            Math.round(value),
+          ),
+        );
     }
     props.onFocus?.(e);
   };
@@ -86,10 +79,10 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
     setIsFocused(false);
     if (value !== undefined && value !== null && !isNaN(value) && value !== 0) {
       setDisplayValue(
-        new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(
-          value,
-        ),
-      );
+          new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(
+            Math.round(value),
+          ),
+        );
     } else {
       setDisplayValue("");
       onChange(undefined);

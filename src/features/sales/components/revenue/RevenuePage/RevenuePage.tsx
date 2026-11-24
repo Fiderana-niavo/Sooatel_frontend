@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/Inputs/input";
 import { Button } from "@/components/ui/Button/button";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
 import { SaleService } from "../../../services/sale.service";
+import { formatCurrency } from "@/utils/formatters";
 
 import {
   Loader2,
@@ -463,7 +464,7 @@ export const RevenuePage: React.FC = () => {
                           Total :
                         </span>
                         <span className="font-bold text-sm text-primary">
-                          {group.totaldelajournee.toLocaleString("fr-FR")} Ar
+                          {formatCurrency(group.totaldelajournee)}
                         </span>
                       </td>
                     </tr>
@@ -494,7 +495,7 @@ export const RevenuePage: React.FC = () => {
                           {item.paymentMethod || "—"}
                         </td>
                         <td className="px-6 py-4 text-right font-semibold whitespace-nowrap">
-                          {item.amount.toLocaleString("fr-FR")} Ar
+                          {formatCurrency(item.amount)}
                         </td>
                         <td className="px-6 py-4 text-right">
                           <Button
@@ -551,7 +552,7 @@ export const RevenuePage: React.FC = () => {
                           {p.paymentCode || "—"}
                         </td>
                         <td className="px-4 py-3 text-right font-semibold">
-                          {p.amount.toLocaleString("fr-FR")} Ar
+                          {formatCurrency(p.amount)}
                         </td>
                       </tr>
                     ))}
