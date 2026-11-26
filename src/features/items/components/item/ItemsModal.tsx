@@ -172,9 +172,9 @@ export function ItemsModal({
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
       <DialogContent
         onInteractOutside={(e) => e.preventDefault()}
-        className="max-w-5xl rounded-[2rem] p-0 overflow-hidden bg-card border shadow-2xl"
+        className="!flex !flex-col !gap-0 !p-0 w-[96vw] max-w-[96vw] h-[94vh] max-h-[94vh] rounded-[1.5rem] overflow-hidden bg-card border shadow-2xl"
       >
-        <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
+        <div className="shrink-0 bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -206,10 +206,7 @@ export function ItemsModal({
           </DialogHeader>
         </div>
 
-        <div
-          className="p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar"
-          style={{ maxHeight: "calc(90vh - 150px)" }}
-        >
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar p-6 md:p-8 space-y-6">
           <div className="bg-muted/10 p-5 rounded-2xl border border-border/50 shrink-0">
             <h4 className="text-sm font-semibold mb-4 text-foreground">
               Ajouter un Article
@@ -344,19 +341,18 @@ export function ItemsModal({
               </div>
             ) : (
               <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-muted/50 text-muted-foreground text-xs uppercase font-semibold">
-                      <tr>
-                        <th className="px-6 py-4 rounded-tl-2xl">Réf</th>
-                        <th className="px-6 py-4">Nom (Label)</th>
-                        <th className="px-6 py-4 text-center">Unité</th>
-                        <th className="px-6 py-4 whitespace-nowrap">Stock</th>
-                        <th className="px-6 py-4 text-right rounded-tr-2xl w-16">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
+                <table className="w-full table-fixed text-xs md:text-sm text-left">
+                  <thead className="bg-muted/50 text-muted-foreground text-[11px] md:text-xs uppercase font-semibold">
+                    <tr>
+                      <th className="px-3 md:px-4 py-3 rounded-tl-2xl w-[14%]">Réf</th>
+                      <th className="px-3 md:px-4 py-3 w-[40%]">Nom (Label)</th>
+                      <th className="px-2 md:px-3 py-3 text-center w-[16%]">Unité</th>
+                      <th className="px-3 md:px-4 py-3 text-center w-[18%]">Stock</th>
+                      <th className="px-2 md:px-3 py-3 text-right rounded-tr-2xl w-[12%]">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
                     <tbody className="divide-y divide-border/50">
                       {paginatedData.map((item: Item) => (
                         <Fragment key={item.idItem}>
@@ -521,25 +517,32 @@ export function ItemsModal({
                               </td>
                             ) : (
                               <>
-                                <td className="px-6 py-4 font-semibold text-foreground truncate max-w-[120px]">
+                                <td
+                                  className="px-3 md:px-4 py-2.5 md:py-3 font-semibold text-foreground truncate"
+                                  title={item.ref}
+                                >
                                   {item.ref}
                                 </td>
-                                <td className="px-6 py-4 font-medium truncate max-w-[200px]">
+                                <td
+                                  className="px-3 md:px-4 py-2.5 md:py-3 font-medium truncate"
+                                  title={item.label}
+                                >
                                   {item.label}
                                 </td>
-                                <td className="px-6 py-4 text-muted-foreground text-center truncate max-w-[100px]">
+                                <td className="px-2 md:px-3 py-2.5 md:py-3 text-muted-foreground text-center truncate">
                                   {unitOfMeasures.find(
                                     (u) => u.idUnit === item.idUnit,
                                   )?.symbol || "-"}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
+                                <td className="px-3 md:px-4 py-2.5 md:py-3 text-center whitespace-nowrap">
                                   <span className="font-semibold text-primary">
                                     {item.quantity ?? 0}
                                   </span>{" "}
                                   en stock
                                 </td>
-                                <td className="px-6 py-4 text-right">
-                                  <ActionDropdown
+                                <td className="px-2 md:px-3 py-2.5 md:py-3 text-right">
+                                  <div className="flex justify-end">
+                                    <ActionDropdown
                                     items={[
                                       {
                                         label:
@@ -585,7 +588,8 @@ export function ItemsModal({
                                       },
                                     ]}
                                   />
-                                </td>
+                                </div>
+                              </td>
                               </>
                             )}
                           </tr>
@@ -692,7 +696,6 @@ export function ItemsModal({
                     </tbody>
                   </table>
                 </div>
-              </div>
             )}
           </div>
           {totalPages > 1 && (

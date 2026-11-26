@@ -156,7 +156,7 @@ export function DeliveryListPage({
   const openDeliveriesCount = openDeliveriesResult.data?.total ?? 0;
 
   return (
-    <div className="p-6 space-y-6 bg-background min-h-screen">
+    <div className="space-y-6 w-full">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-3xl font-bold text-foreground tracking-tight">
           Livraisons Fournisseurs
@@ -253,86 +253,89 @@ export function DeliveryListPage({
         </div>
       )}
 
-      <div className="border border-border/50 shadow-sm rounded-lg bg-card text-card-foreground">
-        <div className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-muted text-muted-foreground uppercase">
+      <div className="border border-border/50 shadow-sm rounded-lg bg-card text-card-foreground mt-4 overflow-hidden">
+        <div className="w-full overflow-hidden">
+          <table className="w-full table-fixed text-xs md:text-sm text-left">
+            <thead className="bg-muted text-muted-foreground uppercase text-[11px] md:text-xs tracking-wider">
+              <tr>
+                <th className="px-2 md:px-3 py-3 font-semibold text-center w-[15%]">
+                  Référence
+                </th>
+                <th className="px-2 md:px-3 py-3 font-semibold text-center w-[13%]">
+                  Date
+                </th>
+                <th className="px-2 md:px-3 py-3 font-semibold text-center w-[26%]">
+                  Fournisseur
+                </th>
+                <th className="px-2 md:px-3 py-3 font-semibold text-center w-[16%]">
+                  Total
+                </th>
+                <th className="px-1.5 md:px-2 py-3 font-semibold text-center w-[12%]">
+                  Statut
+                </th>
+                <th className="px-1.5 md:px-2 py-3 font-semibold text-center w-[12%]">
+                  Paiement
+                </th>
+                <th className="px-1 py-3 font-semibold text-center w-[6%] min-w-[36px]">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/50">
+              {isLoading ? (
                 <tr>
-                  <th className="px-6 py-4 font-semibold text-center">
-                    Référence
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-center">Date</th>
-                  <th className="px-6 py-4 font-semibold text-center">
-                    Fournisseur
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-center">Total</th>
-                  <th className="px-6 py-4 font-semibold text-center">
-                    Statut Livraison
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-center">
-                    Paiement
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-center">
-                    Actions
-                  </th>
+                  <td
+                    colSpan={7}
+                    className="px-4 py-8 text-center text-muted-foreground"
+                  >
+                    Chargement des livraisons...
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-border/50">
-                {isLoading ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-6 py-8 text-center text-muted-foreground"
-                    >
-                      Chargement des livraisons...
+              ) : data?.records?.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-4 py-8 text-center text-muted-foreground"
+                  >
+                    Aucune livraison trouvée.
+                  </td>
+                </tr>
+              ) : (
+                data?.records.map((delivery) => (
+                  <tr
+                    key={delivery.idDelivery}
+                    className="hover:bg-muted/50 transition-colors"
+                  >
+                    <td className="px-2 md:px-3 py-2.5 font-semibold text-foreground text-center truncate" title={delivery.ref}>
+                      {delivery.ref}
                     </td>
-                  </tr>
-                ) : data?.records?.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-6 py-8 text-center text-muted-foreground"
-                    >
-                      Aucune livraison trouvée.
+                    <td className="px-2 md:px-3 py-2.5 text-center text-muted-foreground whitespace-nowrap">
+                      {new Date(delivery.deliveryDate).toLocaleDateString()}
                     </td>
-                  </tr>
-                ) : (
-                  data?.records.map((delivery) => (
-                    <tr
-                      key={delivery.idDelivery}
-                      className="hover:bg-muted/50 transition-colors"
-                    >
-                      <td className="px-6 py-4 font-medium text-foreground text-center">
-                        {delivery.ref}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        {new Date(delivery.deliveryDate).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        {delivery.supplierName || "-"}
-                      </td>
-                      <td className="px-6 py-4 font-medium text-center">
-                        {formatCurrency(delivery.totalAmount)}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex justify-center">
-                          <DeliveryStatusBadge status={delivery.status} />
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex justify-center">
-                          {delivery.status === "Validé" ? (
-                            <DeliveryPaymentBadge
-                              status={delivery.paymentStatus}
-                            />
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex justify-center">
+                    <td className="px-2 md:px-3 py-2.5 text-center truncate" title={delivery.supplierName}>
+                      {delivery.supplierName || "-"}
+                    </td>
+                    <td className="px-2 md:px-3 py-2.5 font-semibold text-center truncate" title={formatCurrency(delivery.totalAmount)}>
+                      {formatCurrency(delivery.totalAmount)}
+                    </td>
+                    <td className="px-1 md:px-2 py-2.5 text-center">
+                      <div className="flex justify-center max-w-full overflow-hidden">
+                        <DeliveryStatusBadge status={delivery.status} />
+                      </div>
+                    </td>
+                    <td className="px-1 md:px-2 py-2.5 text-center">
+                      <div className="flex justify-center max-w-full overflow-hidden">
+                        {delivery.status === "Validé" ? (
+                          <DeliveryPaymentBadge
+                            status={delivery.paymentStatus}
+                          />
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-1 py-2.5 text-center">
+                      <div className="flex justify-center">
                           <ActionDropdown
                             items={[
                               {
@@ -395,7 +398,6 @@ export function DeliveryListPage({
             </table>
           </div>
         </div>
-      </div>
 
       <DeliveryDetailSheet
         idDelivery={selectedDeliveryId}

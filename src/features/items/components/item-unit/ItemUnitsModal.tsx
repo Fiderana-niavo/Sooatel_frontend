@@ -4,7 +4,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/Dialog/dialog";
+import { Button } from "@/components/ui/Button/button";
 import { ItemUnitList } from "./ItemUnitList";
 import type { Item } from "../../types/item.type";
 import type {
@@ -41,9 +43,9 @@ export function ItemUnitsModal({
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
       <DialogContent
         onInteractOutside={(e) => e.preventDefault()}
-        className="max-w-4xl rounded-[2rem] p-0 overflow-hidden bg-card border shadow-2xl"
+        className="!flex !flex-col !gap-0 !p-0 w-[96vw] max-w-[96vw] h-[94vh] max-h-[94vh] rounded-[1.5rem] overflow-hidden bg-card border shadow-2xl"
       >
-        <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
+        <div className="shrink-0 bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-primary/20 text-primary rounded-xl">
@@ -60,10 +62,7 @@ export function ItemUnitsModal({
             </div>
           </DialogHeader>
         </div>
-        <div
-          className="p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar"
-          style={{ maxHeight: "calc(90vh - 150px)" }}
-        >
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar p-6 md:p-8 space-y-6">
           <ItemUnitList
             data={data}
             items={items}
@@ -73,6 +72,15 @@ export function ItemUnitsModal({
             onDelete={onDelete}
           />
         </div>
+        <DialogFooter className="shrink-0 p-4 bg-muted/10 border-t">
+          <Button
+            onClick={onClose}
+            variant="outline"
+            className="w-full sm:w-auto rounded-xl"
+          >
+            Fermer
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

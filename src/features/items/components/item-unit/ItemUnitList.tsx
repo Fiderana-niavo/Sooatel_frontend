@@ -74,14 +74,14 @@ export function ItemUnitList({
         </div>
       ) : (
         <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-muted/50 text-muted-foreground text-xs uppercase font-semibold">
+          <div className="w-full overflow-hidden">
+            <table className="w-full table-fixed text-xs md:text-sm text-left">
+              <thead className="bg-muted/50 text-muted-foreground text-[11px] md:text-xs uppercase font-semibold">
                 <tr>
-                  <th className="px-6 py-4 rounded-tl-2xl">Article</th>
-                  <th className="px-6 py-4">Unité alternative</th>
-                  <th className="px-6 py-4">Ratio (vers stock)</th>
-                  <th className="px-6 py-4 text-right rounded-tr-2xl">
+                  <th className="px-3 md:px-4 py-3 rounded-tl-2xl w-[38%]">Article</th>
+                  <th className="px-3 md:px-4 py-3 w-[28%]">Unité alternative</th>
+                  <th className="px-3 md:px-4 py-3 w-[22%]">Ratio (vers stock)</th>
+                  <th className="px-2 md:px-3 py-3 text-right rounded-tr-2xl w-[12%]">
                     Actions
                   </th>
                 </tr>
@@ -92,25 +92,25 @@ export function ItemUnitList({
                     key={iu.idItemUnit}
                     className="hover:bg-muted/30 transition-colors"
                   >
-                    <td className="px-6 py-4 font-medium text-foreground">
+                    <td className="px-3 md:px-4 py-2.5 md:py-3 font-medium text-foreground truncate" title={iu.item?.label}>
                       {iu.item?.label || "Article inconnu"}
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-secondary/10 text-secondary">
+                    <td className="px-3 md:px-4 py-2.5 md:py-3 truncate">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-secondary/10 text-secondary border border-secondary/20 truncate max-w-full">
                         {iu.alternativeUnit?.label}{" "}
                         {iu.alternativeUnit?.symbol &&
                           `(${iu.alternativeUnit.symbol})`}
                       </span>
                     </td>
-                    <td className="px-6 py-4 font-mono font-semibold text-primary">
+                    <td className="px-3 md:px-4 py-2.5 md:py-3 font-mono font-semibold text-primary truncate">
                       {editingId === iu.idItemUnit ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">x</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-muted-foreground text-xs">x</span>
                           <Input
                             type="number"
                             min="0"
                             step="0.01"
-                            className="w-24 h-8"
+                            className="w-20 h-7 text-xs"
                             value={editRatio}
                             onChange={(e) => setEditRatio(e.target.value)}
                             onKeyDown={(e) => {
@@ -125,48 +125,52 @@ export function ItemUnitList({
                         `x ${Number(iu.toStockRatio)}`
                       )}
                     </td>
-                    <td className="px-6 py-4 text-right space-x-2">
+                    <td className="px-2 md:px-3 py-2.5 md:py-3 text-right">
                       {editingId === iu.idItemUnit ? (
-                        <>
+                        <div className="flex items-center justify-end gap-0.5">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-green-600 hover:text-green-600 hover:bg-green-600/10 rounded-full"
+                            className="text-green-600 hover:text-green-600 hover:bg-green-600/10 rounded-full size-7 md:size-8"
                             onClick={() => handleSaveEdit(iu.idItemUnit)}
+                            title="Enregistrer"
                           >
-                            <Check className="size-4" />
+                            <Check className="size-3.5 md:size-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full"
+                            className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full size-7 md:size-8"
                             onClick={() => setEditingId(null)}
+                            title="Annuler"
                           >
-                            <X className="size-4" />
+                            <X className="size-3.5 md:size-4" />
                           </Button>
-                        </>
+                        </div>
                       ) : (
-                        <>
+                        <div className="flex items-center justify-end gap-0.5">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-primary hover:text-primary hover:bg-primary/10 rounded-full"
+                            className="opacity-70 group-hover:opacity-100 hover:opacity-100 text-primary hover:text-primary hover:bg-primary/10 rounded-full transition-opacity size-7 md:size-8"
                             onClick={() => {
                               setEditingId(iu.idItemUnit);
                               setEditRatio(Number(iu.toStockRatio).toString());
                             }}
+                            title="Modifier"
                           >
-                            <Pencil className="size-4" />
+                            <Pencil className="size-3.5 md:size-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
+                            className="opacity-70 group-hover:opacity-100 hover:opacity-100 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full transition-opacity size-7 md:size-8"
                             onClick={() => onDelete(iu.idItemUnit)}
+                            title="Supprimer"
                           >
-                            <Trash2 className="size-4" />
+                            <Trash2 className="size-3.5 md:size-4" />
                           </Button>
-                        </>
+                        </div>
                       )}
                     </td>
                   </tr>

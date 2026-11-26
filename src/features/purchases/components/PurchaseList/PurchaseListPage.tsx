@@ -67,7 +67,7 @@ export function PurchaseListPage({
   const { data, isLoading } = result;
 
   return (
-    <div className="p-4 md:p-6 space-y-6 bg-background min-h-screen">
+    <div className="space-y-6 w-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
           Commandes Fournisseurs
@@ -111,122 +111,134 @@ export function PurchaseListPage({
         </button>
       </div>
 
-      <div className="border border-border/50 shadow-sm rounded-lg bg-card text-card-foreground mt-4">
-        <div className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-muted text-muted-foreground uppercase">
+      <div className="border border-border/50 shadow-sm rounded-lg bg-card text-card-foreground mt-4 overflow-hidden">
+        <div className="w-full overflow-hidden">
+          <table className="w-full table-fixed text-xs md:text-sm text-left">
+            <thead className="bg-muted text-muted-foreground uppercase text-[11px] md:text-xs tracking-wider">
+              <tr>
+                <th className="px-2 md:px-3 py-3 font-semibold w-[15%]">Référence</th>
+                <th className="px-2 md:px-3 py-3 font-semibold w-[13%]">Date</th>
+                <th className="px-2 md:px-3 py-3 font-semibold w-[26%]">Fournisseur</th>
+                <th className="px-2 md:px-3 py-3 font-semibold text-right w-[16%]">Total</th>
+                <th className="px-1.5 md:px-2 py-3 font-semibold text-center w-[14%]">
+                  Confirmation
+                </th>
+                <th className="px-1.5 md:px-2 py-3 font-semibold text-center w-[11%]">
+                  Livraison
+                </th>
+                <th className="px-1 py-3 font-semibold text-center w-[5%] min-w-[36px]">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/50">
+              {isLoading ? (
                 <tr>
-                  <th className="px-6 py-4 font-semibold">Référence</th>
-                  <th className="px-6 py-4 font-semibold">Date</th>
-                  <th className="px-6 py-4 font-semibold">Fournisseur</th>
-                  <th className="px-6 py-4 font-semibold text-right">Total</th>
-                  <th className="px-6 py-4 font-semibold text-center whitespace-nowrap">
-                    Confirmation
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-center whitespace-nowrap">
-                    Livraison
-                  </th>
-                  <th className="px-4 py-4 font-semibold text-center w-24">
-                    Actions
-                  </th>
+                  <td
+                    colSpan={7}
+                    className="px-4 py-8 text-center text-muted-foreground"
+                  >
+                    Chargement des commandes...
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-border/50">
-                {isLoading ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-6 py-8 text-center text-muted-foreground"
-                    >
-                      Chargement des commandes...
-                    </td>
-                  </tr>
-                ) : data?.records?.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-6 py-8 text-center text-muted-foreground"
-                    >
-                      Aucune commande trouvée.
-                    </td>
-                  </tr>
-                ) : (
-                  data?.records.map((purchase) => {
-                    const isConfirmed =
-                      purchase.lifecycleStatus === "Confirmé" ||
-                      (purchase.lifecycleStatus as unknown) === 0;
-                    const isCancelled =
-                      purchase.lifecycleStatus === "Annulé" ||
-                      (purchase.lifecycleStatus as unknown) === -3;
+              ) : data?.records?.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-4 py-8 text-center text-muted-foreground"
+                  >
+                    Aucune commande trouvée.
+                  </td>
+                </tr>
+              ) : (
+                data?.records.map((purchase) => {
+                  const isConfirmed =
+                    purchase.lifecycleStatus === "Confirmé" ||
+                    (purchase.lifecycleStatus as unknown) === 0;
+                  const isCancelled =
+                    purchase.lifecycleStatus === "Annulé" ||
+                    (purchase.lifecycleStatus as unknown) === -3;
 
-                    return (
-                      <tr
-                        key={purchase.idPurchase}
-                        className="hover:bg-muted/50 transition-colors"
+                  return (
+                    <tr
+                      key={purchase.idPurchase}
+                      className="hover:bg-muted/50 transition-colors"
+                    >
+                      <td
+                        className="px-2 md:px-3 py-2.5 font-semibold text-foreground truncate"
+                        title={purchase.ref}
                       >
-                        <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
-                          {purchase.ref}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {new Date(purchase.purchaseDate).toLocaleDateString()}
-                        </td>
-                        <td
-                          className="px-6 py-4 truncate max-w-[200px]"
-                          title={purchase.supplier?.name}
-                        >
-                          {purchase.supplier?.name}
-                        </td>
-                        <td className="px-6 py-4 text-right font-medium whitespace-nowrap">
-                          {formatCurrency(purchase.totalAmount)}
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
-                              isConfirmed
-                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                : isCancelled
-                                  ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                                  : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
-                            }`}
-                          >
-                            {isConfirmed
+                        {purchase.ref}
+                      </td>
+                      <td className="px-2 md:px-3 py-2.5 text-muted-foreground whitespace-nowrap">
+                        {new Date(purchase.purchaseDate).toLocaleDateString()}
+                      </td>
+                      <td
+                        className="px-2 md:px-3 py-2.5 truncate"
+                        title={purchase.supplier?.name}
+                      >
+                        {purchase.supplier?.name || "-"}
+                      </td>
+                      <td
+                        className="px-2 md:px-3 py-2.5 text-right font-semibold text-foreground truncate"
+                        title={formatCurrency(purchase.totalAmount)}
+                      >
+                        {formatCurrency(purchase.totalAmount)}
+                      </td>
+                      <td className="px-1 md:px-2 py-2.5 text-center">
+                        <span
+                          className={`inline-block px-1.5 py-0.5 rounded-full text-[10px] md:text-xs font-medium leading-tight max-w-full truncate ${
+                            isConfirmed
+                              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                              : isCancelled
+                                ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                                : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+                          }`}
+                          title={
+                            isConfirmed
                               ? "Confirmé"
                               : isCancelled
                                 ? "Annulé"
                                 : "Non confirmé"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
+                        >
+                          {isConfirmed
+                            ? "Confirmé"
+                            : isCancelled
+                              ? "Annulé"
+                              : "Non confirmé"}
+                        </span>
+                      </td>
+                      <td className="px-1 md:px-2 py-2.5 text-center">
+                        <div className="flex justify-center max-w-full overflow-hidden">
                           <PurchaseStatusBadge status={purchase.status} />
-                        </td>
-                        <td className="px-4 py-4 text-center">
-                          <div className="flex justify-center">
-                            <ActionDropdown
-                              items={getPurchaseDropdownActions(
-                                purchase,
-                                activeTab,
-                                {
-                                  onDetails: (id) => setSelectedPurchaseId(id),
-                                  onConfirm: (p) => setConfirmPurchase(p),
-                                  onEdit: (p) => onGoToEdit && onGoToEdit(p),
-                                  onCancel: (p) => setCancelPurchase(p),
+                        </div>
+                      </td>
+                      <td className="px-1 py-2.5 text-center">
+                        <div className="flex justify-center">
+                          <ActionDropdown
+                            items={getPurchaseDropdownActions(
+                              purchase,
+                              activeTab,
+                              {
+                                onDetails: (id) => setSelectedPurchaseId(id),
+                                onConfirm: (p) => setConfirmPurchase(p),
+                                onEdit: (p) => onGoToEdit && onGoToEdit(p),
+                                onCancel: (p) => setCancelPurchase(p),
 
-                                  onConfirmAndReceive: (p) =>
-                                    setConfirmAndReceivePurchase(p),
-                                  onReceive: (p) => setReceptionPurchase(p),
-                                },
-                              )}
-                            />
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                                onConfirmAndReceive: (p) =>
+                                  setConfirmAndReceivePurchase(p),
+                                onReceive: (p) => setReceptionPurchase(p),
+                              },
+                            )}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 

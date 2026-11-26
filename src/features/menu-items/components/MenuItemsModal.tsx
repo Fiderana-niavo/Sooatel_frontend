@@ -168,9 +168,9 @@ export function MenuItemsModal({
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
       <DialogContent
         onInteractOutside={(e) => e.preventDefault()}
-        className="max-w-5xl rounded-[2rem] p-0 overflow-hidden bg-card border shadow-2xl"
+        className="!flex !flex-col !gap-0 !p-0 w-[96vw] max-w-[96vw] h-[94vh] max-h-[94vh] rounded-[1.5rem] overflow-hidden bg-card border shadow-2xl"
       >
-        <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
+        <div className="shrink-0 bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -204,10 +204,7 @@ export function MenuItemsModal({
           </DialogHeader>
         </div>
 
-        <div
-          className="p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar"
-          style={{ maxHeight: "calc(90vh - 150px)" }}
-        >
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar p-6 md:p-8 space-y-6">
           <div className="shrink-0 bg-muted/10 p-5 rounded-2xl border border-border/50">
             <h4 className="text-sm font-semibold mb-4 text-foreground">
               Nouveau Plat
@@ -299,161 +296,175 @@ export function MenuItemsModal({
             </div>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scrollbar">
-            {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
-                Chargement...
-              </div>
-            ) : paginatedData.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
-                Aucun plat trouvé.
-              </div>
-            ) : (
-              <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-muted/50 text-muted-foreground text-xs uppercase font-semibold">
-                      <tr>
-                        <th className="px-6 py-4 rounded-tl-2xl">Réf</th>
-                        <th className="px-6 py-4">Article lié</th>
-                        <th className="px-6 py-4">Catégorie</th>
-                        <th className="px-6 py-4 text-right">Prix (Ar)</th>
-                        <th className="px-6 py-4 text-right rounded-tr-2xl w-24">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/50">
-                      {paginatedData.map((item: MenuItem) => (
-                        <tr
-                          key={item.idMenu}
-                          className="hover:bg-muted/30 transition-colors group"
-                        >
-                          {editingId === item.idMenu ? (
-                            <td colSpan={5} className="px-6 py-2">
-                              <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
-                                <select
-                                  value={editIdItem}
-                                  onChange={(e) =>
-                                    setEditIdItem(e.target.value)
-                                  }
-                                  className="md:col-span-2 w-full bg-background border border-input rounded-md px-3 h-9 text-sm"
+          {isLoading ? (
+            <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
+              Chargement...
+            </div>
+          ) : paginatedData.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
+              Aucun plat trouvé.
+            </div>
+          ) : (
+            <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
+              <table className="w-full table-fixed text-xs md:text-sm text-left">
+                <thead className="bg-muted/50 text-muted-foreground text-[11px] md:text-xs uppercase font-semibold">
+                  <tr>
+                    <th className="px-3 md:px-4 py-3 rounded-tl-2xl w-[14%]">Réf</th>
+                    <th className="px-3 md:px-4 py-3 w-[36%]">Article lié</th>
+                    <th className="px-3 md:px-4 py-3 w-[22%]">Catégorie</th>
+                    <th className="px-3 md:px-4 py-3 text-right w-[16%]">Prix (Ar)</th>
+                    <th className="px-2 md:px-3 py-3 text-right rounded-tr-2xl w-[12%]">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {paginatedData.map((item: MenuItem) => (
+                    <tr
+                      key={item.idMenu}
+                      className="hover:bg-muted/30 transition-colors group"
+                    >
+                      {editingId === item.idMenu ? (
+                        <td colSpan={5} className="px-3 md:px-4 py-2">
+                          <div className="grid grid-cols-1 md:grid-cols-5 gap-2 items-center">
+                            <select
+                              value={editIdItem}
+                              onChange={(e) =>
+                                setEditIdItem(e.target.value)
+                              }
+                              className="md:col-span-2 w-full bg-background border border-input rounded-md px-2 h-8 text-xs md:text-sm"
+                            >
+                              <option value="">Article...</option>
+                              {editItems.map((i) => (
+                                <option key={i.idItem} value={i.idItem}>
+                                  {i.label +
+                                    (i.unit?.symbol
+                                      ? ` (${i.unit.symbol})`
+                                      : "")}
+                                </option>
+                              ))}
+                            </select>
+                            <select
+                              value={editIdCategory}
+                              onChange={(e) =>
+                                setEditIdCategory(e.target.value)
+                              }
+                              className="w-full bg-background border border-input rounded-md px-2 h-8 text-xs md:text-sm"
+                            >
+                              <option value="">Catégorie...</option>
+                              {categories.map((c) => (
+                                <option
+                                  key={c.idCategory}
+                                  value={c.idCategory}
                                 >
-                                  <option value="">Article...</option>
-                                  {editItems.map((i) => (
-                                    <option key={i.idItem} value={i.idItem}>
-                                      {i.label +
-                                        (i.unit?.symbol
-                                          ? ` (${i.unit.symbol})`
-                                          : "")}
-                                    </option>
-                                  ))}
-                                </select>
-                                <select
-                                  value={editIdCategory}
-                                  onChange={(e) =>
-                                    setEditIdCategory(e.target.value)
-                                  }
-                                  className="w-full bg-background border border-input rounded-md px-3 h-9 text-sm"
-                                >
-                                  <option value="">Catégorie...</option>
-                                  {categories.map((c) => (
-                                    <option
-                                      key={c.idCategory}
-                                      value={c.idCategory}
-                                    >
-                                      {c.label}
-                                    </option>
-                                  ))}
-                                </select>
-                                <CurrencyInput
-                                  value={
-                                    editSalePrice
-                                      ? Number(editSalePrice)
-                                      : undefined
-                                  }
-                                  onChange={(val) =>
-                                    setEditSalePrice(
-                                      val !== undefined ? String(val) : "",
-                                    )
-                                  }
-                                  className="h-9"
-                                  placeholder="Prix"
-                                />
-                                <div className="flex justify-end gap-1">
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={saveEdit}
-                                    className="text-green-600 hover:text-green-600 hover:bg-green-600/10 rounded-full"
-                                  >
-                                    <Check className="size-4" />
-                                  </Button>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={cancelEdit}
-                                    className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full"
-                                  >
-                                    <X className="size-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </td>
-                          ) : (
-                            <>
-                              <td className="px-6 py-4 font-semibold text-foreground truncate max-w-[120px]">
-                                {item.ref}
-                              </td>
-                              <td className="px-6 py-4 text-muted-foreground truncate max-w-[200px]">
-                                {item.item?.label ||
-                                  items.find(
-                                    (i) =>
-                                      i.idItem ===
-                                      (item.idItem || item.item?.idItem),
-                                  )?.label ||
-                                  "Article Inconnu"}
-                              </td>
-                              <td className="px-6 py-4">
-                                <span className="px-2.5 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium border border-primary/20">
-                                  {categories.find(
-                                    (c) => c.idCategory === item.idCategory,
-                                  )?.label || "Inconnu"}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 text-right font-semibold text-emerald-600 whitespace-nowrap">
-                                {Number(item.salePrice).toLocaleString()} Ar
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                <div className="flex items-center justify-end gap-1">
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={() => startEdit(item)}
-                                    className="opacity-0 group-hover:opacity-100 text-primary hover:text-primary hover:bg-primary/10 rounded-full"
-                                  >
-                                    <Edit className="size-4" />
-                                  </Button>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={() => onDelete(item.idMenu)}
-                                    className="opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
-                                  >
-                                    <Trash2 className="size-4" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
+                                  {c.label}
+                                </option>
+                              ))}
+                            </select>
+                            <CurrencyInput
+                              value={
+                                editSalePrice
+                                  ? Number(editSalePrice)
+                                  : undefined
+                              }
+                              onChange={(val) =>
+                                setEditSalePrice(
+                                  val !== undefined ? String(val) : "",
+                                )
+                              }
+                              className="h-8 text-xs md:text-sm"
+                              placeholder="Prix"
+                            />
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={saveEdit}
+                                className="text-green-600 hover:text-green-600 hover:bg-green-600/10 rounded-full size-7 md:size-8"
+                                title="Enregistrer"
+                              >
+                                <Check className="size-3.5 md:size-4" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={cancelEdit}
+                                className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full size-7 md:size-8"
+                                title="Annuler"
+                              >
+                                <X className="size-3.5 md:size-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </td>
+                      ) : (
+                        <>
+                          <td
+                            className="px-3 md:px-4 py-2.5 md:py-3 font-semibold text-foreground truncate"
+                            title={item.ref}
+                          >
+                            {item.ref}
+                          </td>
+                          <td
+                            className="px-3 md:px-4 py-2.5 md:py-3 text-muted-foreground truncate"
+                            title={
+                              item.item?.label ||
+                              items.find(
+                                (i) =>
+                                  i.idItem ===
+                                  (item.idItem || item.item?.idItem),
+                              )?.label ||
+                              "Article Inconnu"
+                            }
+                          >
+                            {item.item?.label ||
+                              items.find(
+                                (i) =>
+                                  i.idItem ===
+                                  (item.idItem || item.item?.idItem),
+                              )?.label ||
+                              "Article Inconnu"}
+                          </td>
+                          <td className="px-3 md:px-4 py-2.5 md:py-3 truncate">
+                            <span className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-[10px] md:text-xs font-medium border border-primary/20 truncate max-w-full inline-block">
+                              {categories.find(
+                                (c) => c.idCategory === item.idCategory,
+                              )?.label || "Inconnu"}
+                            </span>
+                          </td>
+                          <td className="px-3 md:px-4 py-2.5 md:py-3 text-right font-semibold text-emerald-600 truncate">
+                            {Number(item.salePrice).toLocaleString()} Ar
+                          </td>
+                          <td className="px-2 md:px-3 py-2.5 md:py-3 text-right">
+                            <div className="flex items-center justify-end gap-0.5">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => startEdit(item)}
+                                className="opacity-70 group-hover:opacity-100 hover:opacity-100 text-primary hover:text-primary hover:bg-primary/10 rounded-full transition-opacity size-7 md:size-8"
+                                title="Modifier"
+                              >
+                                <Edit className="size-3.5 md:size-4" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => onDelete(item.idMenu)}
+                                className="opacity-70 group-hover:opacity-100 hover:opacity-100 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full transition-opacity size-7 md:size-8"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="size-3.5 md:size-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
           {totalPages > 1 && (
             <div className="mt-4 flex justify-center shrink-0">
               <Pagination

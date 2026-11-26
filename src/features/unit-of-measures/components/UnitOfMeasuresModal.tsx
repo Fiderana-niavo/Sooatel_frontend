@@ -99,9 +99,9 @@ export function UnitOfMeasuresModal({
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
       <DialogContent
         onInteractOutside={(e) => e.preventDefault()}
-        className="max-w-4xl rounded-[2rem] p-0 overflow-hidden bg-card border shadow-2xl"
+        className="!flex !flex-col !gap-0 !p-0 w-[96vw] max-w-[96vw] h-[94vh] max-h-[94vh] rounded-[1.5rem] overflow-hidden bg-card border shadow-2xl"
       >
-        <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
+        <div className="shrink-0 bg-gradient-to-br from-primary/10 via-background to-background p-6 md:p-8 border-b">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -133,11 +133,8 @@ export function UnitOfMeasuresModal({
           </DialogHeader>
         </div>
 
-        <div
-          className="p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar"
-          style={{ maxHeight: "calc(90vh - 150px)" }}
-        >
-          <div className="bg-muted/10 p-5 rounded-2xl border border-border/50">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar p-6 md:p-8 space-y-6">
+          <div className="shrink-0 bg-muted/10 p-5 rounded-2xl border border-border/50">
             <h4 className="text-sm font-semibold mb-4 text-foreground">
               Nouvelle unité
             </h4>
@@ -174,117 +171,120 @@ export function UnitOfMeasuresModal({
             </div>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scrollbar">
-            {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
-                Chargement...
-              </div>
-            ) : paginatedData.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
-                Aucune unité trouvée.
-              </div>
-            ) : (
-              <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-muted/50 text-muted-foreground text-xs uppercase font-semibold">
-                      <tr>
-                        <th className="px-6 py-4 rounded-tl-2xl w-1/3">
-                          Nom (Label)
-                        </th>
-                        <th className="px-6 py-4">Symbole</th>
-                        <th className="px-6 py-4 text-right rounded-tr-2xl w-24">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/50">
-                      {paginatedData.map((item: UnitOfMeasure) => (
-                        <tr
-                          key={item.idUnit}
-                          className="hover:bg-muted/30 transition-colors group"
-                        >
-                          {editingId === item.idUnit ? (
-                            <td colSpan={3} className="px-6 py-2">
-                              <div className="flex items-center gap-3">
-                                <Input
-                                  value={editLabel}
-                                  onChange={(e) => setEditLabel(e.target.value)}
-                                  className="h-9 w-1/3"
-                                  placeholder="Nom"
-                                />
-                                <Input
-                                  value={editSymbol}
-                                  onChange={(e) =>
-                                    setEditSymbol(e.target.value)
-                                  }
-                                  className="h-9 flex-1"
-                                  placeholder="Symbole"
-                                />
-                                <div className="flex justify-end gap-1 w-24">
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={saveEdit}
-                                    className="text-green-600 hover:text-green-600 hover:bg-green-600/10 rounded-full"
-                                  >
-                                    <Check className="size-4" />
-                                  </Button>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={cancelEdit}
-                                    className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full"
-                                  >
-                                    <X className="size-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </td>
-                          ) : (
-                            <>
-                              <td className="px-6 py-4 font-semibold text-foreground truncate">
-                                {item.label}
-                              </td>
-                              <td className="px-6 py-4 text-muted-foreground truncate">
-                                {item.symbol ? (
-                                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-secondary/10 text-secondary border border-secondary/20">
-                                    {item.symbol}
-                                  </span>
-                                ) : (
-                                  "-"
-                                )}
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                <div className="flex items-center justify-end gap-1">
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={() => startEdit(item)}
-                                    className="opacity-0 group-hover:opacity-100 text-primary hover:text-primary hover:bg-primary/10 rounded-full"
-                                  >
-                                    <Edit className="size-4" />
-                                  </Button>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={() => onDelete(item.idUnit)}
-                                    className="opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
-                                  >
-                                    <Trash2 className="size-4" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
+          {isLoading ? (
+            <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
+              Chargement...
+            </div>
+          ) : paginatedData.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed">
+              Aucune unité trouvée.
+            </div>
+          ) : (
+            <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
+              <table className="w-full table-fixed text-xs md:text-sm text-left">
+                <thead className="bg-muted/50 text-muted-foreground text-[11px] md:text-xs uppercase font-semibold">
+                  <tr>
+                    <th className="px-3 md:px-4 py-3 rounded-tl-2xl w-[36%]">
+                      Nom (Label)
+                    </th>
+                    <th className="px-3 md:px-4 py-3 w-[50%]">Symbole</th>
+                    <th className="px-2 md:px-3 py-3 text-right rounded-tr-2xl w-[14%]">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {paginatedData.map((item: UnitOfMeasure) => (
+                    <tr
+                      key={item.idUnit}
+                      className="hover:bg-muted/30 transition-colors group"
+                    >
+                      {editingId === item.idUnit ? (
+                        <td colSpan={3} className="px-3 md:px-4 py-2">
+                          <div className="flex items-center gap-2">
+                            <Input
+                              value={editLabel}
+                              onChange={(e) => setEditLabel(e.target.value)}
+                              className="h-8 md:h-9 w-[36%] text-xs md:text-sm"
+                              placeholder="Nom"
+                            />
+                            <Input
+                              value={editSymbol}
+                              onChange={(e) =>
+                                setEditSymbol(e.target.value)
+                              }
+                              className="h-8 md:h-9 flex-1 text-xs md:text-sm"
+                              placeholder="Symbole"
+                            />
+                            <div className="flex justify-end gap-1 w-[14%] shrink-0">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={saveEdit}
+                                className="text-green-600 hover:text-green-600 hover:bg-green-600/10 rounded-full size-7 md:size-8"
+                                title="Enregistrer"
+                              >
+                                <Check className="size-3.5 md:size-4" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={cancelEdit}
+                                className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full size-7 md:size-8"
+                                title="Annuler"
+                              >
+                                <X className="size-3.5 md:size-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </td>
+                      ) : (
+                        <>
+                          <td
+                            className="px-3 md:px-4 py-2.5 md:py-3 font-semibold text-foreground truncate"
+                            title={item.label}
+                          >
+                            {item.label}
+                          </td>
+                          <td className="px-3 md:px-4 py-2.5 md:py-3 text-muted-foreground truncate">
+                            {item.symbol ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-secondary/10 text-secondary border border-secondary/20">
+                                {item.symbol}
+                              </span>
+                            ) : (
+                              "-"
+                            )}
+                          </td>
+                          <td className="px-2 md:px-3 py-2.5 md:py-3 text-right">
+                            <div className="flex items-center justify-end gap-0.5">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => startEdit(item)}
+                                className="opacity-70 group-hover:opacity-100 hover:opacity-100 text-primary hover:text-primary hover:bg-primary/10 rounded-full transition-opacity size-7 md:size-8"
+                                title="Modifier"
+                              >
+                                <Edit className="size-3.5 md:size-4" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => onDelete(item.idUnit)}
+                                className="opacity-70 group-hover:opacity-100 hover:opacity-100 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full transition-opacity size-7 md:size-8"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="size-3.5 md:size-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
           {totalPages > 1 && (
             <div className="mt-4 flex justify-center shrink-0">
               <Pagination
@@ -296,7 +296,7 @@ export function UnitOfMeasuresModal({
           )}
         </div>
 
-        <DialogFooter className="p-4 bg-muted/10 border-t">
+        <DialogFooter className="shrink-0 p-4 bg-muted/10 border-t">
           <Button
             onClick={onClose}
             variant="outline"
