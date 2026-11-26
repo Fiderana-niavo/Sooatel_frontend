@@ -1,0 +1,637 @@
+import { toIsoDate, toIsoDateTime } from "@/utils/date";
+import React, { useState, useEffect, useCallback } from "react";
+import { SaleService } from "../../../services/sale.service";
+import { PaymentService } from "../../../../payments/services/payment.service";
+import { fetchSalesListDependencies } from "../../../utils/saleFetchers";
+import { SaleDetailSheet } from "../SaleDetailSheet";
+import { SalesListFilters } from "../SalesListFilters/SalesListFilters";
+import { SalesListTable } from "../SalesListTable/SalesListTable";
+import { PaymentModal } from "../SalesListModals/PaymentModal";
+import { CancelSaleModal } from "../SalesListModals/CancelSaleModal";
+import { TicketFormatModal } from "../SalesListModals/TicketFormatModal";
+import { PrintSaleModal } from "../SalesListModals/PrintSaleModal";
+import { Snackbar } from "@/components/ui/Snackbar/snackbar";
+import { InputDialog } from "@/components/ui/InputDialog/InputDialog";
+import { PaymentManagementDialog } from "../../../../payments/components/PaymentManagementDialog";
+import { useAppStore } from "@/store/app.store";
+import { getTicketConfig, type TicketConfig } from "../../../utils/ticketStorage";
+import { executePrint } from "../../../utils/executePrint";
+import type { SaleRecord } from "../../../types";
+import type { SnackbarType } from "@/components/ui/Snackbar/snackbar";
+
+interface SalesListPageProps {
+  onEditSale?: (sale: SaleRecord) => void;
+}
+
+export const SalesListPage: React.FC<SalesListPageProps> = ({ onEditSale }) => {
+  const [sales, setSales] = useState<SaleRecord[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [dateFilter, setDateFilter] = useState<string>("");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [menuFilter, setMenuFilter] = useState<string | number>("");
+  const [menuOptions, setMenuOptions] = useState<
+    { value: string; label: string }[]
+  >([{ value: "", label: "Tous les produits" }]);
+  const [paymentMethods, setPaymentMethods] = useState<
+    { idPaymentMethod: string; methodName: string }[]
+  >([]);
+  const [payModal, setPayModal] = useState<{
+    isOpen: boolean;
+    saleId: string;
+    balanceDue: number;
+    methodId: string;
+    paymentCode: string;
+    amount: string;
+    paymentDate: string;
+    isPartial: boolean;
+    saleDate: string;
+  }>({
+    isOpen: false,
+    saleId: "",
+    balanceDue: 0,
+    methodId: "",
+    paymentCode: "",
+    amount: "",
+    paymentDate: toIsoDateTime(new Date()),
+    isPartial: false,
+    saleDate: "",
+  });
+  const [managePaymentDialog, setManagePaymentDialog] = useState<{
+    isOpen: boolean;
+    sale: SaleRecord | null;
+  }>({ isOpen: false, sale: null });
+  const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [selectedSale, setSelectedSale] = useState<SaleRecord | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState<{
+    isOpen: boolean;
+    message: string;
+    type: SnackbarType;
+  }>({
+    isOpen: false,
+    message: "",
+    type: "info",
+  });
+  const [reopenDialog, setReopenDialog] = useState<{
+    isOpen: boolean;
+    saleId: string;
+  }>({ isOpen: false, saleId: "" });
+  const [showCancelled, setShowCancelled] = useState(false);
+  const [cancelOverpaymentDialog, setCancelOverpaymentDialog] = useState<{
+    isOpen: boolean;
+    saleId: string;
+    totalPaid: number;
+  }>({ isOpen: false, saleId: "", totalPaid: 0 });
+  const [cancelRefundMethodId, setCancelRefundMethodId] = useState<string>("");
+  const [ticketConfig, setTicketConfig] = useState<TicketConfig>(getTicketConfig);
+  const [formatModalOpen, setFormatModalOpen] = useState(false);
+  const [printSale, setPrintSale] = useState<SaleRecord | null>(null);
+  const [printLoading, setPrintLoading] = useState(false);
+
+  const showSnackbar = (message: string, type: SnackbarType = "info") =>
+    setSnackbar({ isOpen: true, message, type });
+
+  const fetchSales = useCallback(async () => {
+    setLoading(true);
+    try {
+      const filters: {
+        idMenu?: string;
+        date?: string;
+        status?: number[];
+        paymentStatus?: "UNPAID" | "PARTIAL" | "PAID";
+      } = {};
+      if (dateFilter) filters.date = dateFilter;
+      if (paymentStatusFilter)
+        filters.paymentStatus = paymentStatusFilter as
+          | "UNPAID"
+          | "PARTIAL"
+          | "PAID";
+      if (menuFilter && menuFilter !== "") filters.idMenu = String(menuFilter);
+
+      if (showCancelled) {
+        filters.status = [-3];
+      } else if (statusFilter === "OPEN") {
+        filters.status = [5];
+      } else if (statusFilter === "CLOSED") {
+        filters.status = [0];
+      } else {
+        filters.status = [0, 5];
+      }
+
+      const result = await SaleService.getAllSales(page, 10, filters);
+      setSales(result.records);
+      setTotalPages(result.totalPages);
+    } catch {
+      showSnackbar("Erreur lors du chargement des ventes.", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    page,
+    dateFilter,
+    paymentStatusFilter,
+    statusFilter,
+    menuFilter,
+    showCancelled,
+  ]);
+
+  const handleResetFilters = () => {
+    setDateFilter("");
+    setMenuFilter("");
+    setStatusFilter("");
+    setPaymentStatusFilter("");
+    setPage(1);
+  };
+
+  const loadDependencies = useCallback(async () => {
+    const deps = await fetchSalesListDependencies();
+    setPaymentMethods(deps.paymentMethods);
+    setMenuOptions(deps.menuOptions);
+  }, []);
+
+  useEffect(() => {
+    fetchSales();
+  }, [fetchSales]);
+
+  useEffect(() => {
+    loadDependencies();
+  }, [loadDependencies]);
+
+  const resolveError = (err: unknown, fallback: string): string => {
+    const error = err as {
+      response?: { status?: number; data?: { error?: string; message?: string } };
+      message?: string;
+    };
+    if (error.response?.status === 403)
+      return "Vous n'avez pas la permission pour cette action.";
+    return (
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      error.message ||
+      fallback
+    );
+  };
+
+  const handlePrintSale = (sale: SaleRecord) => {
+    setPrintSale(sale);
+  };
+
+  const handleExecutePrint = async (
+    sale: SaleRecord,
+    config: TicketConfig,
+    win: Window | null,
+  ) => {
+    setTicketConfig(config);
+    setPrintLoading(true);
+
+    try {
+      let targetSale = sale;
+
+      // If sale is open, close it first
+      if (sale.status !== 0) {
+        setActionLoading(true);
+        await SaleService.closeSale(sale.idSale);
+        showSnackbar("Vente fermée avec succès.", "success");
+
+        try {
+          const fresh = await SaleService.getSaleById(sale.idSale);
+          if (fresh) targetSale = fresh;
+          else targetSale = { ...sale, status: 0 };
+        } catch {
+          targetSale = { ...sale, status: 0 };
+        }
+
+        await fetchSales();
+        if (selectedSale?.idSale === sale.idSale) {
+          setSelectedSale(targetSale);
+        }
+        setActionLoading(false);
+      }
+
+      await executePrint(targetSale, win, config);
+      showSnackbar("Document généré pour impression.", "success");
+    } catch (err: unknown) {
+      if (win && !win.closed) {
+        win.close();
+      }
+      showSnackbar(
+        resolveError(err, "Erreur lors de la génération du document."),
+        "error",
+      );
+    } finally {
+      setPrintLoading(false);
+      setActionLoading(false);
+    }
+  };
+
+  const handleCancel = async (
+    id: string,
+    overpaymentAction?: "REFUND" | "ADJUST",
+    idPaymentMethodRefund?: string,
+  ) => {
+    if (!overpaymentAction) {
+      const saleToCancel = sales.find((s) => s.idSale === id);
+      if (saleToCancel && saleToCancel.invoice) {
+        const totalPaid =
+          Number(saleToCancel.invoice.totalAmount) -
+          Number(saleToCancel.invoice.balanceDue);
+        if (totalPaid > 0) {
+          setCancelOverpaymentDialog({ isOpen: true, saleId: id, totalPaid });
+          return;
+        }
+      }
+    }
+
+    setActionLoading(true);
+    try {
+      await SaleService.cancelSale(
+        id,
+        overpaymentAction,
+        idPaymentMethodRefund,
+      );
+      showSnackbar("Vente annulée avec succès.", "success");
+      setSheetOpen(false);
+      fetchSales();
+    } catch (err: any) {
+      showSnackbar(resolveError(err, "Erreur lors de l'annulation."), "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReopenConfirm = async (reason: string) => {
+    const saleIdToReopen = reopenDialog.saleId;
+    setReopenDialog({ isOpen: false, saleId: "" });
+    setActionLoading(true);
+    try {
+      await SaleService.reopenSale(saleIdToReopen, reason);
+      showSnackbar("Vente rouverte avec succès.", "success");
+      setSheetOpen(false);
+      fetchSales();
+      if (onEditSale) {
+        const fullSale = await SaleService.getSaleById(saleIdToReopen);
+        if (fullSale)
+          onEditSale({ ...fullSale, _wasJustReopened: true } as any);
+      }
+    } catch (err: any) {
+      showSnackbar(
+        resolveError(err, "Erreur lors de la réouverture."),
+        "error",
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleClose = async (id: string) => {
+    setActionLoading(true);
+    try {
+      await SaleService.closeSale(id);
+      showSnackbar("Vente fermée avec succès.", "success");
+      setSheetOpen(false);
+      fetchSales();
+    } catch (err: any) {
+      showSnackbar(resolveError(err, "Erreur lors de la fermeture."), "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    setActionLoading(true);
+    try {
+      await SaleService.deleteSale(id);
+      showSnackbar("Vente supprimée.", "success");
+      setSheetOpen(false);
+      fetchSales();
+    } catch (err: any) {
+      showSnackbar(
+        resolveError(err, "Erreur lors de la suppression."),
+        "error",
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAdjustPayment = async (
+    idSale: string,
+    idPayment: string,
+    newAmount: number,
+  ): Promise<void> => {
+    try {
+      await SaleService.adjustPayment(idSale, idPayment, newAmount);
+      const updated = await SaleService.getSaleById(idSale);
+      if (updated) {
+        setSelectedSale(updated);
+        setManagePaymentDialog((prev) =>
+          prev.sale?.idSale === idSale ? { ...prev, sale: updated } : prev,
+        );
+      }
+      fetchSales();
+    } catch (err: any) {
+      const msg = resolveError(
+        err,
+        "Erreur lors de la modification du paiement.",
+      );
+      showSnackbar(msg, "error");
+      throw new Error(msg);
+    }
+  };
+
+  const handleRefundPayment = async (
+    idSale: string,
+    amount: number,
+    idPaymentMethod: string,
+    reason?: string,
+  ): Promise<void> => {
+    try {
+      await SaleService.refundPayment(idSale, amount, idPaymentMethod, reason);
+      const updated = await SaleService.getSaleById(idSale);
+      if (updated) {
+        setSelectedSale(updated);
+        setManagePaymentDialog((prev) =>
+          prev.sale?.idSale === idSale ? { ...prev, sale: updated } : prev,
+        );
+      }
+      fetchSales();
+    } catch (err: any) {
+      const msg = resolveError(err, "Erreur lors du remboursement.");
+      showSnackbar(msg, "error");
+      throw new Error(msg);
+    }
+  };
+
+  const handleEdit = (sale: SaleRecord) => {
+    if (onEditSale) {
+      onEditSale(sale);
+    }
+  };
+
+  const handleOpenPayModal = (sale: SaleRecord) => {
+    if (!sale.invoice || !sale.invoice.idInvoice) {
+      showSnackbar(
+        "Cette vente n'a pas de facture associée (ancienne vente). Veuillez contacter l'administrateur.",
+        "error",
+      );
+      return;
+    }
+    const balanceDue =
+      (sale.invoice.balanceDue ?? sale.totalAmount) != null
+        ? Number(sale.invoice.balanceDue ?? sale.totalAmount)
+        : Number(sale.totalAmount);
+    setPayModal({
+      isOpen: true,
+      saleId: sale.invoice.idInvoice,
+      balanceDue,
+      methodId: paymentMethods[0]?.idPaymentMethod || "",
+      paymentCode: "",
+      amount: String(balanceDue),
+      paymentDate: toIsoDate(new Date()),
+      isPartial: false,
+      saleDate: sale.saleDate ? toIsoDateTime(new Date(sale.saleDate)) : "",
+    });
+  };
+
+  const handlePay = async () => {
+    if (!payModal.methodId) {
+      showSnackbar("Veuillez sélectionner un mode de paiement.", "error");
+      return;
+    }
+    setActionLoading(true);
+    try {
+      await PaymentService.addPayment(payModal.saleId, {
+        amount:
+          payModal.isPartial && payModal.amount
+            ? Number(payModal.amount)
+            : payModal.balanceDue,
+        idPaymentMethod: payModal.methodId,
+        paymentDate: payModal.paymentDate,
+        paymentCode: payModal.paymentCode || undefined,
+      });
+      showSnackbar("Paiement enregistré avec succès.", "success");
+      setPayModal({
+        isOpen: false,
+        saleId: "",
+        balanceDue: 0,
+        methodId: "",
+        paymentCode: "",
+        amount: "",
+        paymentDate: toIsoDateTime(new Date()),
+        isPartial: false,
+        saleDate: "",
+      });
+      setSheetOpen(false);
+      fetchSales();
+    } catch (err: any) {
+      showSnackbar(resolveError(err, "Erreur lors du paiement."), "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      <SalesListFilters
+        showCancelled={showCancelled}
+        onToggleCancelled={() => {
+          setShowCancelled(!showCancelled);
+          setPage(1);
+        }}
+        dateFilter={dateFilter}
+        onDateFilterChange={(val) => {
+          setDateFilter(val);
+          setPage(1);
+        }}
+        menuFilter={menuFilter}
+        onMenuFilterChange={(val) => {
+          setMenuFilter(val);
+          setPage(1);
+        }}
+        menuOptions={menuOptions}
+        statusFilter={statusFilter}
+        onStatusFilterChange={(val) => {
+          setStatusFilter(val);
+          setPage(1);
+        }}
+        paymentStatusFilter={paymentStatusFilter}
+        onPaymentStatusFilterChange={(val) => {
+          setPaymentStatusFilter(val);
+          setPage(1);
+        }}
+        onResetFilters={handleResetFilters}
+        onOpenFormatModal={() => setFormatModalOpen(true)}
+        ticketFormatLabel={ticketConfig.type === "custom" ? `${ticketConfig.width} mm` : ticketConfig.type}
+      />
+
+      <SalesListTable
+        loading={loading}
+        sales={sales}
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        showCancelled={showCancelled}
+        onSaleClick={(sale) => {
+          setSelectedSale(sale);
+          setSheetOpen(true);
+        }}
+        onEditSale={handleEdit}
+        onClose={handleClose}
+        onReopen={(id) => setReopenDialog({ isOpen: true, saleId: id })}
+        onCancel={handleCancel}
+        onPay={handleOpenPayModal}
+        onDelete={handleDelete}
+        onManagePayment={(sale) =>
+          setManagePaymentDialog({ isOpen: true, sale })
+        }
+        onPrint={handlePrintSale}
+      />
+
+      <SaleDetailSheet
+        sale={selectedSale}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onCancel={handleCancel}
+        onReopen={(id) => setReopenDialog({ isOpen: true, saleId: id })}
+        onClose={handleClose}
+        onDelete={handleDelete}
+        onEdit={handleEdit}
+        onUpdate={fetchSales}
+        onAdjustPayment={handleAdjustPayment}
+        onRefundPayment={handleRefundPayment}
+        onPay={handleOpenPayModal}
+        onPrint={handlePrintSale}
+        onOpenFormatModal={() => setFormatModalOpen(true)}
+        loading={actionLoading || printLoading}
+      />
+
+      <PaymentModal
+        open={payModal.isOpen}
+        onOpenChange={(open) =>
+          !open && setPayModal((p) => ({ ...p, isOpen: false }))
+        }
+        balanceDue={payModal.balanceDue}
+        paymentDate={payModal.paymentDate}
+        onPaymentDateChange={(val) =>
+          setPayModal((p) => ({ ...p, paymentDate: val }))
+        }
+        isPartial={payModal.isPartial}
+        onIsPartialChange={(val) =>
+          setPayModal((p) => ({
+            ...p,
+            isPartial: val,
+            amount: val ? "" : String(p.balanceDue),
+          }))
+        }
+        amount={payModal.amount}
+        onAmountChange={(val) => setPayModal((p) => ({ ...p, amount: val }))}
+        paymentCode={payModal.paymentCode}
+        onPaymentCodeChange={(val) =>
+          setPayModal((p) => ({ ...p, paymentCode: val }))
+        }
+        methodId={payModal.methodId}
+        onMethodIdChange={(val) =>
+          setPayModal((p) => ({ ...p, methodId: val }))
+        }
+        paymentMethods={paymentMethods}
+        actionLoading={actionLoading}
+        onConfirm={handlePay}
+        saleDate={payModal.saleDate}
+      />
+
+      <PaymentManagementDialog
+        invoiceNumber={managePaymentDialog.sale?.invoice?.invoiceNumber}
+        payments={managePaymentDialog.sale?.invoice?.payments || []}
+        isOpen={managePaymentDialog.isOpen}
+        canManage={useAppStore.getState().hasPermission("sale.manage")}
+        onClose={() => setManagePaymentDialog({ isOpen: false, sale: null })}
+        onAdjust={(idPayment, newAmount) =>
+          managePaymentDialog.sale
+            ? handleAdjustPayment(
+              managePaymentDialog.sale.idSale,
+              idPayment,
+              newAmount,
+            )
+            : Promise.resolve()
+        }
+        onRefund={(amount, methodId, reason) =>
+          managePaymentDialog.sale
+            ? handleRefundPayment(
+              managePaymentDialog.sale.idSale,
+              amount,
+              methodId,
+              reason,
+            )
+            : Promise.resolve()
+        }
+      />
+
+      <InputDialog
+        open={reopenDialog.isOpen}
+        onOpenChange={(open) =>
+          setReopenDialog((p) => ({ ...p, isOpen: open }))
+        }
+        title="Rouvrir la vente"
+        description="Veuillez indiquer le motif de la réouverture. Cette information sera conservée dans les logs d'audit."
+        placeholder="Ex: Le client a changé d'avis et souhaite ajouter un article..."
+        confirmLabel="Rouvrir"
+        onConfirm={handleReopenConfirm}
+        loading={actionLoading}
+      />
+
+      <CancelSaleModal
+        open={cancelOverpaymentDialog.isOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCancelOverpaymentDialog((p) => ({ ...p, isOpen: false }));
+            setCancelRefundMethodId("");
+          }
+        }}
+        totalPaid={cancelOverpaymentDialog.totalPaid}
+        refundMethodId={cancelRefundMethodId}
+        onRefundMethodIdChange={setCancelRefundMethodId}
+        paymentMethods={paymentMethods}
+        onConfirmRefund={() => {
+          setCancelOverpaymentDialog((p) => ({ ...p, isOpen: false }));
+          handleCancel(
+            cancelOverpaymentDialog.saleId,
+            "REFUND",
+            cancelRefundMethodId,
+          );
+          setCancelRefundMethodId("");
+        }}
+      />
+
+      {snackbar.isOpen && (
+        <Snackbar
+          message={snackbar.message}
+          type={snackbar.type}
+          onClose={() => setSnackbar((p) => ({ ...p, isOpen: false }))}
+        />
+      )}
+
+      <TicketFormatModal
+        open={formatModalOpen}
+        onOpenChange={setFormatModalOpen}
+        onSave={(newConfig) => {
+          setTicketConfig(newConfig);
+          showSnackbar(
+            `Format d'impression enregistré : ${newConfig.type === "custom" ? `${newConfig.width} mm` : newConfig.type}`,
+            "success",
+          );
+        }}
+      />
+
+      <PrintSaleModal
+        sale={printSale}
+        open={Boolean(printSale)}
+        onOpenChange={(open) => !open && setPrintSale(null)}
+        onConfirmPrint={handleExecutePrint}
+        loading={actionLoading || printLoading}
+      />
+    </div>
+  );
+};

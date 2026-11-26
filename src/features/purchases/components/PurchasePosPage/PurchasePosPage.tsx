@@ -1,0 +1,537 @@
+import { toIsoDateTime } from "@/utils/date";
+import React, { useState, useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { purchaseService } from "../../services/purchase.service";
+import { getSuppliers } from "@/features/suppliers/services/supplier.service";
+import { EmployeeService } from "@/features/employees/services/employee.service";
+import type { CreatePurchaseDto } from "../../types/purchase.type";
+import { PurchaseInfoForm } from "./PurchaseInfoForm";
+import { PurchaseItemsForm } from "./PurchaseItemsForm";
+import { PurchaseDeliveryForm } from "./PurchaseDeliveryForm";
+import { Button } from "@/components/ui/Button/button";
+import { Save, ArrowLeft, AlertCircle } from "lucide-react";
+import { Snackbar, type SnackbarType } from "@/components/ui/Snackbar/snackbar";
+import { AddSuppliedItemModal } from "./AddSuppliedItemModal";
+import { formatCurrency } from "../../../../utils/formatters";
+
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
+import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
+import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
+
+export function PurchasePosPage({
+  onGoToList,
+  idPurchaseToEdit,
+  onGoToDeliveries,
+}: {
+  onGoToList?: () => void;
+  idPurchaseToEdit?: string;
+  onGoToDeliveries?: (idPurchase: string) => void;
+}) {
+  const [purchaseData, setPurchaseData] = useState<CreatePurchaseDto>({
+    purchaseDate: toIsoDateTime(new Date()),
+    idSupplier: "",
+    idPurchaser: "",
+    details: [],
+  });
+
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: SnackbarType;
+    isOpen: boolean;
+  }>({ message: "", type: "info", isOpen: false });
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const initializedForId = useRef<string | undefined | null>(null);
+
+  useEffect(() => {
+    if (initializedForId.current === idPurchaseToEdit) return;
+
+    const savedStr = sessionStorage.getItem("purchasePosSavedState");
+    if (savedStr) {
+      try {
+        const parsed = JSON.parse(savedStr);
+        if (parsed && parsed.idPurchaseToEdit === idPurchaseToEdit) {
+          setPurchaseData(parsed.purchaseData);
+          sessionStorage.removeItem("purchasePosSavedState");
+          initializedForId.current = idPurchaseToEdit;
+          return;
+        }
+      } catch (e) {
+        console.error("Failed to parse saved pos state", e);
+      }
+    }
+  }, [idPurchaseToEdit]);
+
+  // If in edit mode, fetch the purchase details
+  const { data: editPurchase } = useQuery({
+    queryKey: ["purchase", idPurchaseToEdit],
+    queryFn: () => purchaseService.getById(idPurchaseToEdit!),
+    enabled: !!idPurchaseToEdit,
+  });
+
+  const { data: editDetails } = useQuery({
+    queryKey: ["purchaseDetails", idPurchaseToEdit],
+    queryFn: () => purchaseService.getDetails(idPurchaseToEdit!),
+    enabled: !!idPurchaseToEdit,
+  });
+
+  useEffect(() => {
+    if (initializedForId.current === idPurchaseToEdit) return;
+
+    if (editPurchase && editDetails) {
+      setPurchaseData({
+        purchaseDate: editPurchase.purchaseDate
+          ? toIsoDateTime(new Date(editPurchase.purchaseDate))
+          : toIsoDateTime(new Date()),
+        idSupplier: editPurchase.idSupplier,
+        idPurchaser: editPurchase.idPurchaser,
+        details: editDetails.map((d) => ({
+          idSuppliedItem: d.idSuppliedItem,
+          quantity: d.quantity,
+          unitPrice: d.unitPrice,
+        })),
+      });
+      initializedForId.current = idPurchaseToEdit;
+    }
+  }, [editPurchase, editDetails, idPurchaseToEdit]);
+
+  const showSnackbar = (message: string, type: SnackbarType = "info") => {
+    setSnackbar({ message, type, isOpen: true });
+  };
+
+  const { data: suppliers } = useQuery({
+    queryKey: ["suppliers"],
+    queryFn: () => getSuppliers({ limit: 100 }),
+  });
+
+  const { data: employees } = useQuery({
+    queryKey: ["employees"],
+    queryFn: () => EmployeeService.getAll({ limit: 100 }),
+  });
+
+  const { data: paymentMethods } = useQuery({
+    queryKey: ["payment-methods"],
+    queryFn: () => purchaseService.getPaymentMethods(),
+  });
+
+  const { data: suppliedItems, refetch: refetchSuppliedItems } = useQuery({
+    queryKey: ["suppliedItems", purchaseData.idSupplier],
+    queryFn: () =>
+      purchaseService.getSuppliedItemsBySupplier(purchaseData.idSupplier),
+    enabled: !!purchaseData.idSupplier,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: CreatePurchaseDto) => purchaseService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchases"] });
+      showSnackbar("Commande créée avec succès", "success");
+      if (onGoToList) onGoToList();
+    },
+    onError: (error: any) => {
+      const respData = error.response?.data;
+      const msg =
+        (respData?.message && respData.message !== "Request failed"
+          ? respData.message
+          : null) ||
+        (respData?.error && respData.error !== "Request failed"
+          ? respData.error
+          : null) ||
+        "Erreur lors de la création de la commande";
+      showSnackbar(msg, "error");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: CreatePurchaseDto) =>
+      purchaseService.update(idPurchaseToEdit!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchases"] });
+      queryClient.invalidateQueries({
+        queryKey: ["purchase", idPurchaseToEdit],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["purchaseDetails", idPurchaseToEdit],
+      });
+      showSnackbar("Commande modifiée avec succès", "success");
+      if (onGoToList) onGoToList();
+    },
+    onError: (error: any) => {
+      const respData = error.response?.data;
+      const msg =
+        (respData?.message && respData.message !== "Request failed"
+          ? respData.message
+          : null) ||
+        (respData?.error && respData.error !== "Request failed"
+          ? respData.error
+          : null) ||
+        "Erreur lors de la modification de la commande";
+      if (msg.includes("livraison en cours")) {
+        setSubmitError(msg);
+      } else {
+        showSnackbar(msg, "error");
+      }
+    },
+  });
+
+  const handleInfoChange = (field: keyof CreatePurchaseDto, value: any) => {
+    setPurchaseData((prev) => {
+      // If supplier changes, clear existing details and add one empty row
+      if (field === "idSupplier") {
+        return {
+          ...prev,
+          [field]: value,
+          details: [{ idSuppliedItem: "", quantity: 1, unitPrice: 0 }],
+        };
+      }
+      if (field === "deliveryDone") {
+        return {
+          ...prev,
+          deliveryDone: value,
+          advanceAmount: value ? 0 : prev.advanceAmount,
+          idPaymentMethod: value ? undefined : prev.idPaymentMethod,
+          deliveryLines: value
+            ? prev.details.map((d) => ({
+                idSuppliedItem: d.idSuppliedItem,
+                quantity: d.quantity,
+                unitPrice: d.unitPrice,
+              }))
+            : prev.deliveryLines,
+        };
+      }
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
+  };
+
+  const handleItemChange = (index: number, field: string, value: any) => {
+    setPurchaseData((prev) => {
+      const newDetails = [...prev.details];
+      (newDetails[index] as any)[field] = value;
+      const newDeliveryLines = prev.deliveryLines
+        ? [...prev.deliveryLines]
+        : undefined;
+      if (newDeliveryLines && newDeliveryLines[index]) {
+        (newDeliveryLines[index] as any)[field] = value;
+      }
+      return {
+        ...prev,
+        details: newDetails,
+        deliveryLines: newDeliveryLines,
+      };
+    });
+  };
+
+  const handleAddItem = () => {
+    setPurchaseData((prev) => ({
+      ...prev,
+      details: [
+        ...prev.details,
+        { idSuppliedItem: "", quantity: 1, unitPrice: 0 },
+      ],
+    }));
+  };
+
+  const handleRemoveItem = (index: number) => {
+    const newDetails = [...purchaseData.details];
+    newDetails.splice(index, 1);
+    setPurchaseData((prev) => ({ ...prev, details: newDetails }));
+  };
+
+  const totalAmount = purchaseData.details.reduce(
+    (sum, item) => sum + item.quantity * item.unitPrice,
+    0,
+  );
+
+  const isFormValid =
+    purchaseData.idSupplier &&
+    purchaseData.idPurchaser &&
+    purchaseData.details.length > 0 &&
+    purchaseData.details.every(
+      (d) => d.idSuppliedItem && d.quantity > 0 && d.unitPrice >= 0,
+    ) &&
+    (!purchaseData.advanceAmount ||
+      purchaseData.advanceAmount <= 0 ||
+      purchaseData.idPaymentMethod);
+
+  const executeSubmit = () => {
+    if (idPurchaseToEdit) {
+      updateMutation.mutate(purchaseData);
+    } else {
+      createMutation.mutate(purchaseData);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isFormValid) {
+      showSnackbar(
+        "Veuillez remplir correctement tous les champs obligatoires.",
+        "error",
+      );
+      return;
+    }
+
+    if (purchaseData.deliveryDone && !idPurchaseToEdit) {
+      const linesToCheck =
+        purchaseData.deliveryLines && purchaseData.deliveryLines.length > 0
+          ? purchaseData.deliveryLines
+          : purchaseData.details;
+
+      const hasValidDeliveryQty = linesToCheck.some(
+        (l) => Number(l.quantity) > 0,
+      );
+      if (!hasValidDeliveryQty) {
+        showSnackbar(
+          "Pour une livraison directe, au moins une quantité reçue doit être supérieure à 0. Si aucune marchandise n'est reçue maintenant, veuillez décocher 'Livraison déjà effectuée ?'.",
+          "error",
+        );
+        return;
+      }
+
+      setConfirmOpen(true);
+    } else {
+      executeSubmit();
+    }
+  };
+
+  const supplierOptions =
+    suppliers?.records?.map((s) => ({ value: s.idSupplier, label: s.name })) ||
+    [];
+  const employeeOptions =
+    employees?.records?.map((e) => ({
+      value: e.idEmployee,
+      label: `${e.name || ""} ${e.lastname || ""}`.trim(),
+    })) || [];
+  const pmOptions = paymentMethods || [];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm" onClick={onGoToList}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Retour
+          </Button>
+          <h1 className="text-3xl font-bold text-foreground">
+            {idPurchaseToEdit ? `Modifier la commande` : `Nouvelle Commande`}
+          </h1>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="rounded-sm border border-border mb-6">
+          <PurchaseInfoForm
+            data={purchaseData}
+            suppliers={supplierOptions}
+            employees={employeeOptions}
+            onChange={handleInfoChange}
+          />
+
+          {purchaseData.idSupplier && (
+            <PurchaseItemsForm
+              items={purchaseData.details}
+              suppliedItems={suppliedItems || []}
+              totalAmount={totalAmount}
+              onChange={handleItemChange}
+              onAdd={handleAddItem}
+              onRemove={handleRemoveItem}
+              onAddNewProduct={() => setIsAddProductModalOpen(true)}
+            />
+          )}
+
+          {/* Bottom Options: Delivery & Payment (Creation Only) */}
+          {!idPurchaseToEdit && (
+            <div className="border-t border-border p-6 space-y-6">
+              <h3 className="text-lg font-semibold text-foreground">
+                Options de Livraison & Règlement
+              </h3>
+
+              <div className="flex items-center gap-3 bg-primary/5 p-4 rounded-lg border border-primary/20">
+                <input
+                  id="delivery-done-checkbox"
+                  type="checkbox"
+                  className="w-5 h-5 rounded border-border accent-primary cursor-pointer"
+                  checked={!!purchaseData.deliveryDone}
+                  onChange={(e) =>
+                    handleInfoChange("deliveryDone", e.target.checked)
+                  }
+                />
+                <div>
+                  <label
+                    htmlFor="delivery-done-checkbox"
+                    className="text-base font-semibold cursor-pointer select-none text-foreground"
+                  >
+                    Livraison déjà effectuée ?
+                  </label>
+                  <p className="text-xs text-muted-foreground">
+                    {purchaseData.deliveryDone
+                      ? "La commande sera confirmée. La livraison sera enregistrée en statut 'Ouverte'. Les paiements se feront après sa validation."
+                      : "Cochez cette case si les articles sont livrés sur place au moment de la commande."}
+                  </p>
+                </div>
+              </div>
+
+              {!purchaseData.deliveryDone && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 rounded-lg border border-border/30 bg-muted/10">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Acompte / Avance (Optionnel)
+                    </label>
+                    <CurrencyInput
+                      placeholder="0"
+                      value={purchaseData.advanceAmount}
+                      onChange={(val) => handleInfoChange("advanceAmount", val)}
+                      currencySuffix="Ar"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Montant crédité sur la balance du fournisseur comme
+                      avance.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Méthode de paiement
+                    </label>
+                    <SearchableSelect
+                      value={purchaseData.idPaymentMethod || ""}
+                      onChange={(val) =>
+                        handleInfoChange("idPaymentMethod", val)
+                      }
+                      options={pmOptions}
+                      placeholder="Sélectionner..."
+                      disabled={
+                        !purchaseData.advanceAmount ||
+                        purchaseData.advanceAmount <= 0
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+
+              {purchaseData.deliveryDone && purchaseData.details.length > 0 && (
+                <PurchaseDeliveryForm
+                  details={purchaseData.details}
+                  deliveryLines={purchaseData.deliveryLines}
+                  suppliedItems={suppliedItems || []}
+                  onChangeDeliveryLines={(lines) =>
+                    setPurchaseData((prev) => ({
+                      ...prev,
+                      deliveryLines: lines,
+                    }))
+                  }
+                />
+              )}
+            </div>
+          )}
+        </div>
+
+        {submitError && (
+          <div className="flex flex-col gap-2 bg-red-500/10 px-4 py-3 rounded-md mb-6">
+            <div className="flex items-center gap-2 text-sm text-red-500 font-medium">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              {submitError}
+            </div>
+            {submitError.includes("livraison en cours") &&
+              onGoToDeliveries &&
+              idPurchaseToEdit && (
+                <Button
+                  variant="outline"
+                  className="w-full mt-1 text-sm text-red-600 border-red-200 hover:bg-red-500/20"
+                  onClick={() => {
+                    sessionStorage.setItem(
+                      "purchasePosSavedState",
+                      JSON.stringify({ idPurchaseToEdit, purchaseData }),
+                    );
+                    onGoToDeliveries(idPurchaseToEdit);
+                  }}
+                >
+                  Voir les livraisons en cours
+                </Button>
+              )}
+          </div>
+        )}
+
+        <div className="flex justify-end gap-4 border-t border-border/30 pt-6">
+          <Button type="button" variant="outline" onClick={onGoToList}>
+            Annuler
+          </Button>
+          <Button
+            type="submit"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8"
+            disabled={
+              !isFormValid ||
+              createMutation.isPending ||
+              updateMutation.isPending
+            }
+          >
+            {createMutation.isPending || updateMutation.isPending ? (
+              "Enregistrement..."
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Valider la commande ({formatCurrency(totalAmount)})
+              </>
+            )}
+          </Button>
+        </div>
+      </form>
+
+      {isAddProductModalOpen && (
+        <AddSuppliedItemModal
+          idSupplier={purchaseData.idSupplier}
+          isOpen={isAddProductModalOpen}
+          onClose={() => setIsAddProductModalOpen(false)}
+          showSnackbar={showSnackbar}
+          onSuccess={(newSuppliedItem) => {
+            refetchSuppliedItems();
+            setIsAddProductModalOpen(false);
+            const newDetails = [...purchaseData.details];
+            if (
+              newDetails.length > 0 &&
+              !newDetails[newDetails.length - 1].idSuppliedItem
+            ) {
+              newDetails[newDetails.length - 1].idSuppliedItem =
+                newSuppliedItem.idSuppliedItem;
+              newDetails[newDetails.length - 1].unitPrice =
+                newSuppliedItem.supplierProduct?.actualPrice || 0;
+            } else {
+              newDetails.push({
+                idSuppliedItem: newSuppliedItem.idSuppliedItem,
+                quantity: 1,
+                unitPrice: newSuppliedItem.supplierProduct?.actualPrice || 0,
+              });
+            }
+            setPurchaseData((prev) => ({ ...prev, details: newDetails }));
+          }}
+        />
+      )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Validation de la commande"
+        description="La commande sera confirmée. La livraison sera enregistrée en statut 'Ouverte'. Les paiements se feront après sa validation depuis la liste des livraisons. Voulez-vous continuer ?"
+        confirmText="Oui, continuer"
+        cancelText="Annuler"
+        confirmButtonClassName="bg-primary text-primary-foreground hover:bg-primary/90"
+        onConfirm={() => {
+          setConfirmOpen(false);
+          executeSubmit();
+        }}
+      />
+
+      {snackbar.isOpen && (
+        <Snackbar
+          message={snackbar.message}
+          type={snackbar.type}
+          onClose={() => setSnackbar({ ...snackbar, isOpen: false })}
+        />
+      )}
+    </div>
+  );
+}
