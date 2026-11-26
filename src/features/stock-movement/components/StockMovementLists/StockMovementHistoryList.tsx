@@ -21,8 +21,7 @@ const selectClass =
   "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2";
 
 const directionBadge = (isOut: boolean) =>
-  `inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${
-    isOut ? "bg-red-500/10 text-red-600" : "bg-green-500/10 text-green-600"
+  `inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${isOut ? "bg-red-500/10 text-red-600" : "bg-green-500/10 text-green-600"
   }`;
 
 interface Props {
@@ -46,7 +45,7 @@ export function StockMovementHistoryList({
   useEffect(() => {
     ItemService.getAll({ limit: 500 })
       .then(setItems)
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const totalPages = Math.ceil(total / filters.limit);
@@ -212,9 +211,9 @@ export function StockMovementHistoryList({
                     <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                       {m.movementDate
                         ? new Date(m.movementDate).toLocaleString("fr-FR", {
-                            dateStyle: "short",
-                            timeStyle: "short",
-                          })
+                          dateStyle: "short",
+                          timeStyle: "short",
+                        })
                         : "-"}
                     </td>
                     <td className="px-4 py-3">
@@ -230,7 +229,7 @@ export function StockMovementHistoryList({
                               {m.reason.substring(0, 30)}...
                             </span>
                             <button
-                              onClick={() => setSelectedReason(m.reason)}
+                              onClick={() => setSelectedReason(m.reason ?? null)}
                               className="text-xs text-primary hover:underline whitespace-nowrap"
                             >
                               Voir plus

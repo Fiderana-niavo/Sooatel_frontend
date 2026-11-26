@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Clock,
   Trash2,
+  RotateCcw,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { EmployeeService } from "@/features/employees/services/employee.service";
@@ -78,15 +79,14 @@ export function LeavesPage() {
               <button
                 key={emp.idEmployee}
                 onClick={() => setSelectedEmployeeId(emp.idEmployee)}
-                className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors ${
-                  selectedEmployeeId === emp.idEmployee
-                    ? "bg-primary/10 border-primary/20 border"
-                    : "hover:bg-muted/50 border border-transparent"
-                }`}
+                className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-colors ${selectedEmployeeId === emp.idEmployee
+                  ? "bg-primary/10 border-primary/20 border"
+                  : "hover:bg-muted/50 border border-transparent"
+                  }`}
               >
                 <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
-                  {emp.name.charAt(0)}
-                  {emp.lastname.charAt(0)}
+                  {emp.name?.charAt(0) ?? ""}
+                  {emp.lastname?.charAt(0) ?? ""}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">
@@ -113,7 +113,7 @@ export function LeavesPage() {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 }
 
@@ -218,6 +218,30 @@ function EmployeeLeaveDetails({ employee }: { employee: any }) {
     setDeleteConfirmOpen({ isOpen: false, idLeave: null });
   };
 
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+
+  const resetMutation = useMutation({
+    mutationFn: (id: string) => leaveService.resetAdvance(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["leave-balances", employee.idEmployee],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["leave-transactions", employee.idEmployee],
+      });
+      setSnackbar({
+        message: "Dette de congés réinitialisée avec succès.",
+        type: "success",
+      });
+    },
+    onError: (err: any) => {
+      setSnackbar({
+        message: err.response?.data?.message || "Une erreur est survenue.",
+        type: "error",
+      });
+    },
+  });
+
   return (
     <div className="p-6 md:p-8 space-y-8 animate-in fade-in duration-300">
       <div className="flex items-start justify-between border-b pb-6">
@@ -283,16 +307,34 @@ function EmployeeLeaveDetails({ employee }: { employee: any }) {
             {defaultBalance?.usedDays || 0}
           </div>
         </div>
-        <div className="bg-card p-4 rounded-xl border">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="size-4 text-amber-500" />
-            <div className="text-sm text-muted-foreground">Avance (Dette)</div>
+        <div className="bg-card p-4 rounded-xl border flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <AlertCircle className="size-4 text-amber-500" />
+              <div className="text-sm text-muted-foreground">
+                Avance (Dette)
+              </div>
+            </div>
+            <div className="text-2xl font-bold mt-1 text-amber-600">
+              {totalAdvance}
+            </div>
           </div>
-          <div className="text-2xl font-bold mt-1 text-amber-600">
-            {totalAdvance}
-          </div>
-          <div className="text-xs text-muted-foreground mt-2">
-            À déduire ou à rattraper
+          <div className="text-xs text-muted-foreground mt-2 flex items-center justify-between gap-1">
+            <span>À déduire ou à rattraper</span>
+            <button
+              type="button"
+              disabled={totalAdvance <= 0 || resetMutation.isPending}
+              onClick={() => setResetConfirmOpen(true)}
+              title={
+                totalAdvance > 0
+                  ? "Réinitialiser la dette de congés"
+                  : "Aucune dette à réinitialiser"
+              }
+              className="p-1 rounded-md text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 bg-amber-500/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+              aria-label="Réinitialiser la dette"
+            >
+              <RotateCcw className="size-3.5" />
+            </button>
           </div>
         </div>
       </div>
@@ -355,15 +397,14 @@ function EmployeeLeaveDetails({ employee }: { employee: any }) {
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          tx.transactionType === "ALLOCATION"
+                        className={`px-2.5 py-1 rounded-full text-xs font-semibold ${tx.transactionType === "ALLOCATION"
                             ? "bg-emerald-100 text-emerald-700"
                             : tx.transactionType === "ADVANCE"
                               ? "bg-amber-100 text-amber-700"
                               : tx.transactionType === "SALARY_DEDUCTION"
                                 ? "bg-purple-100 text-purple-700"
                                 : "bg-blue-100 text-blue-700"
-                        }`}
+                          }`}
                       >
                         {tx.transactionType}
                       </span>
@@ -443,6 +484,17 @@ function EmployeeLeaveDetails({ employee }: { employee: any }) {
         cancelText="Annuler"
         onConfirm={handleDeleteConfirm}
         confirmButtonClassName="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+      />
+
+      <ConfirmDialog
+        open={resetConfirmOpen}
+        onOpenChange={setResetConfirmOpen}
+        title="Réinitialiser la dette de congés"
+        description={`Êtes-vous sûr de vouloir réinitialiser la dette de congés (${totalAdvance} jour(s)) pour ${employee.name} ${employee.lastname} ? Cette action régularisera le solde d'avance de l'employé.`}
+        confirmText="Réinitialiser"
+        cancelText="Annuler"
+        onConfirm={() => resetMutation.mutate(employee.idEmployee)}
+        confirmButtonClassName="bg-amber-600 hover:bg-amber-700 text-white"
       />
     </div>
   );
@@ -525,8 +577,8 @@ function CreateLeaveModal({
     onError: (err: any) => {
       onError(
         err.response?.data?.message ||
-          err.message ||
-          "Une erreur est survenue.",
+        err.message ||
+        "Une erreur est survenue.",
       );
     },
   });
@@ -542,8 +594,8 @@ function CreateLeaveModal({
     onError: (err: any) => {
       onError(
         err.response?.data?.message ||
-          err.message ||
-          "Une erreur est survenue.",
+        err.message ||
+        "Une erreur est survenue.",
       );
     },
   });

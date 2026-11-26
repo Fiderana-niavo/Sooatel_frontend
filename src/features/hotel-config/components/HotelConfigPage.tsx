@@ -1,12 +1,23 @@
 import { useState } from "react";
 
-import { RoomsModal, RoomService, type Room } from "@/features/rooms";
+import {
+  RoomsModal,
+  RoomService,
+  type Room,
+  type CreateRoomDto,
+} from "@/features/rooms";
 import {
   RoomTypesModal,
   RoomTypeService,
   type RoomType,
+  type CreateRoomTypeDto,
 } from "@/features/room-types";
-import { EventsModal, EventService, type Event } from "@/features/events";
+import {
+  EventsModal,
+  EventService,
+  type Event,
+  type CreateEventDto,
+} from "@/features/events";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { Snackbar, type SnackbarType } from "@/components/ui/Snackbar/snackbar";
 import { HOTEL_MODULES } from "@/constants/app.constants";
@@ -28,21 +39,25 @@ export function HotelConfigPage() {
     setSnackbar({ message, type, isOpen: true });
   };
 
-  const rooms = useCrud<Room>(
+  const rooms = useCrud<Room, CreateRoomDto, Partial<CreateRoomDto>>(
     RoomService.getAll,
     RoomService.create,
     RoomService.update,
     RoomService.delete,
     "idRoom" as keyof Room,
   );
-  const roomTypes = useCrud<RoomType>(
+  const roomTypes = useCrud<
+    RoomType,
+    CreateRoomTypeDto,
+    Partial<CreateRoomTypeDto>
+  >(
     RoomTypeService.getAll,
     RoomTypeService.create,
     RoomTypeService.update,
     RoomTypeService.delete,
     "idRoomType" as keyof RoomType,
   );
-  const events = useCrud<Event>(
+  const events = useCrud<Event, CreateEventDto, Partial<CreateEventDto>>(
     EventService.getAll,
     EventService.create,
     EventService.update,
@@ -94,8 +109,10 @@ export function HotelConfigPage() {
         onClose={() => rooms.setIsOpen(false)}
         data={rooms.data}
         roomTypes={roomTypes.data}
-        onAdd={(data) => rooms.handleAdd(data, showSnackbar)}
-        onEdit={(id, data) => rooms.handleEdit(id, data, showSnackbar)}
+        onAdd={(data) => rooms.handleAdd(data as CreateRoomDto, showSnackbar)}
+        onEdit={(id, data) =>
+          rooms.handleEdit(id, data as Partial<CreateRoomDto>, showSnackbar)
+        }
         onDelete={rooms.promptDelete}
       />
       <ConfirmDialog
@@ -111,8 +128,16 @@ export function HotelConfigPage() {
         isOpen={roomTypes.isOpen}
         onClose={() => roomTypes.setIsOpen(false)}
         data={roomTypes.data}
-        onAdd={(data) => roomTypes.handleAdd(data, showSnackbar)}
-        onEdit={(id, data) => roomTypes.handleEdit(id, data, showSnackbar)}
+        onAdd={(data) =>
+          roomTypes.handleAdd(data as CreateRoomTypeDto, showSnackbar)
+        }
+        onEdit={(id, data) =>
+          roomTypes.handleEdit(
+            id,
+            data as Partial<CreateRoomTypeDto>,
+            showSnackbar,
+          )
+        }
         onDelete={roomTypes.promptDelete}
       />
       <ConfirmDialog
@@ -128,8 +153,12 @@ export function HotelConfigPage() {
         isOpen={events.isOpen}
         onClose={() => events.setIsOpen(false)}
         data={events.data}
-        onAdd={(data) => events.handleAdd(data, showSnackbar)}
-        onEdit={(id, data) => events.handleEdit(id, data, showSnackbar)}
+        onAdd={(data) =>
+          events.handleAdd(data as CreateEventDto, showSnackbar)
+        }
+        onEdit={(id, data) =>
+          events.handleEdit(id, data as Partial<CreateEventDto>, showSnackbar)
+        }
         onDelete={events.promptDelete}
       />
       <ConfirmDialog

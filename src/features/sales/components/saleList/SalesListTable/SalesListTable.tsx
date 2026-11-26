@@ -15,6 +15,7 @@ import Pagination from "@/components/ui/Pagination/pagination";
 import { ActionDropdown } from "@/components/ui/ActionDropdown/ActionDropdown";
 import { SaleStatusBadge, PaymentStatusBadge } from "../SaleStatusBadge";
 import { calcTotal } from "../../../utils/saleMappers";
+import { formatCurrency } from "@/utils/formatters";
 import type { SaleRecord } from "../../../types";
 
 interface SalesListTableProps {
@@ -130,7 +131,7 @@ export const SalesListTable: React.FC<SalesListTableProps> = ({
                       }
                     >
                       {mismatch && <AlertTriangle size={12} />}
-                      {Number(sale.totalAmount).toLocaleString("fr-FR")} Ar
+                      {formatCurrency(sale.totalAmount)}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center">

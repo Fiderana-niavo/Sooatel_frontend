@@ -5,7 +5,6 @@ import {
   Building,
   BedDouble,
   BookOpen,
-  AlertTriangle,
   TrendingUp,
   Contact,
   CalendarDays,
@@ -146,12 +145,12 @@ export const NAVIGATION_GROUPS = [
         icon: Box,
         permission: "stock.manage",
       },
-      {
-        title: "Niveaux de Stock",
-        url: "/inventory/stock",
-        icon: Boxes,
-        permission: "stock.read",
-      },
+      // {
+      //   title: "Niveaux de Stock",
+      //   url: "/inventory/stock",
+      //   icon: Boxes,
+      //   permission: "stock.read",
+      // },
       {
         title: "Mouvements",
         url: "/inventory/movements",
@@ -164,18 +163,18 @@ export const NAVIGATION_GROUPS = [
         icon: ClipboardList,
         permission: "stock.manage",
       },
-      {
-        title: "Audits & Alertes",
-        url: "/inventory/audits",
-        icon: AlertTriangle,
-        permission: "stock.audit",
-      },
-      {
-        title: "Prévisions IA",
-        url: "/inventory/ai",
-        icon: TrendingUp,
-        permission: "stock.forecast",
-      },
+      // {
+      //   title: "Audits & Alertes",
+      //   url: "/inventory/audits",
+      //   icon: AlertTriangle,
+      //   permission: "stock.audit",
+      // },
+      // {
+      //   title: "Prévisions IA",
+      //   url: "/inventory/ai",
+      //   icon: TrendingUp,
+      //   permission: "stock.forecast",
+      // },
     ],
   },
   {

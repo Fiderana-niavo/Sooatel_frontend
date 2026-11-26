@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { formatCurrency } from "@/utils/formatters";
 import { Input } from "@/components/ui/Inputs/input";
 import { Button } from "@/components/ui/Button/button";
 import { Plus } from "lucide-react";
@@ -33,7 +34,7 @@ export const SaleItemsForm: React.FC<SaleItemsProps> = ({
     title: string;
     desc: string;
     onConfirm: () => void;
-  }>({ isOpen: false, title: "", desc: "", onConfirm: () => {} });
+  }>({ isOpen: false, title: "", desc: "", onConfirm: () => { } });
 
   const requestRemove = (index: number) => {
     setConfirmDialog({
@@ -124,7 +125,7 @@ export const SaleItemsForm: React.FC<SaleItemsProps> = ({
                 )
                 .map((menu) => ({
                   value: menu.idMenu,
-                  label: `${menu.name} (${menu.salePrice} Ar)`,
+                  label: `${menu.name} (${formatCurrency(menu.salePrice)})`,
                 }))}
               selectedMenu={selectedMenu}
               needsConfirmation={needsConfirmation}

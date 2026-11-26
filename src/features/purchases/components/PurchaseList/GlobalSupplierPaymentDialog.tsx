@@ -15,7 +15,6 @@ export function GlobalSupplierPaymentDialog({
   open,
   onOpenChange,
   onSuccess,
-  onGoToDeliveries,
 }: Props) {
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
 
@@ -28,7 +27,7 @@ export function GlobalSupplierPaymentDialog({
           if (saved.idSupplier) {
             setSelectedSupplierId(saved.idSupplier);
           }
-        } catch (e) {}
+        } catch (e) { }
       }
     }
   }, [open]);
@@ -51,7 +50,7 @@ export function GlobalSupplierPaymentDialog({
           setSelectedSupplierId("");
         }
       }}
-      onConfirm={() => {}}
+      onConfirm={() => { }}
       hideConfirmButton
       cancelText="Fermer"
     >

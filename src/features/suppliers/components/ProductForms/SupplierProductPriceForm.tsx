@@ -1,4 +1,5 @@
 import { toIsoDate } from "@/utils/date";
+import { formatCurrency } from "@/utils/formatters";
 import {
   Dialog,
   DialogContent,
@@ -50,7 +51,7 @@ export function SupplierProductPriceForm({
           <br />
           Prix actuel :{" "}
           <strong className="text-foreground">
-            {priceProduct?.actualPrice?.toLocaleString()} Ar
+            {formatCurrency(priceProduct?.actualPrice)}
           </strong>
         </div>
         {priceActionType === "change" ? (

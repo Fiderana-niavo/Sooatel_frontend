@@ -22,7 +22,7 @@ export const AuthService = {
       `${BASE}/auth/login`,
       dto,
     );
-    if (!res.data.ok) throw new Error(res.data.error);
+    if (!res.data.ok) throw new Error(res.data.message || res.data.error);
     return res.data.payload;
   },
 
@@ -41,7 +41,7 @@ export const AuthService = {
         token,
       },
     );
-    if (!res.data.ok) throw new Error(res.data.error);
+    if (!res.data.ok) throw new Error(res.data.message || res.data.error);
     return res.data.payload;
   },
 
@@ -52,7 +52,7 @@ export const AuthService = {
       `${BASE}/auth/password/request-reset`,
       dto,
     );
-    if (!res.data.ok) throw new Error(res.data.error);
+    if (!res.data.ok) throw new Error(res.data.message || res.data.error);
     return res.data.payload;
   },
 
@@ -63,7 +63,7 @@ export const AuthService = {
       `${BASE}/auth/password/validate-key`,
       dto,
     );
-    if (!res.data.ok) throw new Error(res.data.error);
+    if (!res.data.ok) throw new Error(res.data.message || res.data.error);
     return res.data.payload;
   },
 
@@ -74,7 +74,7 @@ export const AuthService = {
       `${BASE}/auth/password/reset`,
       dto,
     );
-    if (!res.data.ok) throw new Error(res.data.error);
+    if (!res.data.ok) throw new Error(res.data.message || res.data.error);
     return res.data.payload;
   },
 
@@ -85,7 +85,7 @@ export const AuthService = {
       `${BASE}/auth/password/change`,
       dto,
     );
-    if (!res.data.ok) throw new Error(res.data.error);
+    if (!res.data.ok) throw new Error(res.data.message || res.data.error);
     return res.data.payload;
   },
 };

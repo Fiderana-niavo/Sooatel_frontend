@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
 import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
+import { formatCurrency } from "@/utils/formatters";
 
 interface PaymentModalProps {
   open: boolean;
@@ -65,7 +66,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               Reste à payer
             </label>
             <div className="text-2xl font-bold text-primary">
-              {balanceDue.toLocaleString("fr-FR")} Ar
+              {formatCurrency(balanceDue)}
             </div>
           </div>
 

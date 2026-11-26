@@ -1,4 +1,5 @@
 import React from "react";
+import { formatCurrency } from "@/utils/formatters";
 import { Input } from "@/components/ui/Inputs/input";
 import { Button } from "@/components/ui/Button/button";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
@@ -86,7 +87,7 @@ export const SaleItemRow: React.FC<SaleItemRowProps> = ({
         <div className="md:col-span-2">
           <label className="block text-xs font-medium mb-1">Total</label>
           <div className="h-10 flex items-center whitespace-nowrap overflow-hidden font-semibold text-sm px-2 bg-muted/50 rounded-md border border-input">
-            {item.quantity * item.unitPrice || 0} Ar
+            {formatCurrency(item.quantity * item.unitPrice || 0)}
           </div>
         </div>
 
@@ -106,8 +107,8 @@ export const SaleItemRow: React.FC<SaleItemRowProps> = ({
         <div className="flex items-center justify-between mt-2 p-2 bg-orange-500/10 border border-orange-500/30 rounded text-sm">
           <span className="text-orange-700 flex items-center">
             <AlertTriangle size={14} className="mr-2" />
-            Le prix saisi ({item.unitPrice}) est différent du prix catalogue (
-            {selectedMenu?.salePrice}).
+            Le prix saisi ({formatCurrency(item.unitPrice)}) est différent du
+            prix catalogue ({formatCurrency(selectedMenu?.salePrice)}).
           </span>
           <Button
             type="button"

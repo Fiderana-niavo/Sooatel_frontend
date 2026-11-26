@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { Badge } from "@/components/ui/Badge/badge";
+import { formatCurrency } from "@/utils/formatters";
 import type { Supplier, SupplierProduct } from "../../types/supplier.type";
 import { SupplierBalancePanel } from "../SuppliersPage/SupplierBalancePanel";
 import Pagination from "@/components/ui/Pagination/pagination";
@@ -171,7 +172,7 @@ export function SupplierProductsList({
             {products.map((p) => (
               <div
                 key={p.idSupplierProduct}
-                className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-background hover:border-primary/30 transition-colors group gap-4"
+                className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-background hover:border-primary/30 transition-colors group gap-3"
               >
                 <div className="min-w-0 flex-1">
                   <h4 className="font-semibold text-base truncate">{p.name}</h4>
@@ -180,49 +181,49 @@ export function SupplierProductsList({
                       variant="outline"
                       className="bg-primary/5 text-primary border-primary/20 px-2.5 py-0.5"
                     >
-                      {p.actualPrice.toLocaleString()} Ar
+                      {formatCurrency(p.actualPrice)}
                     </Badge>
                     <span className="text-xs bg-muted/50 px-2 py-1 rounded-md border border-border/50">
                       Min: {p.minPurchaseNumber}
                     </span>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 md:flex md:opacity-0 md:group-hover:opacity-100 transition-opacity gap-2 shrink-0">
+                <div className="flex flex-wrap items-center justify-end gap-1.5 md:opacity-0 md:group-hover:opacity-100 transition-opacity max-w-full">
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 border-purple-200 text-purple-600 bg-purple-50 justify-start px-2.5"
+                    className="h-8 border-purple-200 text-purple-600 bg-purple-50 justify-start px-2 text-xs"
                     onClick={() => onLinkProduct(p)}
                     title="Liaison article"
                   >
-                    <Link2 size={14} className="mr-1.5" /> Liaison
+                    <Link2 size={13} className="mr-1 shrink-0" /> Liaison
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 border-blue-200 text-blue-600 bg-blue-50 justify-start px-2.5"
+                    className="h-8 border-blue-200 text-blue-600 bg-blue-50 justify-start px-2 text-xs"
                     onClick={() => onPriceProduct(p, "change")}
                     title="Nouveau prix"
                   >
-                    <DollarSign size={14} className="mr-1.5" /> Prix
+                    <DollarSign size={13} className="mr-1 shrink-0" /> Prix
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 border-orange-200 text-orange-600 bg-orange-50 justify-start px-2.5"
+                    className="h-8 border-orange-200 text-orange-600 bg-orange-50 justify-start px-2 text-xs"
                     onClick={() => onPriceProduct(p, "fix")}
                     title="Corriger erreur"
                   >
-                    <AlertCircle size={14} className="mr-1.5" /> Erreur
+                    <AlertCircle size={13} className="mr-1 shrink-0" /> Erreur
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 justify-start px-2.5"
+                    className="h-8 justify-start px-2 text-xs"
                     onClick={() => onEditProduct(p)}
                     title="Modifier"
                   >
-                    <Edit2 size={14} className="mr-1.5" /> Modifier
+                    <Edit2 size={13} className="mr-1 shrink-0" /> Modifier
                   </Button>
                 </div>
               </div>
@@ -239,8 +240,6 @@ export function SupplierProductsList({
             />
           </div>
         )}
-
-        <SupplierBalancePanel idSupplier={selectedSupplier.idSupplier} />
       </div>
     </div>
   );

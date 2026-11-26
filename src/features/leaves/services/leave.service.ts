@@ -57,6 +57,13 @@ export const leaveService = {
     await axios.post(`${BASE}/leaves/confirm/${idEmployee}`);
   },
 
+  resetAdvance: async (idEmployee: string): Promise<void> => {
+    const response = await axios.post<ApiResponse<unknown>>(
+      `${BASE}/leaves/reset-advance/${idEmployee}`,
+    );
+    if (!response.data.ok) throw new Error(response.data.error);
+  },
+
   getBalance: async (
     idEmployee: string,
     idLeaveType: string,

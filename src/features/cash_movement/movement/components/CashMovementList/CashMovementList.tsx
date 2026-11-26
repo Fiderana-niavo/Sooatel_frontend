@@ -1,4 +1,5 @@
 import { toIsoDateTime } from "@/utils/date";
+import { formatCurrency } from "@/utils/formatters";
 import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Search, Loader2 } from "lucide-react";
 import { CashMovementService } from "../../services/cash-movement.service";
@@ -311,7 +312,7 @@ export function CashMovementList({ direction }: { direction: number }) {
                   <td
                     className={`px-4 py-3 text-right font-medium whitespace-nowrap ${isOutflow ? "text-red-500" : "text-green-500"}`}
                   >
-                    {Number(movement.amount).toLocaleString()} Ar
+                    {formatCurrency(movement.amount)}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {!(

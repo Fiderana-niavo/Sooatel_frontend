@@ -21,6 +21,8 @@ export function LoginForm({ onSubmit, onForgotPasswordClick }: LoginFormProps) {
     setIsLoading(true);
     try {
       await onSubmit(username.trim(), password.trim());
+    } catch {
+      // Handled by parent container
     } finally {
       setIsLoading(false);
     }

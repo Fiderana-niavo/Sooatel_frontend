@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/Dialog/dialog";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Inputs/input";
-import { CurrencyInput } from "@/components/ui/Inputs/CurrencyInput";
+import { formatCurrency } from "@/utils/formatters";
 import { SearchableSelect } from "@/components/ui/Inputs/SearchableSelect";
 import { ItemService } from "@/features/items";
 import {
@@ -74,7 +74,7 @@ export const AddSuppliedItemModal: React.FC<AddSuppliedItemModalProps> = ({
   const supplierProductOptions =
     existingProducts?.records?.map((p) => ({
       value: p.idSupplierProduct,
-      label: `${p.name} (${p.actualPrice} Ar)`,
+      label: `${p.name} (${formatCurrency(p.actualPrice)})`,
     })) || [];
 
   const handleChange = (field: string, value: any) => {
@@ -141,8 +141,8 @@ export const AddSuppliedItemModal: React.FC<AddSuppliedItemModalProps> = ({
       if (showSnackbar)
         showSnackbar(
           error.response?.data?.message ||
-            error.message ||
-            "Erreur lors de l'ajout du produit",
+          error.message ||
+          "Erreur lors de l'ajout du produit",
           "error",
         );
     } finally {

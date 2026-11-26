@@ -13,7 +13,17 @@ import { PaymentManagementDialog } from "../../../payments/components/PaymentMan
 import { SaleStatusBadge, PaymentStatusBadge } from "./SaleStatusBadge";
 import { Can } from "@/components/Can/Can";
 import type { SaleRecord } from "../../types";
-import { RotateCcw, Trash2, XCircle, Edit, Banknote, Lock, Printer, Settings } from "lucide-react";
+import { formatCurrency } from "@/utils/formatters";
+import {
+  RotateCcw,
+  Trash2,
+  XCircle,
+  Edit,
+  Banknote,
+  Lock,
+  Printer,
+  Settings,
+} from "lucide-react";
 
 interface SaleDetailSheetProps {
   sale: SaleRecord | null;
@@ -64,7 +74,7 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
     title: string;
     desc: string;
     onConfirm: () => void;
-  }>({ isOpen: false, title: "", desc: "", onConfirm: () => {} });
+  }>({ isOpen: false, title: "", desc: "", onConfirm: () => { } });
   const [paymentManagementDialog, setPaymentManagementDialog] = useState<{
     isOpen: boolean;
   }>({ isOpen: false });
@@ -144,10 +154,7 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
                   Reste à payer
                 </p>
                 <p className="font-medium">
-                  {Number(
-                    sale.invoice?.balanceDue ?? sale.totalAmount,
-                  ).toLocaleString("fr-FR")}{" "}
-                  Ar
+                  {formatCurrency(sale.invoice?.balanceDue ?? sale.totalAmount)}
                 </p>
               </div>
             </div>
@@ -196,12 +203,11 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
                           `Menu #${item.idMenu.slice(0, 8)}`}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {item.quantity} ×{" "}
-                        {Number(item.unitPrice).toLocaleString("fr-FR")} Ar
+                        {item.quantity} × {formatCurrency(item.unitPrice)}
                       </p>
                     </div>
                     <p className="font-semibold">
-                      {Number(item.totalAmount).toLocaleString("fr-FR")} Ar
+                      {formatCurrency(item.totalAmount)}
                     </p>
                   </div>
                 ))}
@@ -212,7 +218,7 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Total calculé</span>
                 <span className="font-medium">
-                  {calculatedTotal.toLocaleString("fr-FR")} Ar
+                  {formatCurrency(calculatedTotal)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
@@ -220,7 +226,7 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
                 <span
                   className={`font-semibold ${hasTotalMismatch ? "text-orange-500" : ""}`}
                 >
-                  {Number(sale.totalAmount).toLocaleString("fr-FR")} Ar
+                  {formatCurrency(sale.totalAmount)}
                 </span>
               </div>
               {hasTotalMismatch && (
@@ -240,7 +246,8 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
                     onClick={() => onPrint(sale)}
                     className="w-full justify-start gap-2 h-auto py-2 px-3 whitespace-normal text-left text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium"
                   >
-                    <Printer size={14} className="text-primary shrink-0" /> Imprimer
+                    <Printer size={14} className="text-primary shrink-0" />{" "}
+                    Imprimer
                   </Button>
                 )}
                 <Can permission="sales.pos">
@@ -338,7 +345,8 @@ export const SaleDetailSheet: React.FC<SaleDetailSheetProps> = ({
                     onClick={onOpenFormatModal}
                     className="w-full justify-start gap-2 h-auto py-2 px-3 whitespace-normal text-left text-xs text-muted-foreground hover:text-foreground"
                   >
-                    <Settings size={13} className="shrink-0" /> Format d'impression
+                    <Settings size={13} className="shrink-0" /> Format
+                    d'impression
                   </Button>
                 )}
               </div>

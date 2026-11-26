@@ -38,10 +38,9 @@ const DEFAULT_HISTORY_FILTERS: StockMovementFilters = {
 };
 
 const tabClass = (active: boolean) =>
-  `flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-    active
-      ? "bg-background shadow-sm text-foreground"
-      : "text-muted-foreground hover:text-foreground"
+  `flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${active
+    ? "bg-background shadow-sm text-foreground"
+    : "text-muted-foreground hover:text-foreground"
   }`;
 
 export function StockMovementPage() {
@@ -88,7 +87,10 @@ export function StockMovementPage() {
 
   const overviewResult = useQuery({
     queryKey: ["items", "overview", overviewFilters],
-    queryFn: () => ItemService.getAllPaginated(overviewFilters),
+    queryFn: () =>
+      ItemService.getAllPaginated(
+        overviewFilters as unknown as Record<string, unknown>,
+      ),
   });
 
   /* ---------- Mutations ---------- */
@@ -222,24 +224,24 @@ export function StockMovementPage() {
           {(activeTab === "overview" ||
             activeTab === "drafts" ||
             activeTab === "history") && (
-            <>
-              <Button
-                variant="outline"
-                className="border-red-500/40 text-red-600 hover:bg-red-500/10"
-                onClick={() => openNewForm(-5)}
-              >
-                <ArrowDownCircle className="size-4 mr-2" />
-                Sortie
-              </Button>
-              <Button
-                className="bg-green-500 hover:bg-green-600 text-white"
-                onClick={() => openNewForm(5)}
-              >
-                <ArrowUpCircle className="size-4 mr-2" />
-                Entrée
-              </Button>
-            </>
-          )}
+              <>
+                <Button
+                  variant="outline"
+                  className="border-red-500/40 text-red-600 hover:bg-red-500/10"
+                  onClick={() => openNewForm(-5)}
+                >
+                  <ArrowDownCircle className="size-4 mr-2" />
+                  Sortie
+                </Button>
+                <Button
+                  className="bg-green-500 hover:bg-green-600 text-white"
+                  onClick={() => openNewForm(5)}
+                >
+                  <ArrowUpCircle className="size-4 mr-2" />
+                  Entrée
+                </Button>
+              </>
+            )}
           {activeTab === "loss" && (
             <Button
               className="bg-orange-500 hover:bg-orange-600 text-white"
@@ -311,14 +313,14 @@ export function StockMovementPage() {
           initial={
             selectedMovement
               ? {
-                  idStockMovement: selectedMovement.idStockMovement,
-                  idItem:
-                    selectedMovement.item?.idItem ?? selectedMovement.idItem,
-                  quantity: selectedMovement.quantity,
-                  direction: selectedMovement.direction,
-                  reason: selectedMovement.reason ?? "",
-                  movementDate: selectedMovement.movementDate,
-                }
+                idStockMovement: selectedMovement.idStockMovement,
+                idItem:
+                  selectedMovement.item?.idItem ?? selectedMovement.idItem,
+                quantity: selectedMovement.quantity,
+                direction: selectedMovement.direction,
+                reason: selectedMovement.reason ?? "",
+                movementDate: selectedMovement.movementDate,
+              }
               : formDirection !== undefined
                 ? { direction: formDirection }
                 : undefined

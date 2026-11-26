@@ -8,6 +8,7 @@ import {
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import type { PaymentMethodRef } from "../../sales/types";
 import type { PaymentRecord } from "../types";
+import { formatCurrency } from "@/utils/formatters";
 import { fetchSalesDependencies } from "../../sales/utils/saleFetchers";
 
 import {
@@ -237,10 +238,7 @@ export const PaymentManagementDialog: React.FC<Props> = ({
                               ) : isRefundRow ? (
                                 <div className="flex flex-col items-end gap-1">
                                   <span className="text-orange-600 font-medium">
-                                    {Math.abs(Number(p.amount)).toLocaleString(
-                                      "fr-FR",
-                                    )}{" "}
-                                    Ar
+                                    {formatCurrency(Math.abs(Number(p.amount)))}
                                   </span>
                                   <span
                                     className="text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full"
@@ -257,7 +255,7 @@ export const PaymentManagementDialog: React.FC<Props> = ({
                                 </div>
                               ) : (
                                 <span>
-                                  {Number(p.amount).toLocaleString("fr-FR")} Ar
+                                  {formatCurrency(p.amount)}
                                   {isJournalized && (
                                     <span className="ml-1 text-xs text-muted-foreground">
                                       (J)
@@ -329,14 +327,14 @@ export const PaymentManagementDialog: React.FC<Props> = ({
                                       ? isRefundRow
                                         ? "Ce remboursement sera supprimé."
                                         : "Ce paiement sera mis à 0 et supprimé" +
-                                          (p.idCashMovement
-                                            ? " (sortie de caisse générée)."
-                                            : ".")
-                                      : `Écart : ${Math.abs(Math.abs(Number(p.amount)) - (Number(editAmount) || 0)).toLocaleString("fr-FR")} Ar` +
-                                        (isRefundRow
-                                          ? " → Ajusté directement."
-                                          : p.idCashMovement
-                                            ? " → Mouvement de caisse généré."
+                                        (p.idCashMovement
+                                          ? " (sortie de caisse générée)."
+                                          : ".")
+                                      : `Écart : ${formatCurrency(Math.abs(Math.abs(Number(p.amount)) - (Number(editAmount) || 0)))}` +
+                                    (isRefundRow
+                                    ? " → Ajusté directement."
+                                    : p.idCashMovement
+                                    ? " → Mouvement de caisse généré."
                                             : ".")}
                                   </span>
                                 </div>

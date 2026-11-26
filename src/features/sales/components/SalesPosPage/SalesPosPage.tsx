@@ -8,6 +8,7 @@ import type {
 } from "../../types";
 import type { SelectOptionDto } from "@/types/api.type";
 import { SaleService } from "../../services/sale.service";
+import { formatCurrency } from "@/utils/formatters";
 import { SaleDetailsForm } from "./SaleForm/SaleDetailsForm";
 import { SaleItemsForm } from "./SaleForm/SaleItemsForm";
 import { SalePaymentForm } from "../../../payments/components/SalePaymentForm";
@@ -402,8 +403,7 @@ export default function SalesPosPage({
             Le nouveau total de la vente est inférieur au montant que le client
             a déjà payé (Différence :{" "}
             <strong className="text-foreground">
-              {Math.abs(overpaymentDialog.balanceDue).toLocaleString("fr-FR")}{" "}
-              Ar
+              {formatCurrency(Math.abs(overpaymentDialog.balanceDue))}
             </strong>
             ). Que souhaitez-vous faire ?
           </div>
@@ -503,7 +503,7 @@ export default function SalesPosPage({
                       .map((p) => (
                         <option key={p.idPayment} value={p.idPayment}>
                           {new Date(p.paymentDate).toLocaleString("fr-FR")} -{" "}
-                          {Number(p.amount).toLocaleString("fr-FR")} Ar
+                          {formatCurrency(p.amount)}
                           {p.paymentMethod?.methodName
                             ? ` (${p.paymentMethod.methodName})`
                             : ""}
